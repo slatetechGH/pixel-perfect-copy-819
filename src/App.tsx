@@ -12,6 +12,7 @@ import Messages from "./pages/Messages.tsx";
 import Analytics from "./pages/Analytics.tsx";
 import Settings from "./pages/Settings.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import Marketing from "./pages/Marketing.tsx";
 
 const queryClient = new QueryClient();
 
