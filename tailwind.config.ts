@@ -14,8 +14,14 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["var(--font-display)", "serif"],
         body: ["var(--font-body)", "sans-serif"],
+      },
+      fontSize: {
+        "metric": ["32px", { lineHeight: "1.1", fontWeight: "700" }],
+        "section": ["20px", { lineHeight: "1.3", fontWeight: "500" }],
+        "body": ["15px", { lineHeight: "1.5", fontWeight: "400" }],
+        "label": ["13px", { lineHeight: "1.4", fontWeight: "500" }],
+        "caption": ["11px", { lineHeight: "1.3", fontWeight: "300" }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -73,11 +79,26 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
+        slate: {
+          dark: "hsl(var(--slate-dark))",
+          mid: "hsl(var(--slate-mid))",
+          light: "hsl(var(--slate-light))",
+          wash: "hsl(var(--slate-wash))",
+          whisper: "hsl(var(--slate-whisper))",
+        },
+        amber: {
+          DEFAULT: "hsl(var(--amber))",
+          hover: "hsl(var(--amber-hover))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        "card": "0 1px 3px rgba(0,0,0,0.04)",
+        "card-hover": "0 4px 12px rgba(0,0,0,0.06)",
       },
       keyframes: {
         "accordion-down": {

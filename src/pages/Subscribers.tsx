@@ -1,6 +1,5 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Download, MoreHorizontal } from "lucide-react";
@@ -16,8 +15,11 @@ const subscribers = [
   { id: 8, name: "George Baker", email: "george.b@email.com", tier: "Standard", joined: "20 Jan 2026", status: "active", ltv: "£150" },
 ];
 
-const statusColor = (s: string) =>
-  s === "active" ? "bg-success/10 text-success" : s === "paused" ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive";
+const statusDot: Record<string, string> = {
+  active: "bg-success",
+  paused: "bg-amber",
+  cancelled: "bg-destructive/80",
+};
 
 const Subscribers = () => (
   <DashboardLayout
@@ -25,13 +27,13 @@ const Subscribers = () => (
     subtitle="187 total subscribers"
     actions={
       <Button variant="outline" size="sm">
-        <Download className="h-4 w-4 mr-1" /> Export CSV
+        <Download className="h-4 w-4 mr-1.5" /> Export CSV
       </Button>
     }
   >
-    <Card>
+    <Card className="border-0 shadow-card">
       <CardContent className="p-0">
-        <div className="p-4 border-b flex items-center gap-3">
+        <div className="p-5 border-b border-border flex items-center gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search subscribers..." className="pl-9" />
@@ -40,30 +42,35 @@ const Subscribers = () => (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/30">
-                <th className="text-left text-xs font-medium text-muted-foreground p-3">Name</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-3">Email</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-3">Tier</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-3">Joined</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-3">Status</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-3">LTV</th>
-                <th className="p-3"></th>
+              <tr className="border-b">
+                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">Name</th>
+                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">Email</th>
+                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">Tier</th>
+                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">Joined</th>
+                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">Status</th>
+                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">LTV</th>
+                <th className="p-4"></th>
               </tr>
             </thead>
             <tbody>
               {subscribers.map((sub) => (
-                <tr key={sub.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
-                  <td className="p-3 text-sm font-medium text-foreground">{sub.name}</td>
-                  <td className="p-3 text-sm text-muted-foreground">{sub.email}</td>
-                  <td className="p-3"><Badge variant="secondary" className="text-xs">{sub.tier}</Badge></td>
-                  <td className="p-3 text-sm text-muted-foreground">{sub.joined}</td>
-                  <td className="p-3">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusColor(sub.status)}`}>
+                <tr key={sub.id} className="border-b last:border-0 hover:bg-background/60 transition-colors duration-150">
+                  <td className="p-4 text-[15px] font-medium text-foreground">{sub.name}</td>
+                  <td className="p-4 text-[13px] text-muted-foreground">{sub.email}</td>
+                  <td className="p-4">
+                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-secondary text-foreground">
+                      {sub.tier}
+                    </span>
+                  </td>
+                  <td className="p-4 text-[13px] text-muted-foreground">{sub.joined}</td>
+                  <td className="p-4">
+                    <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                      <span className={`h-2 w-2 rounded-full ${statusDot[sub.status] || "bg-muted-foreground"}`} />
                       {sub.status}
                     </span>
                   </td>
-                  <td className="p-3 text-sm font-medium text-foreground">{sub.ltv}</td>
-                  <td className="p-3">
+                  <td className="p-4 text-[15px] font-medium text-foreground">{sub.ltv}</td>
+                  <td className="p-4">
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>

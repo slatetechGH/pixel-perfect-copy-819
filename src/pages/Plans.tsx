@@ -1,7 +1,6 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Users, Check } from "lucide-react";
 
 const plans = [
@@ -44,30 +43,30 @@ const Plans = () => (
     subtitle="Manage your membership tiers"
     actions={
       <Button size="sm">
-        <Plus className="h-4 w-4 mr-1" /> Create Plan
+        <Plus className="h-4 w-4 mr-1.5" /> Create Plan
       </Button>
     }
   >
     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
       {plans.map((plan) => (
-        <Card key={plan.id} className="relative overflow-hidden">
+        <Card key={plan.id} className="relative overflow-hidden border-0 shadow-card hover:shadow-card-hover transition-shadow duration-200">
           {!plan.isFree && plan.price === "£35/mo" && (
-            <div className="absolute top-0 right-0 bg-accent text-accent-foreground text-xs font-semibold px-3 py-1 rounded-bl-lg">
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[11px] font-medium px-3 py-1 rounded-bl-lg">
               Popular
             </div>
           )}
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-display">{plan.name}</CardTitle>
-            <p className="text-2xl font-bold font-display text-foreground">{plan.price}</p>
+            <CardTitle className="text-[15px] font-medium">{plan.name}</CardTitle>
+            <p className="text-metric text-foreground">{plan.price}</p>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-1.5 mb-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5 mb-4 text-[13px] text-muted-foreground">
               <Users className="h-3.5 w-3.5" />
               <span>{plan.subscribers} subscribers</span>
             </div>
-            <ul className="space-y-2 mb-5">
+            <ul className="space-y-2.5 mb-5">
               {plan.benefits.map((b, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-foreground">
+                <li key={i} className="flex items-start gap-2 text-[14px] text-foreground">
                   <Check className="h-4 w-4 text-success shrink-0 mt-0.5" />
                   {b}
                 </li>
@@ -75,7 +74,9 @@ const Plans = () => (
             </ul>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="flex-1">Edit</Button>
-              <Badge variant="secondary" className="text-xs flex items-center">Active</Badge>
+              <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-success/10 text-success">
+                Active
+              </span>
             </div>
           </CardContent>
         </Card>
