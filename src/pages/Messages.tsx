@@ -1,7 +1,6 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Send } from "lucide-react";
 
 const messages = [
@@ -18,30 +17,32 @@ const Messages = () => (
     subtitle="Broadcast to your members"
     actions={
       <Button size="sm">
-        <Plus className="h-4 w-4 mr-1" /> Compose
+        <Plus className="h-4 w-4 mr-1.5" /> Compose
       </Button>
     }
   >
     <div className="space-y-3">
       {messages.map((m) => (
-        <Card key={m.id} className="hover:shadow-sm transition-shadow">
-          <CardContent className="p-4 flex items-center justify-between">
+        <Card key={m.id} className="border-0 shadow-card hover:shadow-card-hover transition-shadow duration-200">
+          <CardContent className="p-5 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Send className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">{m.subject}</p>
-                <div className="flex items-center gap-3 mt-0.5">
-                  <span className="text-xs text-muted-foreground">{m.target}</span>
-                  <Badge variant="secondary" className="text-xs">{m.channel}</Badge>
-                  <span className="text-xs text-muted-foreground">{m.sent}</span>
+                <p className="text-[15px] font-medium text-foreground">{m.subject}</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-[13px] text-muted-foreground">{m.target}</span>
+                  <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-secondary text-muted-foreground">
+                    {m.channel}
+                  </span>
+                  <span className="text-[12px] text-muted-foreground font-light">{m.sent}</span>
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm font-semibold text-foreground">{m.opens}</p>
-              <p className="text-xs text-muted-foreground">open rate</p>
+              <p className="text-[15px] font-bold text-foreground">{m.opens}</p>
+              <p className="text-caption text-muted-foreground">open rate</p>
             </div>
           </CardContent>
         </Card>
