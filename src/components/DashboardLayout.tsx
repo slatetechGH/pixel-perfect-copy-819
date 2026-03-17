@@ -14,17 +14,19 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
       <div className="min-h-screen flex w-full">
         <MerchantSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center border-b px-4 gap-4 bg-card shrink-0">
-            <SidebarTrigger className="text-muted-foreground" />
-            <div className="flex-1 flex items-center justify-between">
+          {/* No top bar — title is inline in content area */}
+          <main className="flex-1 p-8 overflow-auto">
+            {/* Page header */}
+            <div className="flex items-start justify-between mb-7">
               <div>
-                <h1 className="text-lg font-display font-semibold text-foreground leading-tight">{title}</h1>
-                {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+                <div className="flex items-center gap-2">
+                  <SidebarTrigger className="text-muted-foreground -ml-2 mr-1" />
+                  <h1 className="text-[24px] font-bold text-foreground leading-tight">{title}</h1>
+                </div>
+                {subtitle && <p className="text-[14px] text-muted-foreground mt-0.5 ml-9">{subtitle}</p>}
               </div>
-              {actions && <div className="flex items-center gap-2">{actions}</div>}
+              {actions && <div className="flex items-center gap-3">{actions}</div>}
             </div>
-          </header>
-          <main className="flex-1 p-6 overflow-auto">
             {children}
           </main>
         </div>
