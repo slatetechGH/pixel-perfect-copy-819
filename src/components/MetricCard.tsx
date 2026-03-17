@@ -12,25 +12,30 @@ interface MetricCardProps {
 
 export function MetricCard({ title, value, change, trend, delay = 0 }: MetricCardProps) {
   return (
-    <Card className="opacity-0 animate-fade-in" style={{ animationDelay: `${delay}ms` }}>
-      <CardContent className="p-5">
-        <p className="text-sm text-muted-foreground font-medium">{title}</p>
-        <p className="text-2xl font-display font-bold text-foreground mt-1">{value}</p>
-        <div className="flex items-center gap-1 mt-2">
-          {trend === "up" ? (
-            <TrendingUp className="h-3.5 w-3.5 text-success" />
-          ) : (
-            <TrendingDown className="h-3.5 w-3.5 text-destructive" />
-          )}
+    <Card
+      className="opacity-0 animate-fade-in border-0 shadow-card hover:shadow-card-hover transition-shadow duration-200"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <CardContent className="p-6">
+        <p className="text-label text-muted-foreground uppercase tracking-[0.05em]">{title}</p>
+        <p className="text-metric text-foreground mt-2">{value}</p>
+        <div className="flex items-center gap-1.5 mt-3">
           <span
             className={cn(
-              "text-xs font-medium",
-              trend === "up" ? "text-success" : "text-destructive"
+              "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[12px] font-medium",
+              trend === "up"
+                ? "bg-success/10 text-success"
+                : "bg-destructive/10 text-destructive/80"
             )}
           >
+            {trend === "up" ? (
+              <TrendingUp className="h-3 w-3" />
+            ) : (
+              <TrendingDown className="h-3 w-3" />
+            )}
             {change}
           </span>
-          <span className="text-xs text-muted-foreground">vs last month</span>
+          <span className="text-caption text-muted-foreground">vs last month</span>
         </div>
       </CardContent>
     </Card>
