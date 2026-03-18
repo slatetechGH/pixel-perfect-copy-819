@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import SlateLogo from "@/components/SlateLogo";
 
 const Login = () => {
   const navigate = useNavigate();
