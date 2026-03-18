@@ -19,10 +19,10 @@ const steps = [
 ];
 
 const HowItWorks = () => (
-  <section className="py-20 md:py-28 bg-white">
+  <section id="how-it-works" className="py-24 md:py-32 bg-white">
     <div className="max-w-[1200px] mx-auto px-6 md:px-8">
       <AnimatedSection>
-        <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-primary mb-3">
+        <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-amber mb-3">
           How It Works
         </p>
         <h2 className="text-[32px] md:text-[40px] font-bold text-foreground leading-tight tracking-[-0.01em] mb-16">
@@ -34,9 +34,9 @@ const HowItWorks = () => (
         {steps.map((s, i) => (
           <AnimatedSection key={s.num} delay={i * 0.1}>
             <div className="relative">
-              <span className="text-[48px] font-bold text-primary/20 leading-none">{s.num}</span>
+              <span className="text-[48px] font-bold text-amber/20 leading-none">{s.num}</span>
               <h3 className="text-[18px] font-medium text-foreground mt-2 mb-2">{s.title}</h3>
-              <p className="text-[15px] text-muted-foreground leading-relaxed">{s.desc}</p>
+              <p className="text-[15px] text-slate-mid leading-relaxed">{s.desc}</p>
             </div>
           </AnimatedSection>
         ))}

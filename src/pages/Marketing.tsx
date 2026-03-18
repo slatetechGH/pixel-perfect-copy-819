@@ -8,6 +8,7 @@ import MetricsSection from "@/components/marketing/MetricsSection";
 import TestimonialsSection from "@/components/marketing/TestimonialsSection";
 import PricingSection from "@/components/marketing/PricingSection";
 import CTASection from "@/components/marketing/CTASection";
+import EmailCapture from "@/components/marketing/EmailCapture";
 import Footer from "@/components/marketing/Footer";
 
 const Marketing = () => (
@@ -22,6 +23,7 @@ const Marketing = () => (
     <TestimonialsSection />
     <PricingSection />
     <CTASection />
+    <EmailCapture />
     <Footer />
   </div>
 );

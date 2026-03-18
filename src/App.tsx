@@ -13,6 +13,11 @@ import Analytics from "./pages/Analytics.tsx";
 import Settings from "./pages/Settings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Marketing from "./pages/Marketing.tsx";
+import Login from "./pages/Login.tsx";
+import Contact from "./pages/Contact.tsx";
+import GetStarted from "./pages/GetStarted.tsx";
+import Privacy from "./pages/Privacy.tsx";
+import Terms from "./pages/Terms.tsx";
 
 const queryClient = new QueryClient();
 
@@ -23,15 +28,24 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/subscribers" element={<Subscribers />} />
-          <Route path="/plans" element={<Plans />} />
-          <Route path="/content" element={<Content />} />
-          <Route path="/drops" element={<Drops />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/marketing" element={<Marketing />} />
+          {/* Marketing site */}
+          <Route path="/" element={<Marketing />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/get-started" element={<GetStarted />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+
+          {/* Dashboard */}
+          <Route path="/dashboard" element={<Index />} />
+          <Route path="/dashboard/subscribers" element={<Subscribers />} />
+          <Route path="/dashboard/plans" element={<Plans />} />
+          <Route path="/dashboard/content" element={<Content />} />
+          <Route path="/dashboard/drops" element={<Drops />} />
+          <Route path="/dashboard/messages" element={<Messages />} />
+          <Route path="/dashboard/analytics" element={<Analytics />} />
+          <Route path="/dashboard/settings" element={<Settings />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

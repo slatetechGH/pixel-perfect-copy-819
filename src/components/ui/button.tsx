@@ -15,6 +15,10 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-secondary hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Slate Dark primary CTA for marketing
+        slate: "bg-foreground text-white hover:bg-[hsl(222,47%,8%)] hover:shadow-md",
+        // Ghost with border for marketing secondary
+        "slate-outline": "border border-slate-light/40 bg-transparent text-foreground hover:bg-secondary",
       },
       size: {
         default: "h-10 px-5 py-2.5",

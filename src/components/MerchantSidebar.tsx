@@ -7,9 +7,10 @@ import {
   MessageSquare,
   BarChart3,
   Settings,
+  LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -23,19 +24,20 @@ import {
 } from "@/components/ui/sidebar";
 
 const navItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Subscribers", url: "/subscribers", icon: Users },
-  { title: "Plans", url: "/plans", icon: CreditCard },
-  { title: "Content", url: "/content", icon: FileText },
-  { title: "Product Drops", url: "/drops", icon: Zap },
-  { title: "Messages", url: "/messages", icon: MessageSquare },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Subscribers", url: "/dashboard/subscribers", icon: Users },
+  { title: "Plans", url: "/dashboard/plans", icon: CreditCard },
+  { title: "Content", url: "/dashboard/content", icon: FileText },
+  { title: "Product Drops", url: "/dashboard/drops", icon: Zap },
+  { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
+  { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
+  { title: "Settings", url: "/dashboard/settings", icon: Settings },
 ];
 
 export function MerchantSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const navigate = useNavigate();
 
   return (
     <Sidebar collapsible="icon" className="border-r-0" style={{ width: collapsed ? undefined : "230px" }}>
@@ -61,7 +63,7 @@ export function MerchantSidebar() {
                   <SidebarMenuButton asChild className="h-9">
                     <NavLink
                       to={item.url}
-                      end={item.url === "/"}
+                      end={item.url === "/dashboard"}
                       className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:text-white/60 transition-colors duration-150"
                       activeClassName="bg-sidebar-accent text-white font-medium"
                     >
@@ -81,9 +83,18 @@ export function MerchantSidebar() {
       <SidebarFooter className="bg-sidebar">
         {!collapsed && (
           <div className="px-5 pb-5">
-            <div className="border-t border-sidebar-border pt-4">
-              <p className="text-caption text-sidebar-foreground/50">Current plan</p>
-              <p className="text-[13px] font-medium text-sidebar-foreground">Growth — £79/mo</p>
+            <div className="border-t border-sidebar-border pt-4 space-y-3">
+              <div>
+                <p className="text-caption text-sidebar-foreground/50">Current plan</p>
+                <p className="text-[13px] font-medium text-sidebar-foreground">Growth — £79/mo</p>
+              </div>
+              <button
+                onClick={() => navigate("/")}
+                className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={1.5} />
+                Log out
+              </button>
             </div>
           </div>
         )}

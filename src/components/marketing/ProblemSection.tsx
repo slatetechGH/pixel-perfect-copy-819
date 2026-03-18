@@ -20,10 +20,10 @@ const pains = [
 ];
 
 const ProblemSection = () => (
-  <section className="py-20 md:py-28 bg-white">
+  <section className="py-24 md:py-32 bg-white">
     <div className="max-w-[1200px] mx-auto px-6 md:px-8">
       <AnimatedSection>
-        <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-primary mb-3">
+        <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-amber mb-3">
           The Problem
         </p>
         <h2 className="text-[32px] md:text-[40px] font-bold text-foreground leading-tight tracking-[-0.01em] mb-12 max-w-2xl">
@@ -35,18 +35,18 @@ const ProblemSection = () => (
         {pains.map(({ icon: Icon, title, desc }, i) => (
           <AnimatedSection key={title} delay={i * 0.1}>
             <div className="flex flex-col gap-4">
-              <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
-                <Icon size={24} strokeWidth={1.5} className="text-muted-foreground" />
+              <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
+                <Icon size={24} strokeWidth={1.5} className="text-slate-mid" />
               </div>
               <h3 className="text-[18px] font-bold text-foreground">{title}</h3>
-              <p className="text-[16px] text-muted-foreground leading-relaxed">{desc}</p>
+              <p className="text-[16px] text-slate-mid leading-relaxed">{desc}</p>
             </div>
           </AnimatedSection>
         ))}
       </div>
 
       <AnimatedSection delay={0.4}>
-        <p className="text-[18px] font-medium text-primary mt-12">Slate changes that.</p>
+        <p className="text-[18px] font-medium text-amber mt-12">Slate changes that.</p>
       </AnimatedSection>
     </div>
   </section>
