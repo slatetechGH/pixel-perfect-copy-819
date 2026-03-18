@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import SlateLogo from "@/components/SlateLogo";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,9 +18,7 @@ const Login = () => {
     <div className="min-h-screen bg-secondary flex items-center justify-center px-6">
       <div className="w-full max-w-[400px]">
         <div className="text-center mb-8">
-          <button onClick={() => navigate("/")} className="text-[28px] font-bold text-foreground tracking-[-0.02em] cursor-pointer">
-            slate<span className="text-amber">.</span>
-          </button>
+          <SlateLogo size={30} />
         </div>
 
         <div className="bg-white rounded-2xl shadow-card p-8">

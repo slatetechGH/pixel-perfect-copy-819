@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
+import SlateLogo from "@/components/SlateLogo";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -49,9 +50,7 @@ const Navbar = () => {
         )}
       >
         <div className="max-w-[1200px] mx-auto px-8 h-full flex items-center justify-between">
-          <a href="/" onClick={(e) => { e.preventDefault(); navigate("/"); }} className="text-[22px] font-bold text-foreground tracking-[-0.02em]">
-            slate<span className="text-amber">.</span>
-          </a>
+          <SlateLogo size={20} />
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
@@ -93,9 +92,7 @@ const Navbar = () => {
       {mobileOpen && (
         <div className="fixed inset-0 z-[60] bg-sidebar flex flex-col">
           <div className="flex items-center justify-between px-8 h-16">
-            <span className="text-[22px] font-bold text-white tracking-[-0.02em]">
-              slate<span className="text-amber">.</span>
-            </span>
+            <SlateLogo size={22} dark asLink={false} />
             <button onClick={() => setMobileOpen(false)} className="text-white">
               <X size={24} strokeWidth={1.5} />
             </button>
