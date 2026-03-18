@@ -48,7 +48,7 @@ const features = [
     eyebrow: "Messaging",
     title: "Built-in Messaging",
     desc: "Talk directly to your subscribers. Announce new products, share updates — no third-party tools needed.",
-    mockup: null,
+    mockup: <FeatureMockupMessaging />,
   },
 ];
 
