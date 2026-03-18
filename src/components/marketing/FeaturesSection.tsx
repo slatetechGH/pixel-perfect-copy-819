@@ -3,6 +3,9 @@ import { Repeat, Flame, BarChart3, BookOpen, Layers, MessageCircle } from "lucid
 import FeatureMockupSubscriptions from "./FeatureMockupSubscriptions";
 import FeatureMockupDrops from "./FeatureMockupDrops";
 import FeatureMockupDashboard from "./FeatureMockupDashboard";
+import FeatureMockupContent from "./FeatureMockupContent";
+import FeatureMockupPlans from "./FeatureMockupPlans";
+import FeatureMockupMessaging from "./FeatureMockupMessaging";
 
 const features = [
   {
@@ -31,21 +34,21 @@ const features = [
     eyebrow: "Content",
     title: "Recipe & Content Sharing",
     desc: "Post recipes, stories, and updates. Keep subscribers engaged between deliveries and build a real community.",
-    mockup: null,
+    mockup: <FeatureMockupContent />,
   },
   {
     icon: Layers,
     eyebrow: "Plans",
     title: "Flexible Plans & Tiers",
     desc: "Offer Standard, Premium, VIP — whatever works for your business. Customers upgrade themselves.",
-    mockup: null,
+    mockup: <FeatureMockupPlans />,
   },
   {
     icon: MessageCircle,
     eyebrow: "Messaging",
     title: "Built-in Messaging",
     desc: "Talk directly to your subscribers. Announce new products, share updates — no third-party tools needed.",
-    mockup: null,
+    mockup: <FeatureMockupMessaging />,
   },
 ];
 
