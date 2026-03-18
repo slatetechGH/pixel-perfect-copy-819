@@ -34,7 +34,7 @@ const features = [
     eyebrow: "Content",
     title: "Recipe & Content Sharing",
     desc: "Post recipes, stories, and updates. Keep subscribers engaged between deliveries and build a real community.",
-    mockup: null,
+    mockup: <FeatureMockupContent />,
   },
   {
     icon: Layers,
