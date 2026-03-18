@@ -1,6 +1,7 @@
 import { Twitter, Instagram, Linkedin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import SlateLogo from "@/components/SlateLogo";
 
 const Footer = () => {
   const navigate = useNavigate();
