@@ -50,9 +50,7 @@ const Navbar = () => {
         )}
       >
         <div className="max-w-[1200px] mx-auto px-8 h-full flex items-center justify-between">
-          <a href="/" onClick={(e) => { e.preventDefault(); navigate("/"); }} className="text-[22px] font-bold text-foreground tracking-[-0.02em]">
-            slate<span className="text-amber">.</span>
-          </a>
+          <SlateLogo size={20} />
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
