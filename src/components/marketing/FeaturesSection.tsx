@@ -41,7 +41,7 @@ const features = [
     eyebrow: "Plans",
     title: "Flexible Plans & Tiers",
     desc: "Offer Standard, Premium, VIP — whatever works for your business. Customers upgrade themselves.",
-    mockup: null,
+    mockup: <FeatureMockupPlans />,
   },
   {
     icon: MessageCircle,
