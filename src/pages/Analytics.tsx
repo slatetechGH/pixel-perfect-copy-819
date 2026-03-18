@@ -1,19 +1,20 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
+import { useDashboard } from "@/contexts/DashboardContext";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell, Legend, BarChart, Bar,
 } from "recharts";
 
-const revenueTimeline = [
-  { month: "Sep", mrr: 1200 },
-  { month: "Oct", mrr: 1800 },
-  { month: "Nov", mrr: 2400 },
-  { month: "Dec", mrr: 3100 },
-  { month: "Jan", mrr: 3600 },
-  { month: "Feb", mrr: 4200 },
-  { month: "Mar", mrr: 4850 },
+const ranges = [
+  { key: "7d", label: "Last 7 days" },
+  { key: "30d", label: "Last 30 days" },
+  { key: "3m", label: "Last 3 months" },
+  { key: "6m", label: "Last 6 months" },
+  { key: "12m", label: "Last 12 months" },
+  { key: "all", label: "All time" },
 ];
 
 const tierBreakdown = [
@@ -22,67 +23,100 @@ const tierBreakdown = [
   { name: "Premium", value: 34, color: "hsl(38, 92%, 50%)" },
 ];
 
-const Analytics = () => (
-  <DashboardLayout title="Analytics" subtitle="Performance insights">
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
-      <MetricCard title="MRR" value="£4,850" change="+15.5%" trend="up" />
-      <MetricCard title="Lifetime Value" value="£186" change="+8.2%" trend="up" delay={80} />
-      <MetricCard title="Drop Conversion" value="72%" change="+5.1%" trend="up" delay={160} />
-      <MetricCard title="Content Engagement" value="3.2k" change="+22%" trend="up" delay={240} />
-    </div>
+const subscriberGrowth = [
+  { month: "Sep", new: 12, churned: 3 },
+  { month: "Oct", new: 18, churned: 4 },
+  { month: "Nov", new: 22, churned: 5 },
+  { month: "Dec", new: 28, churned: 6 },
+  { month: "Jan", new: 35, churned: 7 },
+  { month: "Feb", new: 30, churned: 5 },
+  { month: "Mar", new: 38, churned: 6 },
+];
 
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-      <Card className="lg:col-span-2 border-0 shadow-card">
-        <CardHeader className="pb-2 px-7 pt-7">
-          <CardTitle className="text-[15px] font-medium text-foreground">MRR Growth</CardTitle>
-        </CardHeader>
-        <CardContent className="px-7 pb-7">
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={revenueTimeline}>
-              <defs>
-                <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(217, 33%, 17%)" stopOpacity={0.08} />
-                  <stop offset="100%" stopColor="hsl(217, 33%, 17%)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
-              <YAxis tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" tickFormatter={(v) => `£${v}`} />
-              <Tooltip
-                contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }}
-                itemStyle={{ color: "white" }}
-                labelStyle={{ color: "hsl(213, 27%, 70%)" }}
-                formatter={(v: number) => [`£${v}`, "MRR"]}
-              />
-              <Area type="monotone" dataKey="mrr" stroke="hsl(217, 33%, 17%)" strokeWidth={2} fill="url(#mrrGrad)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+const Analytics = () => {
+  const { revenueDataSets } = useDashboard();
+  const [range, setRange] = useState("6m");
+  const data = revenueDataSets[range] || revenueDataSets["all"];
+
+  return (
+    <DashboardLayout title="Analytics" subtitle="Performance insights">
+      {/* Date range */}
+      <div className="flex gap-2 mb-5 flex-wrap">
+        {ranges.map(r => (
+          <button key={r.key} onClick={() => setRange(r.key)} className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors cursor-pointer ${range === r.key ? "bg-foreground text-white" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
+            {r.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
+        <MetricCard title="MRR" value="£4,850" change="+15.5%" trend="up" />
+        <MetricCard title="Lifetime Value" value="£186" change="+8.2%" trend="up" delay={80} />
+        <MetricCard title="Drop Conversion" value="72%" change="+5.1%" trend="up" delay={160} />
+        <MetricCard title="Content Engagement" value="3.2k" change="+22%" trend="up" delay={240} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-7">
+        <Card className="lg:col-span-2 border-0 shadow-card">
+          <CardHeader className="pb-2 px-7 pt-7">
+            <CardTitle className="text-[15px] font-medium text-foreground">Revenue</CardTitle>
+          </CardHeader>
+          <CardContent className="px-7 pb-7">
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={data}>
+                <defs>
+                  <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(217, 33%, 17%)" stopOpacity={0.08} />
+                    <stop offset="100%" stopColor="hsl(217, 33%, 17%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
+                <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
+                <YAxis tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" tickFormatter={(v) => `£${v}`} />
+                <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} formatter={(v: number) => [`£${v}`, "Revenue"]} />
+                <Area type="monotone" dataKey="revenue" stroke="hsl(217, 33%, 17%)" strokeWidth={2} fill="url(#mrrGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-card">
+          <CardHeader className="pb-2 px-7 pt-7">
+            <CardTitle className="text-[15px] font-medium text-foreground">Tier Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent className="px-7 pb-7">
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie data={tierBreakdown} cx="50%" cy="45%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={3}>
+                  {tierBreakdown.map(e => <Cell key={e.name} fill={e.color} />)}
+                </Pie>
+                <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card className="border-0 shadow-card">
         <CardHeader className="pb-2 px-7 pt-7">
-          <CardTitle className="text-[15px] font-medium text-foreground">Tier Breakdown</CardTitle>
+          <CardTitle className="text-[15px] font-medium text-foreground">Subscriber Growth</CardTitle>
         </CardHeader>
         <CardContent className="px-7 pb-7">
-          <ResponsiveContainer width="100%" height={260}>
-            <PieChart>
-              <Pie data={tierBreakdown} cx="50%" cy="45%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={3}>
-                {tierBreakdown.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} />
-                ))}
-              </Pie>
-              <Legend verticalAlign="bottom" height={36} iconType="circle" />
-              <Tooltip
-                contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }}
-                itemStyle={{ color: "white" }}
-              />
-            </PieChart>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={subscriberGrowth}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
+              <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
+              <YAxis tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
+              <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} />
+              <Bar dataKey="new" fill="hsl(217, 33%, 17%)" fillOpacity={0.7} radius={[4, 4, 0, 0]} name="New" />
+              <Bar dataKey="churned" fill="hsl(38, 92%, 50%)" fillOpacity={0.5} radius={[4, 4, 0, 0]} name="Churned" />
+            </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-    </div>
-  </DashboardLayout>
-);
+    </DashboardLayout>
+  );
+};
 
 export default Analytics;
