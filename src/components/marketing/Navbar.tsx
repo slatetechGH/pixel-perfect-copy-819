@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
+import SlateLogo from "@/components/SlateLogo";
 
 const navLinks = [
   { label: "Features", href: "#features" },
