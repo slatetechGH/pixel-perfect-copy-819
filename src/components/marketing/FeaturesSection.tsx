@@ -1,5 +1,8 @@
 import AnimatedSection from "./AnimatedSection";
 import { Repeat, Flame, BarChart3, BookOpen, Layers, MessageCircle } from "lucide-react";
+import FeatureMockupSubscriptions from "./FeatureMockupSubscriptions";
+import FeatureMockupDrops from "./FeatureMockupDrops";
+import FeatureMockupDashboard from "./FeatureMockupDashboard";
 
 const features = [
   {
@@ -7,36 +10,42 @@ const features = [
     eyebrow: "Subscriptions",
     title: "Subscription Management",
     desc: "Let customers subscribe to weekly, fortnightly, or monthly boxes. You set the rules — Slate handles the rest.",
+    mockup: <FeatureMockupSubscriptions />,
   },
   {
     icon: Flame,
     eyebrow: "Drops",
     title: "Product Drops",
     desc: "Launch limited-edition drops with countdown timers. Create urgency and reward your best customers first.",
+    mockup: <FeatureMockupDrops />,
   },
   {
     icon: BarChart3,
     eyebrow: "Analytics",
     title: "Subscriber Dashboard",
     desc: "See your MRR, churn, growth, and activity in one clean view. Know exactly how your business is performing.",
+    mockup: <FeatureMockupDashboard />,
   },
   {
     icon: BookOpen,
     eyebrow: "Content",
     title: "Recipe & Content Sharing",
     desc: "Post recipes, stories, and updates. Keep subscribers engaged between deliveries and build a real community.",
+    mockup: null,
   },
   {
     icon: Layers,
     eyebrow: "Plans",
     title: "Flexible Plans & Tiers",
     desc: "Offer Standard, Premium, VIP — whatever works for your business. Customers upgrade themselves.",
+    mockup: null,
   },
   {
     icon: MessageCircle,
     eyebrow: "Messaging",
     title: "Built-in Messaging",
     desc: "Talk directly to your subscribers. Announce new products, share updates — no third-party tools needed.",
+    mockup: null,
   },
 ];
 
@@ -72,10 +81,14 @@ const FeaturesSection = () => (
                   {f.desc}
                 </p>
               </div>
-              {/* Visual placeholder */}
+              {/* Visual */}
               <div className="flex-1 w-full">
-                <div className="bg-white rounded-2xl shadow-card p-8 flex items-center justify-center min-h-[220px]">
-                  <f.icon size={48} strokeWidth={1.2} className="text-slate-light/40" />
+                <div className="bg-white rounded-2xl shadow-card p-5 flex items-center justify-center min-h-[220px]">
+                  {f.mockup ? (
+                    f.mockup
+                  ) : (
+                    <f.icon size={48} strokeWidth={1.2} className="text-slate-light/40" />
+                  )}
                 </div>
               </div>
             </div>

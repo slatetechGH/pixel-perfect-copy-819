@@ -31,17 +31,11 @@ export function MerchantSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0" style={{ width: collapsed ? undefined : "230px" }}>
       <SidebarContent className="bg-sidebar">
-        <div className="px-5 py-6 flex items-center gap-2">
-          {/* Slate icon mark */}
-          <span className="inline-block w-5 h-3.5 bg-white/80 rounded-sm" style={{ transform: "rotate(-15deg)" }} />
+        <div className="px-5 py-6">
           {!collapsed ? (
-            <span className="text-[20px] font-bold text-white tracking-tight">
-              slate<span className="text-amber">.</span>
-            </span>
+            <SlateLogo size={20} dark />
           ) : (
-            <span className="text-[20px] font-bold text-white tracking-tight">
-              s<span className="text-amber">.</span>
-            </span>
+            <SlateLogo size={18} dark />
           )}
         </div>
 

@@ -92,9 +92,7 @@ const Navbar = () => {
       {mobileOpen && (
         <div className="fixed inset-0 z-[60] bg-sidebar flex flex-col">
           <div className="flex items-center justify-between px-8 h-16">
-            <span className="text-[22px] font-bold text-white tracking-[-0.02em]">
-              slate<span className="text-amber">.</span>
-            </span>
+            <SlateLogo size={22} dark asLink={false} />
             <button onClick={() => setMobileOpen(false)} className="text-white">
               <X size={24} strokeWidth={1.5} />
             </button>

@@ -50,9 +50,9 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <p className="text-[22px] font-bold text-white tracking-[-0.02em] mb-3">
-              slate<span className="text-amber">.</span>
-            </p>
+            <div className="mb-3">
+              <SlateLogo size={22} dark />
+            </div>
             <p className="text-[14px] text-slate-light leading-relaxed mb-4 max-w-xs">
               The subscription platform for independent producers.
             </p>
