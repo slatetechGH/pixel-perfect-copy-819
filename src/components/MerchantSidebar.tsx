@@ -1,26 +1,12 @@
 import {
-  LayoutDashboard,
-  Users,
-  CreditCard,
-  FileText,
-  Zap,
-  MessageSquare,
-  BarChart3,
-  Settings,
-  LogOut,
+  LayoutDashboard, Users, CreditCard, FileText, Zap, MessageSquare, BarChart3, Settings, LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
+import { useDashboard } from "@/contexts/DashboardContext";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarFooter,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu,
+  SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
 
 const navItems = [
@@ -38,12 +24,15 @@ export function MerchantSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
+  const { conversations } = useDashboard();
+  const unreadCount = conversations.filter(c => c.unread).length;
 
   return (
     <Sidebar collapsible="icon" className="border-r-0" style={{ width: collapsed ? undefined : "230px" }}>
       <SidebarContent className="bg-sidebar">
-        {/* Logo */}
-        <div className="px-5 py-6 flex items-center gap-0">
+        <div className="px-5 py-6 flex items-center gap-2">
+          {/* Slate icon mark */}
+          <span className="inline-block w-5 h-3.5 bg-white/80 rounded-sm" style={{ transform: "rotate(-15deg)" }} />
           {!collapsed ? (
             <span className="text-[20px] font-bold text-white tracking-tight">
               slate<span className="text-amber">.</span>
@@ -69,7 +58,12 @@ export function MerchantSidebar() {
                     >
                       <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
                       {!collapsed && (
-                        <span className="text-[14px] font-medium">{item.title}</span>
+                        <span className="text-[14px] font-medium flex-1">{item.title}</span>
+                      )}
+                      {!collapsed && item.title === "Messages" && unreadCount > 0 && (
+                        <span className="w-5 h-5 rounded-full bg-amber text-white text-[11px] font-medium flex items-center justify-center">
+                          {unreadCount}
+                        </span>
                       )}
                     </NavLink>
                   </SidebarMenuButton>

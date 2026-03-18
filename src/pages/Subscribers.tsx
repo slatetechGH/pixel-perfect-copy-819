@@ -1,88 +1,143 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Download, MoreHorizontal } from "lucide-react";
-
-const subscribers = [
-  { id: 1, name: "Sarah Mitchell", email: "sarah@email.com", tier: "Premium", joined: "12 Jan 2026", status: "active", ltv: "£384" },
-  { id: 2, name: "James Chen", email: "james.chen@email.com", tier: "Standard", joined: "3 Feb 2026", status: "active", ltv: "£120" },
-  { id: 3, name: "Emma Davies", email: "emma.d@email.com", tier: "Standard", joined: "15 Nov 2025", status: "cancelled", ltv: "£195" },
-  { id: 4, name: "Oliver Thompson", email: "oliver.t@email.com", tier: "Premium", joined: "22 Dec 2025", status: "active", ltv: "£310" },
-  { id: 5, name: "Amelia Wright", email: "amelia@email.com", tier: "Free", joined: "8 Mar 2026", status: "active", ltv: "£0" },
-  { id: 6, name: "William Harris", email: "will.h@email.com", tier: "Premium", joined: "1 Oct 2025", status: "active", ltv: "£520" },
-  { id: 7, name: "Isabelle Foster", email: "isabelle.f@email.com", tier: "Standard", joined: "14 Feb 2026", status: "paused", ltv: "£75" },
-  { id: 8, name: "George Baker", email: "george.b@email.com", tier: "Standard", joined: "20 Jan 2026", status: "active", ltv: "£150" },
-];
+import { Search, Download, ChevronDown } from "lucide-react";
+import { useDashboard } from "@/contexts/DashboardContext";
+import { SlideOverPanel } from "@/components/SlideOverPanel";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const statusDot: Record<string, string> = {
-  active: "bg-success",
-  paused: "bg-amber",
-  cancelled: "bg-destructive/80",
+  active: "bg-success", paused: "bg-amber", cancelled: "bg-destructive/80",
 };
 
-const Subscribers = () => (
-  <DashboardLayout
-    title="Subscribers"
-    subtitle="187 total subscribers"
-    actions={
-      <Button variant="outline" size="sm">
-        <Download className="h-4 w-4 mr-1.5" /> Export CSV
-      </Button>
-    }
-  >
-    <Card className="border-0 shadow-card">
-      <CardContent className="p-0">
-        <div className="p-5 border-b border-border flex items-center gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search subscribers..." className="pl-9" />
+const Subscribers = () => {
+  const { subscribers, setSubscribers, plans } = useDashboard();
+  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [planFilter, setPlanFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [sort, setSort] = useState("Newest");
+  const [selected, setSelected] = useState<number | null>(null);
+  const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
+
+  const filtered = subscribers
+    .filter(s => (s.name + s.email).toLowerCase().includes(search.toLowerCase()))
+    .filter(s => planFilter === "All" || s.plan === planFilter)
+    .filter(s => statusFilter === "All" || s.status === statusFilter)
+    .sort((a, b) => {
+      if (sort === "Alphabetical") return a.name.localeCompare(b.name);
+      if (sort === "Oldest") return a.id - b.id;
+      return b.id - a.id;
+    });
+
+  const selectedSub = subscribers.find(s => s.id === selected);
+
+  const changePlan = (subId: number, newPlan: string) => {
+    setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, plan: newPlan } : s));
+    toast.success("Plan updated");
+  };
+
+  const cancelSub = (subId: number) => {
+    setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, status: "cancelled" as const } : s));
+    setSelected(null);
+    toast.success("Subscription cancelled");
+  };
+
+  return (
+    <DashboardLayout
+      title="Subscribers"
+      subtitle={`${subscribers.length} total subscribers`}
+      actions={<Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1.5" /> Export CSV</Button>}
+    >
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-0">
+          <div className="p-5 border-b border-border flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email..." className="w-full h-10 pl-9 pr-3 rounded-lg border border-border bg-white text-[14px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all" />
+            </div>
+            <select value={planFilter} onChange={e => setPlanFilter(e.target.value)} className="h-10 px-3 rounded-lg border border-border bg-white text-[14px] appearance-none pr-8 focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all">
+              <option value="All">All Plans</option>
+              {plans.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+            </select>
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="h-10 px-3 rounded-lg border border-border bg-white text-[14px] appearance-none pr-8 focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all">
+              <option value="All">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <select value={sort} onChange={e => setSort(e.target.value)} className="h-10 px-3 rounded-lg border border-border bg-white text-[14px] appearance-none pr-8 focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all">
+              <option>Newest</option>
+              <option>Oldest</option>
+              <option>Alphabetical</option>
+            </select>
           </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">Name</th>
-                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">Email</th>
-                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">Tier</th>
-                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">Joined</th>
-                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">Status</th>
-                <th className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">LTV</th>
-                <th className="p-4"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {subscribers.map((sub) => (
-                <tr key={sub.id} className="border-b last:border-0 hover:bg-background/60 transition-colors duration-150">
-                  <td className="p-4 text-[15px] font-medium text-foreground">{sub.name}</td>
-                  <td className="p-4 text-[13px] text-muted-foreground">{sub.email}</td>
-                  <td className="p-4">
-                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-secondary text-foreground">
-                      {sub.tier}
-                    </span>
-                  </td>
-                  <td className="p-4 text-[13px] text-muted-foreground">{sub.joined}</td>
-                  <td className="p-4">
-                    <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                      <span className={`h-2 w-2 rounded-full ${statusDot[sub.status] || "bg-muted-foreground"}`} />
-                      {sub.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-[15px] font-medium text-foreground">{sub.ltv}</td>
-                  <td className="p-4">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  {["Name", "Email", "Plan", "Joined", "Status", "Revenue", ""].map(h => (
+                    <th key={h} className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
-  </DashboardLayout>
-);
+              </thead>
+              <tbody>
+                {filtered.map((sub) => (
+                  <tr key={sub.id} className="border-b last:border-0 hover:bg-background/60 transition-colors duration-150 cursor-pointer" onClick={() => setSelected(sub.id)}>
+                    <td className="p-4 text-[15px] font-medium text-foreground">{sub.name}</td>
+                    <td className="p-4 text-[13px] text-muted-foreground">{sub.email}</td>
+                    <td className="p-4"><span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-secondary text-foreground">{sub.plan}</span></td>
+                    <td className="p-4 text-[13px] text-muted-foreground">{sub.joined}</td>
+                    <td className="p-4"><span className="flex items-center gap-2 text-[13px] text-muted-foreground capitalize"><span className={`h-2 w-2 rounded-full ${statusDot[sub.status]}`} />{sub.status}</span></td>
+                    <td className="p-4 text-[15px] font-medium text-foreground">{sub.revenue}</td>
+                    <td className="p-4"><ChevronDown size={16} className="text-muted-foreground" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Subscriber Detail */}
+      <SlideOverPanel open={!!selectedSub} onClose={() => setSelected(null)} title="Subscriber Details">
+        {selectedSub && (
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <div><label className="text-[13px] text-muted-foreground">Name</label><p className="text-[15px] font-medium text-foreground">{selectedSub.name}</p></div>
+              <div><label className="text-[13px] text-muted-foreground">Email</label><p className="text-[15px] text-foreground">{selectedSub.email}</p></div>
+              <div><label className="text-[13px] text-muted-foreground">Phone</label><p className="text-[15px] text-foreground">{selectedSub.phone}</p></div>
+              <div><label className="text-[13px] text-muted-foreground">Joined</label><p className="text-[15px] text-foreground">{selectedSub.joined}</p></div>
+              <div><label className="text-[13px] text-muted-foreground">Total Revenue</label><p className="text-[15px] font-medium text-foreground">{selectedSub.revenue}</p></div>
+              <div>
+                <label className="text-[13px] text-muted-foreground">Status</label>
+                <span className={`flex items-center gap-2 text-[14px] capitalize mt-1`}>
+                  <span className={`h-2 w-2 rounded-full ${statusDot[selectedSub.status]}`} />{selectedSub.status}
+                </span>
+              </div>
+            </div>
+            <div>
+              <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Change Plan</label>
+              <select value={selectedSub.plan} onChange={e => changePlan(selectedSub.id, e.target.value)} className="w-full h-11 px-4 rounded-lg border border-border bg-white text-[15px] appearance-none focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all">
+                {plans.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+              </select>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="slate" onClick={() => { setSelected(null); navigate("/dashboard/messages"); }}>Message</Button>
+              {selectedSub.status !== "cancelled" && (
+                <Button variant="outline" className="text-destructive" onClick={() => setCancelConfirm(selectedSub.id)}>Cancel Subscription</Button>
+              )}
+            </div>
+          </div>
+        )}
+      </SlideOverPanel>
+
+      <ConfirmDialog open={!!cancelConfirm} onClose={() => setCancelConfirm(null)} onConfirm={() => cancelConfirm && cancelSub(cancelConfirm)} title="Cancel subscription" description="This will cancel the subscription. The subscriber will lose access at the end of their billing period." confirmText="Cancel subscription" destructive />
+    </DashboardLayout>
+  );
+};
 
 export default Subscribers;
