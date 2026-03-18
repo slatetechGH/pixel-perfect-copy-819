@@ -3,6 +3,9 @@ import { Repeat, Flame, BarChart3, BookOpen, Layers, MessageCircle } from "lucid
 import FeatureMockupSubscriptions from "./FeatureMockupSubscriptions";
 import FeatureMockupDrops from "./FeatureMockupDrops";
 import FeatureMockupDashboard from "./FeatureMockupDashboard";
+import FeatureMockupContent from "./FeatureMockupContent";
+import FeatureMockupPlans from "./FeatureMockupPlans";
+import FeatureMockupMessaging from "./FeatureMockupMessaging";
 
 const features = [
   {
