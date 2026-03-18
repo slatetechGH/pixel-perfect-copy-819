@@ -37,7 +37,7 @@ function CountUp({ target, prefix, suffix }: { target: number; prefix: string; s
 }
 
 const MetricsSection = () => (
-  <section className="py-20 md:py-28 bg-sidebar">
+  <section className="py-24 md:py-32 bg-sidebar">
     <div className="max-w-[1200px] mx-auto px-6 md:px-8">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
         {metrics.map((m, i) => (

@@ -41,10 +41,10 @@ const features = [
 ];
 
 const FeaturesSection = () => (
-  <section id="features" className="py-20 md:py-28 bg-background">
+  <section id="features" className="py-24 md:py-32 bg-secondary">
     <div className="max-w-[1200px] mx-auto px-6 md:px-8">
       <AnimatedSection>
-        <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-primary mb-3">
+        <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-amber mb-3">
           Features
         </p>
         <h2 className="text-[32px] md:text-[40px] font-bold text-foreground leading-tight tracking-[-0.01em] mb-16 max-w-xl">
@@ -62,20 +62,20 @@ const FeaturesSection = () => (
             >
               {/* Text */}
               <div className="flex-1">
-                <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-primary mb-2">
+                <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-amber mb-2">
                   {f.eyebrow}
                 </p>
                 <h3 className="text-[24px] md:text-[28px] font-bold text-foreground mb-3 tracking-[-0.01em]">
                   {f.title}
                 </h3>
-                <p className="text-[16px] text-muted-foreground leading-relaxed max-w-md">
+                <p className="text-[16px] text-slate-mid leading-relaxed max-w-md">
                   {f.desc}
                 </p>
               </div>
               {/* Visual placeholder */}
               <div className="flex-1 w-full">
-                <div className="bg-card rounded-2xl shadow-card p-8 flex items-center justify-center min-h-[220px]">
-                  <f.icon size={48} strokeWidth={1.2} className="text-muted-foreground/30" />
+                <div className="bg-white rounded-2xl shadow-card p-8 flex items-center justify-center min-h-[220px]">
+                  <f.icon size={48} strokeWidth={1.2} className="text-slate-light/40" />
                 </div>
               </div>
             </div>

@@ -19,10 +19,10 @@ const testimonials = [
 ];
 
 const TestimonialsSection = () => (
-  <section id="testimonials" className="py-20 md:py-28 bg-white">
+  <section id="testimonials" className="py-24 md:py-32 bg-white">
     <div className="max-w-[1200px] mx-auto px-6 md:px-8">
       <AnimatedSection>
-        <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-primary mb-3">
+        <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-amber mb-3">
           From Our Producers
         </p>
         <h2 className="text-[32px] md:text-[40px] font-bold text-foreground leading-tight tracking-[-0.01em] mb-16">
@@ -34,7 +34,7 @@ const TestimonialsSection = () => (
         {testimonials.map((t, i) => (
           <AnimatedSection key={t.name} delay={i * 0.1}>
             <div className="bg-card rounded-2xl p-8 shadow-card h-full flex flex-col">
-              <span className="text-[64px] leading-none text-primary/15 font-bold">"</span>
+              <span className="text-[64px] leading-none text-amber/15 font-bold">"</span>
               <p className="text-[17px] text-foreground leading-relaxed mb-6 -mt-4 flex-1">
                 {t.quote}
               </p>
