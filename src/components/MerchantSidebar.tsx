@@ -29,7 +29,7 @@ export function MerchantSidebar() {
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
   const { conversations, settings } = useDashboard();
-  const { leads, setSession, demoActive } = useApp();
+  const { leads, setSession, demoActive, accentColor } = useApp();
   const unreadMessages = conversations.filter(c => c.unread).length;
   const newLeadCount = leads.filter(l => l.status === "new").length;
 
@@ -41,33 +41,65 @@ export function MerchantSidebar() {
 
   const logoInitial = settings.businessName ? settings.businessName.charAt(0).toUpperCase() : "S";
 
+  // In demo mode with a custom business, show prominent brand header
+  const showBrandHeader = demoActive && settings.businessName !== "The Harbour Fish Co.";
+
   return (
     <Sidebar collapsible="icon" className="border-r-0" style={{ width: collapsed ? undefined : "230px" }}>
       <SidebarContent className="bg-sidebar">
-        <div className="px-5 py-6">
-          {/* Show business logo/name when demo is active, otherwise show Slate logo */}
-          {demoActive && settings.businessName !== "The Harbour Fish Co." ? (
-            <div className="flex items-center gap-2.5">
-              {settings.logoUrl ? (
-                <img src={settings.logoUrl} alt="" className="h-7 w-7 rounded-md object-cover shrink-0" />
-              ) : (
-                <div
-                  className="h-7 w-7 rounded-md flex items-center justify-center text-white text-[13px] font-bold shrink-0"
-                  style={{ backgroundColor: "hsl(217, 33%, 17%)" }}
-                >
+        {showBrandHeader ? (
+          <div className="px-6 pt-7 pb-5 flex flex-col items-center">
+            {/* Large logo or initial */}
+            {settings.logoUrl ? (
+              <div
+                className="rounded-full overflow-hidden shrink-0 flex items-center justify-center"
+                style={{
+                  width: 52, height: 52,
+                  border: "2px solid rgba(255,255,255,0.2)",
+                }}
+              >
+                <img src={settings.logoUrl} alt="" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div
+                className="rounded-full flex items-center justify-center shrink-0"
+                style={{
+                  width: 52, height: 52,
+                  backgroundColor: accentColor,
+                  border: "2px solid rgba(255,255,255,0.2)",
+                }}
+              >
+                <span className="text-white font-bold" style={{ fontSize: 24, fontFamily: "'Satoshi', sans-serif" }}>
                   {logoInitial}
-                </div>
-              )}
-              {!collapsed && (
-                <span className="text-[14px] font-semibold text-sidebar-foreground truncate">
-                  {settings.businessName}
                 </span>
-              )}
-            </div>
-          ) : (
-            !collapsed ? <SlateLogo size={20} dark /> : <SlateLogo size={18} dark />
-          )}
-        </div>
+              </div>
+            )}
+            {/* Business name */}
+            {!collapsed && (
+              <span
+                className="text-white font-bold text-center truncate w-full mt-2"
+                style={{ fontSize: 17 }}
+              >
+                {settings.businessName}
+              </span>
+            )}
+            {/* Tagline */}
+            {!collapsed && settings.description && (
+              <span
+                className="text-center w-full mt-1 leading-tight"
+                style={{ fontSize: 12, color: "hsl(213, 27%, 70%)", opacity: 0.7 }}
+              >
+                {settings.description.length > 60 ? settings.description.slice(0, 60) + "…" : settings.description}
+              </span>
+            )}
+            {/* Divider */}
+            <div className="w-full mt-5" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }} />
+          </div>
+        ) : (
+          <div className="px-5 py-6">
+            {!collapsed ? <SlateLogo size={20} dark /> : <SlateLogo size={18} dark />}
+          </div>
+        )}
 
         <SidebarGroup>
           <SidebarGroupContent>
@@ -81,14 +113,18 @@ export function MerchantSidebar() {
                         to={item.url}
                         end={item.url === "/dashboard"}
                         className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:text-white/60 transition-colors duration-150"
-                        activeClassName="bg-sidebar-accent text-white font-medium"
+                        activeClassName="text-white font-medium"
+                        activeStyle={demoActive ? { backgroundColor: `${accentColor}26` } : undefined}
                       >
                         <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
                         {!collapsed && (
                           <span className="text-[14px] font-medium flex-1">{item.title}</span>
                         )}
                         {!collapsed && badgeCount > 0 && (
-                          <span className="w-5 h-5 rounded-full bg-amber text-white text-[11px] font-medium flex items-center justify-center">
+                          <span
+                            className="w-5 h-5 rounded-full text-white text-[11px] font-medium flex items-center justify-center"
+                            style={{ backgroundColor: demoActive ? accentColor : undefined }}
+                          >
                             {badgeCount}
                           </span>
                         )}

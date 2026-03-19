@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useApp } from "@/contexts/AppContext";
 
 interface MetricCardProps {
   title: string;
@@ -11,6 +12,13 @@ interface MetricCardProps {
 }
 
 export function MetricCard({ title, value, change, trend, delay = 0 }: MetricCardProps) {
+  const { demoActive, accentColor } = useApp();
+
+  // In demo mode, positive deltas use the accent colour instead of default green
+  const positiveStyle = demoActive
+    ? { backgroundColor: `${accentColor}1A`, color: accentColor }
+    : undefined;
+
   return (
     <Card
       className="opacity-0 animate-fade-in border-0 shadow-card hover:shadow-card-hover transition-shadow duration-200"
@@ -23,10 +31,10 @@ export function MetricCard({ title, value, change, trend, delay = 0 }: MetricCar
           <span
             className={cn(
               "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[12px] font-medium",
-              trend === "up"
-                ? "bg-success/10 text-success"
-                : "bg-destructive/10 text-destructive/80"
+              trend === "down" && "bg-destructive/10 text-destructive/80",
+              trend === "up" && !demoActive && "bg-success/10 text-success",
             )}
+            style={trend === "up" ? positiveStyle : undefined}
           >
             {trend === "up" ? (
               <TrendingUp className="h-3 w-3" />

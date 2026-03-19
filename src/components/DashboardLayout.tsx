@@ -3,9 +3,9 @@ import { MerchantSidebar } from "@/components/MerchantSidebar";
 import { useApp } from "@/contexts/AppContext";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import SlateLogo from "@/components/SlateLogo";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -15,10 +15,9 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title, subtitle, actions }: DashboardLayoutProps) {
-  const { demoActive, demoBusinessName, deactivateDemo } = useApp();
-  const { resetToDefaults } = useDashboard();
+  const { demoActive, demoBusinessName, deactivateDemo, accentColor } = useApp();
+  const { resetToDefaults, settings } = useDashboard();
   const navigate = useNavigate();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
 
   const handleReset = () => {
@@ -27,65 +26,136 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
     navigate("/dashboard");
   };
 
+  const now = new Date();
+  const monthYear = now.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+
+  // Determine if this is the main dashboard overview page
+  const isDashboardHome = title === "Dashboard";
+
+  // Build display title — in demo mode, prefix with business name for relevant pages
+  const demoTitleMap: Record<string, string> = {
+    "Plans": `${settings.businessName} Plans`,
+    "Product Drops": `${settings.businessName} Drops`,
+    "Content": `${settings.businessName} Content`,
+    "Subscribers": `${settings.businessName} Subscribers`,
+    "Analytics": `${settings.businessName} Analytics`,
+    "Settings": `${settings.businessName} Settings`,
+  };
+  const displayTitle = demoActive
+    ? (isDashboardHome ? settings.businessName.toUpperCase() : (demoTitleMap[title] || title))
+    : title;
+
+  const displaySubtitle = demoActive && isDashboardHome
+    ? `Overview — ${monthYear}`
+    : subtitle;
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <MerchantSidebar />
         <div className="flex-1 flex flex-col min-w-0">
+          {/* Demo mode strip */}
+          {demoActive && (
+            <div
+              className="flex items-center justify-between px-8 shrink-0"
+              style={{
+                height: 36,
+                backgroundColor: `${accentColor}14`,
+              }}
+            >
+              <span className="text-[12px] font-medium" style={{ color: accentColor }}>
+                Demo Mode — {demoBusinessName}
+              </span>
+              <div className="flex items-center gap-1 text-[11px] font-medium" style={{ color: "hsl(215, 16%, 47%)" }}>
+                <button
+                  onClick={() => navigate("/demo-setup")}
+                  className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
+                >
+                  Edit demo
+                </button>
+                <span className="opacity-40">·</span>
+                <button
+                  onClick={() => setResetConfirm(true)}
+                  className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          )}
+
           <main className="flex-1 p-8 overflow-auto relative">
-            {/* Demo mode pill */}
-            {demoActive && (
-              <div className="absolute top-3 right-8 z-10">
-                <div className="relative">
-                  <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium cursor-pointer transition-colors max-w-[280px]"
-                    style={{ backgroundColor: "rgba(245,158,11,0.15)", color: "#F59E0B" }}
-                  >
-                    <span className="truncate">Demo Mode: {demoBusinessName}</span>
-                    <ChevronDown size={12} className="shrink-0" />
-                  </button>
-                  {dropdownOpen && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
-                      <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-lg border border-border z-20 py-1">
-                        <button
-                          onClick={() => { setDropdownOpen(false); navigate("/demo-setup"); }}
-                          className="w-full text-left px-3 py-2 text-[13px] text-foreground hover:bg-secondary transition-colors cursor-pointer"
-                        >
-                          Edit demo
-                        </button>
-                        <button
-                          onClick={() => { setDropdownOpen(false); setResetConfirm(true); }}
-                          className="w-full text-left px-3 py-2 text-[13px] text-destructive hover:bg-secondary transition-colors cursor-pointer"
-                        >
-                          Reset to default
-                        </button>
-                      </div>
-                    </>
-                  )}
+            {/* Cover photo banner (demo mode with cover) */}
+            {demoActive && settings.coverUrl && isDashboardHome && (
+              <div
+                className="relative w-full rounded-xl overflow-hidden mb-6 -mt-2"
+                style={{ height: 140 }}
+              >
+                <img src={settings.coverUrl} alt="" className="w-full h-full object-cover" />
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%)" }}
+                />
+                <div className="absolute bottom-4 left-5">
+                  <h1 className="text-white font-bold leading-tight" style={{ fontSize: 28 }}>
+                    {settings.businessName.toUpperCase()}
+                  </h1>
+                  <p className="text-white/70 text-[14px] mt-0.5">Overview — {monthYear}</p>
                 </div>
               </div>
             )}
 
-            {/* Page header */}
-            <div className="flex items-start justify-between mb-7">
-              <div>
-                <div className="flex items-center gap-2">
-                  <SidebarTrigger className="text-muted-foreground -ml-2 mr-1" />
-                  <h1 className="text-[24px] font-bold text-foreground leading-tight">{title}</h1>
+            {/* Page header — hide if cover photo shown on dashboard home */}
+            {!(demoActive && settings.coverUrl && isDashboardHome) && (
+              <div className="flex items-start justify-between mb-7">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <SidebarTrigger className="text-muted-foreground -ml-2 mr-1" />
+                    <h1
+                      className="font-bold text-foreground leading-tight"
+                      style={{ fontSize: demoActive && isDashboardHome ? 28 : 24 }}
+                    >
+                      {displayTitle}
+                    </h1>
+                  </div>
+                  {displaySubtitle && (
+                    <p className="text-[14px] text-muted-foreground mt-0.5 ml-9">{displaySubtitle}</p>
+                  )}
+                  {demoActive && isDashboardHome && settings.description && (
+                    <p className="text-[14px] italic mt-0.5 ml-9" style={{ color: "hsl(213, 27%, 62%)" }}>
+                      {settings.description}
+                    </p>
+                  )}
                 </div>
-                {subtitle && <p className="text-[14px] text-muted-foreground mt-0.5 ml-9">{subtitle}</p>}
+                {actions && <div className="flex items-center gap-3">{actions}</div>}
               </div>
-              {actions && <div className="flex items-center gap-3">{actions}</div>}
-            </div>
+            )}
+
+            {/* If cover photo shown, still render actions row */}
+            {demoActive && settings.coverUrl && isDashboardHome && actions && (
+              <div className="flex justify-end mb-5">
+                <div className="flex items-center gap-3">{actions}</div>
+              </div>
+            )}
+
             {children}
 
             {/* Powered by watermark */}
             {demoActive && (
-              <div className="fixed bottom-4 right-4 text-[10px] font-normal tracking-[-0.01em]" style={{ color: "hsl(213, 27%, 62%)", opacity: 0.4 }}>
-                Powered by slate.
-              </div>
+              <a
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="fixed bottom-3 right-4 flex items-center gap-1 transition-opacity duration-200 cursor-pointer group"
+                style={{ opacity: 0.3 }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = "0.6")}
+                onMouseLeave={e => (e.currentTarget.style.opacity = "0.3")}
+              >
+                <span className="text-[11px] font-normal" style={{ color: "hsl(213, 27%, 62%)" }}>
+                  Powered by
+                </span>
+                <SlateLogo size={11} asLink={false} />
+              </a>
             )}
           </main>
         </div>

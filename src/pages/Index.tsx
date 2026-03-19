@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Zap, FileText, TrendingUp } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
+import { useApp } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
@@ -11,6 +12,7 @@ import {
 
 const DashboardHome = () => {
   const { subscribers, settings, kpiData, revenueChartData, subscriberGrowthData, activityFeed } = useDashboard();
+  const { demoActive, accentColor } = useApp();
   const navigate = useNavigate();
 
   const activityDotColor: Record<string, string> = {
@@ -19,6 +21,11 @@ const DashboardHome = () => {
     cancel: "bg-destructive/80",
     recipe: "bg-success",
   };
+
+  // Chart colours — use accent in demo mode
+  const chartStroke = demoActive ? accentColor : "hsl(217, 33%, 17%)";
+  const chartFill = demoActive ? accentColor : "hsl(217, 33%, 17%)";
+  const barSecondary = demoActive ? accentColor : "hsl(38, 92%, 50%)";
 
   return (
     <DashboardLayout
@@ -62,15 +69,15 @@ const DashboardHome = () => {
               <AreaChart data={revenueChartData}>
                 <defs>
                   <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(217, 33%, 17%)" stopOpacity={0.08} />
-                    <stop offset="100%" stopColor="hsl(217, 33%, 17%)" stopOpacity={0} />
+                    <stop offset="0%" stopColor={chartFill} stopOpacity={0.08} />
+                    <stop offset="100%" stopColor={chartFill} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fontWeight: 400 }} stroke="hsl(213, 27%, 62%)" />
                 <YAxis tick={{ fontSize: 11, fontWeight: 400 }} stroke="hsl(213, 27%, 62%)" tickFormatter={(v) => `£${v}`} />
                 <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} formatter={(value: number) => [`£${value}`, "Revenue"]} />
-                <Area type="monotone" dataKey="revenue" stroke="hsl(217, 33%, 17%)" strokeWidth={2} fill="url(#revenueGradient)" />
+                <Area type="monotone" dataKey="revenue" stroke={chartStroke} strokeWidth={2} fill="url(#revenueGradient)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -88,7 +95,7 @@ const DashboardHome = () => {
                 <YAxis tick={{ fontSize: 11, fontWeight: 400 }} stroke="hsl(213, 27%, 62%)" />
                 <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} />
                 <Bar dataKey="new" fill="hsl(217, 33%, 17%)" fillOpacity={0.7} radius={[4, 4, 0, 0]} name="New" />
-                <Bar dataKey="churned" fill="hsl(38, 92%, 50%)" fillOpacity={0.5} radius={[4, 4, 0, 0]} name="Churned" />
+                <Bar dataKey="churned" fill={barSecondary} fillOpacity={0.5} radius={[4, 4, 0, 0]} name="Churned" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -108,7 +115,10 @@ const DashboardHome = () => {
                 className="w-full flex items-center justify-between py-4 hover:bg-background/60 -mx-3 px-3 rounded-md transition-colors duration-150 cursor-pointer text-left"
               >
                 <div className="flex items-center gap-3">
-                  <span className={`h-2 w-2 rounded-full shrink-0 ${activityDotColor[item.type] || "bg-muted-foreground"}`} />
+                  <span
+                    className={`h-2 w-2 rounded-full shrink-0 ${!demoActive ? (activityDotColor[item.type] || "bg-muted-foreground") : ""}`}
+                    style={demoActive ? { backgroundColor: item.type === "cancel" ? undefined : accentColor } : undefined}
+                  />
                   <div>
                     <p className="text-[15px] font-medium text-foreground">{item.name}</p>
                     <p className="text-[13px] text-muted-foreground">{item.detail}</p>
