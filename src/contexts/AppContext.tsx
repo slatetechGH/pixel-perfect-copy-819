@@ -133,15 +133,15 @@ interface AppContextType {
   leads: Lead[];
   setLeads: React.Dispatch<React.SetStateAction<Lead[]>>;
   addLead: (lead: Omit<Lead, "id" | "timestamp" | "status" | "notes">) => boolean;
-  // Accent colour theming
   accentColor: string;
   setAccentColor: (color: string) => void;
   resetAccentColor: () => void;
-  // Demo mode
   demoActive: boolean;
   demoBusinessName: string;
   activateDemo: (businessName: string, accent: string) => void;
   deactivateDemo: () => void;
+  demoConfig: DemoProfile | null;
+  setDemoConfig: (config: DemoProfile | null) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -152,8 +152,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [accentColor, setAccentColorState] = useState<string>(DEFAULT_ACCENT);
   const [demoActive, setDemoActive] = useState(false);
   const [demoBusinessName, setDemoBusinessName] = useState("");
+  const [demoConfig, setDemoConfig] = useState<DemoProfile | null>(null);
 
-  // Sync CSS custom property
   useEffect(() => {
     document.documentElement.style.setProperty("--accent-dynamic", accentColor);
   }, [accentColor]);
@@ -170,6 +170,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const deactivateDemo = () => {
     setDemoActive(false);
     setDemoBusinessName("");
+    setDemoConfig(null);
     setAccentColorState(DEFAULT_ACCENT);
   };
 
@@ -193,6 +194,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       session, setSession, leads, setLeads, addLead,
       accentColor, setAccentColor, resetAccentColor,
       demoActive, demoBusinessName, activateDemo, deactivateDemo,
+      demoConfig, setDemoConfig,
     }}>
       {children}
     </AppContext.Provider>

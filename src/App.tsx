@@ -28,33 +28,35 @@ const queryClient = new QueryClient();
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session } = useApp();
   if (!session.isLoggedIn) return <Navigate to="/login" replace />;
-  return <DashboardProvider>{children}</DashboardProvider>;
+  return <>{children}</>;
 }
 
 const AppRoutes = () => (
-  <Routes>
-    {/* Marketing site */}
-    <Route path="/" element={<Marketing />} />
-    <Route path="/contact" element={<Contact />} />
-    <Route path="/get-started" element={<GetStarted />} />
-    <Route path="/login" element={<Login />} />
-    <Route path="/privacy" element={<Privacy />} />
-    <Route path="/terms" element={<Terms />} />
-    <Route path="/demo-setup" element={<DashboardProvider><DemoSetup /></DashboardProvider>} />
+  <DashboardProvider>
+    <Routes>
+      {/* Marketing site */}
+      <Route path="/" element={<Marketing />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/get-started" element={<GetStarted />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/demo-setup" element={<DemoSetup />} />
 
-    {/* Dashboard — protected + wrapped in provider */}
-    <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-    <Route path="/dashboard/subscribers" element={<ProtectedRoute><Subscribers /></ProtectedRoute>} />
-    <Route path="/dashboard/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
-    <Route path="/dashboard/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
-    <Route path="/dashboard/drops" element={<ProtectedRoute><Drops /></ProtectedRoute>} />
-    <Route path="/dashboard/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-    <Route path="/dashboard/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-    <Route path="/dashboard/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
-    <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      {/* Dashboard — protected, shares same DashboardProvider */}
+      <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+      <Route path="/dashboard/subscribers" element={<ProtectedRoute><Subscribers /></ProtectedRoute>} />
+      <Route path="/dashboard/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
+      <Route path="/dashboard/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
+      <Route path="/dashboard/drops" element={<ProtectedRoute><Drops /></ProtectedRoute>} />
+      <Route path="/dashboard/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+      <Route path="/dashboard/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+      <Route path="/dashboard/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
+      <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 
-    <Route path="*" element={<NotFound />} />
-  </Routes>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </DashboardProvider>
 );
 
 const App = () => (
