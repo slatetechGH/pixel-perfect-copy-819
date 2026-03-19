@@ -40,6 +40,7 @@ const AppRoutes = () => (
     <Route path="/login" element={<Login />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
+    <Route path="/demo-setup" element={<ProtectedRoute><DemoSetup /></ProtectedRoute>} />
 
     {/* Dashboard — protected + wrapped in provider */}
     <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
