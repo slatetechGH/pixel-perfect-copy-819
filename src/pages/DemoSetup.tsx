@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import SlateLogo from "@/components/SlateLogo";
 
+const DEFAULT_ACCENT = "#F59E0B";
+
 // ===== COLOR PRESETS =====
 const colorPresets = [
   { hex: "#F59E0B", name: "Amber" }, { hex: "#DC2626", name: "Red" }, { hex: "#2563EB", name: "Blue" },
