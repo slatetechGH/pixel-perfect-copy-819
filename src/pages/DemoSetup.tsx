@@ -481,7 +481,7 @@ const DemoSetup = () => {
 
       // Generate drops for dashboard
       const dashDrops = drops.filter(d => d.name).map((d, i) => ({
-        id: i + 1, title: d.name, description: "",
+        id: crypto.randomUUID(), title: d.name, description: "",
         status: d.status as any, total: d.quantity, remaining: d.quantity - d.sold,
         price: `£${d.price.toFixed(2)}`, priceNum: d.price,
         revenue: `£${(d.sold * d.price).toLocaleString()}`, endsIn: d.status === "live" ? "3 days" : d.status === "ended" ? "Ended" : "—",
