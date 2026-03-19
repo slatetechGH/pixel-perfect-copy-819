@@ -1,18 +1,21 @@
 import { Twitter, Instagram, Linkedin } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
 
 const Footer = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleScroll = (hash: string) => {
-    const el = document.querySelector(hash);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    } else {
-      navigate("/" + hash);
+    if (location.pathname === "/") {
+      const el = document.querySelector(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
     }
+    navigate("/" + hash);
   };
 
   const columns = [
@@ -21,17 +24,17 @@ const Footer = () => {
       links: [
         { label: "Features", onClick: () => handleScroll("#features") },
         { label: "Pricing", onClick: () => handleScroll("#pricing") },
-        { label: "Demo", onClick: () => toast("Demo video coming soon") },
+        { label: "Demo", onClick: () => toast("Demo video coming soon — watch this space") },
         { label: "Changelog", onClick: () => toast("Changelog coming soon") },
       ],
     },
     {
       title: "Resources",
       links: [
-        { label: "Blog", onClick: () => toast("Blog coming soon") },
+        { label: "Blog", onClick: () => toast("Blog coming soon — watch this space") },
         { label: "Help Centre", onClick: () => toast("Help Centre coming soon") },
-        { label: "API Docs", onClick: () => toast("API Docs coming soon") },
-        { label: "Producers", onClick: () => toast("Producer directory coming soon") },
+        { label: "Careers", onClick: () => toast("No open positions right now — check back soon!") },
+        { label: "Contact", onClick: () => navigate("/contact") },
       ],
     },
     {

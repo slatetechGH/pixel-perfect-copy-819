@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
+import { toast } from "sonner";
 
 const EmailCapture = () => {
+  const { addLead } = useApp();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -12,9 +15,19 @@ const EmailCapture = () => {
       setError("Please enter a valid email address");
       return;
     }
-    console.log(JSON.stringify({ email, type: "newsletter" }));
+
+    const success = addLead({ type: "newsletter", email });
+
+    if (!success) {
+      toast("You're already subscribed!");
+      setEmail("");
+      return;
+    }
+
+    console.log("Newsletter signup:", JSON.stringify({ email, type: "newsletter" }));
     setSubmitted(true);
     setEmail("");
+    toast.success("You're in! Welcome to Slate.");
   };
 
   return (
