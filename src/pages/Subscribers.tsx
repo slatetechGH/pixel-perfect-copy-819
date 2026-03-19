@@ -20,8 +20,8 @@ const Subscribers = () => {
   const [planFilter, setPlanFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sort, setSort] = useState("Newest");
-  const [selected, setSelected] = useState<number | null>(null);
-  const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [cancelConfirm, setCancelConfirm] = useState<string | null>(null);
   const [pauseConfirm, setPauseConfirm] = useState<number | null>(null);
 
   const filtered = subscribers
