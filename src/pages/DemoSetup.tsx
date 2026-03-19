@@ -474,7 +474,7 @@ const DemoSetup = () => {
 
       // Generate plans for dashboard
       const dashPlans = validPlans.map((p, i) => ({
-        id: i + 1, name: p.name, price: p.isFree ? "Free" : `£${p.price}/mo`, priceNum: p.price,
+        id: crypto.randomUUID(), name: p.name, price: p.isFree ? "Free" : `£${p.price}/mo`, priceNum: p.price,
         subscribers: p.projectedSubscribers, isFree: p.isFree, benefits: p.features,
         description: "", active: true, showOnPublicPage: true,
       }));
