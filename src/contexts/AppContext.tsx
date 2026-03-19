@@ -152,12 +152,60 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<SessionState>({ isLoggedIn: false, currentUser: "" });
+  const [session, setSession] = useState<SessionState>({
+    isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null,
+  });
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [accentColor, setAccentColorState] = useState<string>(DEFAULT_ACCENT);
   const [demoActive, setDemoActive] = useState(false);
   const [demoBusinessName, setDemoBusinessName] = useState("");
   const [demoConfig, setDemoConfig] = useState<DemoProfile | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Fetch profile helper
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
+    return data;
+  };
+
+  // Supabase auth state listener
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supaSession) => {
+      if (supaSession?.user) {
+        // Use setTimeout to avoid Supabase auth deadlock
+        const profile = await fetchProfile(supaSession.user.id);
+        setSession({
+          isLoggedIn: true,
+          currentUser: profile?.business_name || supaSession.user.email || "",
+          supabaseUser: supaSession.user,
+          supabaseSession: supaSession,
+          profile,
+        });
+      } else {
+        setSession({
+          isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null,
+        });
+      }
+      setAuthLoading(false);
+    });
+
+    // Also check existing session on mount
+    supabase.auth.getSession().then(async ({ data: { session: existing } }) => {
+      if (existing?.user) {
+        const profile = await fetchProfile(existing.user.id);
+        setSession({
+          isLoggedIn: true,
+          currentUser: profile?.business_name || existing.user.email || "",
+          supabaseUser: existing.user,
+          supabaseSession: existing,
+          profile,
+        });
+      }
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--accent-dynamic", accentColor);
