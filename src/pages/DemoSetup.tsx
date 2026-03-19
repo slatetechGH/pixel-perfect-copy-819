@@ -368,8 +368,6 @@ const DemoSetup = () => {
     }, 2000);
   };
 
-  const DEFAULT_ACCENT = "#F59E0B";
-
   return (
     <div className="min-h-screen bg-secondary">
       <div className="max-w-[1200px] mx-auto px-6 py-10">

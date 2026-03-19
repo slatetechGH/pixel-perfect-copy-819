@@ -91,12 +91,12 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
 
       <ConfirmDialog
         open={resetConfirm}
-        onOpenChange={setResetConfirm}
+        onClose={() => setResetConfirm(false)}
         title="Reset Demo?"
         description="This will restore the default Harbour Fish Co. data and remove all demo customisations."
-        confirmLabel="Reset"
+        confirmText="Reset"
         onConfirm={handleReset}
-        variant="destructive"
+        destructive
       />
     </SidebarProvider>
   );
