@@ -245,8 +245,22 @@ const GetStarted = () => {
                   <input type="checkbox" checked={form.newsletter} onChange={(e) => setForm({ ...form, newsletter: e.target.checked })} className="w-[18px] h-[18px] rounded border-slate-light/40 accent-foreground" />
                   <span className="text-[14px] text-slate-mid">Send me tips on growing a subscription business</span>
                 </label>
+                {showPasswordFields && (
+                  <>
+                    <div>
+                      <label className="text-[13px] font-medium text-slate-mid block mb-1.5">Create a Password <span className="text-amber">*</span></label>
+                      <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); setErrors(prev => { const n = { ...prev }; delete n.password; return n; }); }} className={inputCls("password")} placeholder="Min 6 characters" />
+                      {errors.password && <p className="text-[13px] text-destructive mt-1">{errors.password}</p>}
+                    </div>
+                    <div>
+                      <label className="text-[13px] font-medium text-slate-mid block mb-1.5">Confirm Password <span className="text-amber">*</span></label>
+                      <input type="password" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); setErrors(prev => { const n = { ...prev }; delete n.confirmPassword; return n; }); }} className={inputCls("confirmPassword")} placeholder="Re-enter password" />
+                      {errors.confirmPassword && <p className="text-[13px] text-destructive mt-1">{errors.confirmPassword}</p>}
+                    </div>
+                  </>
+                )}
                 <Button variant="slate" className="w-full h-11 text-[15px]" type="submit" disabled={loading}>
-                  {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Submitting...</> : "Request early access"}
+                  {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating account...</> : showPasswordFields ? "Create account" : "Continue"}
                 </Button>
               </form>
             </div>
