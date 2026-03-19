@@ -84,7 +84,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
             </div>
           )}
 
-          <main className="flex-1 p-8 overflow-auto relative">
+          <main className="flex-1 p-4 md:p-8 overflow-auto overflow-x-hidden relative">
             {/* Cover photo banner (demo mode with cover) */}
             {demoActive && settings.coverUrl && isDashboardHome && (
               <div
