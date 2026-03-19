@@ -17,24 +17,8 @@ const ranges = [
   { key: "all", label: "All time" },
 ];
 
-const tierBreakdown = [
-  { name: "Free", value: 64, color: "hsl(213, 27%, 62%)" },
-  { name: "Standard", value: 89, color: "hsl(217, 33%, 17%)" },
-  { name: "Premium", value: 34, color: "hsl(38, 92%, 50%)" },
-];
-
-const subscriberGrowth = [
-  { month: "Sep", new: 12, churned: 3 },
-  { month: "Oct", new: 18, churned: 4 },
-  { month: "Nov", new: 22, churned: 5 },
-  { month: "Dec", new: 28, churned: 6 },
-  { month: "Jan", new: 35, churned: 7 },
-  { month: "Feb", new: 30, churned: 5 },
-  { month: "Mar", new: 38, churned: 6 },
-];
-
 const Analytics = () => {
-  const { revenueDataSets } = useDashboard();
+  const { revenueDataSets, kpiData, subscriberGrowthData, tierBreakdown } = useDashboard();
   const [range, setRange] = useState("6m");
   const data = revenueDataSets[range] || revenueDataSets["all"];
 
@@ -50,7 +34,7 @@ const Analytics = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
-        <MetricCard title="MRR" value="£4,850" change="+15.5%" trend="up" />
+        <MetricCard title="MRR" value={kpiData.mrr} change={kpiData.mrrChange} trend="up" />
         <MetricCard title="Lifetime Value" value="£186" change="+8.2%" trend="up" delay={80} />
         <MetricCard title="Drop Conversion" value="72%" change="+5.1%" trend="up" delay={160} />
         <MetricCard title="Content Engagement" value="3.2k" change="+22%" trend="up" delay={240} />
@@ -104,7 +88,7 @@ const Analytics = () => {
         </CardHeader>
         <CardContent className="px-7 pb-7">
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={subscriberGrowth}>
+            <BarChart data={subscriberGrowthData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
               <YAxis tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
