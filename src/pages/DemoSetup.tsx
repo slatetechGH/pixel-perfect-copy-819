@@ -395,7 +395,7 @@ const DemoSetup = () => {
       ];
       
       convos.push({
-        id: i + 1,
+        id: crypto.randomUUID(),
         name,
         plan,
         avatar: initials,
