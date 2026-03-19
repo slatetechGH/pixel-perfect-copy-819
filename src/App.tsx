@@ -21,6 +21,7 @@ import Contact from "./pages/Contact";
 import GetStarted from "./pages/GetStarted";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import DemoSetup from "./pages/DemoSetup";
 
 const queryClient = new QueryClient();
 
