@@ -31,6 +31,9 @@ const GetStarted = () => {
   const [duplicate, setDuplicate] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [form, setForm] = useState({
     name: "", email: "", phone: "", businessName: "", businessType: "",
     website: "", customerCount: "", interests: [] as string[], notes: "",
