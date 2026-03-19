@@ -107,12 +107,12 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
 
             {/* Page header — hide if cover photo shown on dashboard home */}
             {!(demoActive && settings.coverUrl && isDashboardHome) && (
-              <div className="flex items-start justify-between mb-7">
-                <div>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-7">
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <SidebarTrigger className="text-muted-foreground -ml-2 mr-1" />
                     <h1
-                      className="font-bold text-foreground leading-tight"
+                      className="font-bold text-foreground leading-tight truncate"
                       style={{ fontSize: demoActive && isDashboardHome ? 28 : 24 }}
                     >
                       {displayTitle}
@@ -127,7 +127,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
                     </p>
                   )}
                 </div>
-                {actions && <div className="flex items-center gap-3">{actions}</div>}
+                {actions && <div className="flex items-center gap-3 flex-wrap ml-9 sm:ml-0">{actions}</div>}
               </div>
             )}
 
