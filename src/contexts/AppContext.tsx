@@ -244,12 +244,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setSession({ isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null });
+  };
+
   return (
     <AppContext.Provider value={{
-      session, setSession, leads, setLeads, addLead,
+      session, setSession, authLoading, leads, setLeads, addLead,
       accentColor, setAccentColor, resetAccentColor,
       demoActive, demoBusinessName, activateDemo, deactivateDemo,
-      demoConfig, setDemoConfig,
+      demoConfig, setDemoConfig, signOut,
     }}>
       {children}
     </AppContext.Provider>
