@@ -23,7 +23,7 @@ const Plans = () => {
 
   const openEditor = (plan?: Plan) => {
     if (plan) { setEditing({ ...plan, benefits: [...plan.benefits] }); setIsNew(false); }
-    else { setEditing({ ...emptyPlan, id: Date.now(), benefits: [""] } as Plan); setIsNew(true); }
+    else { setEditing({ ...emptyPlan, id: crypto.randomUUID(), benefits: [""] } as Plan); setIsNew(true); }
   };
 
   const updateField = (field: keyof Plan, value: any) => {

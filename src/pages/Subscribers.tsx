@@ -20,9 +20,9 @@ const Subscribers = () => {
   const [planFilter, setPlanFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sort, setSort] = useState("Newest");
-  const [selected, setSelected] = useState<number | null>(null);
-  const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
-  const [pauseConfirm, setPauseConfirm] = useState<number | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [cancelConfirm, setCancelConfirm] = useState<string | null>(null);
+  const [pauseConfirm, setPauseConfirm] = useState<string | null>(null);
 
   const filtered = subscribers
     .filter(s => (s.name + s.email).toLowerCase().includes(search.toLowerCase()))
@@ -30,29 +30,29 @@ const Subscribers = () => {
     .filter(s => statusFilter === "All" || s.status === statusFilter)
     .sort((a, b) => {
       if (sort === "Alphabetical") return a.name.localeCompare(b.name);
-      if (sort === "Oldest") return a.id - b.id;
-      return b.id - a.id;
+      if (sort === "Oldest") return a.id.localeCompare(b.id);
+      return b.id.localeCompare(a.id);
     });
 
   const selectedSub = subscribers.find(s => s.id === selected);
 
-  const changePlan = (subId: number, newPlan: string) => {
+  const changePlan = (subId: string, newPlan: string) => {
     setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, plan: newPlan } : s));
     toast.success("Plan updated");
   };
 
-  const cancelSub = (subId: number) => {
+  const cancelSub = (subId: string) => {
     setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, status: "cancelled" as const } : s));
     setSelected(null);
     toast.success("Subscription cancelled");
   };
 
-  const pauseSub = (subId: number) => {
+  const pauseSub = (subId: string) => {
     setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, status: "paused" as const } : s));
     toast.success("Subscription paused");
   };
 
-  const resumeSub = (subId: number) => {
+  const resumeSub = (subId: string) => {
     setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, status: "active" as const } : s));
     toast.success("Subscription resumed");
   };

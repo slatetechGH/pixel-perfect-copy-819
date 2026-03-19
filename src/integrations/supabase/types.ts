@@ -14,6 +14,378 @@ export type Database = {
   }
   public: {
     Tables: {
+      content: {
+        Row: {
+          ai: boolean | null
+          body: string | null
+          cook_time: string | null
+          created_at: string
+          eligible_plans: string[] | null
+          id: string
+          ingredients: Json | null
+          method_steps: string[] | null
+          prep_time: string | null
+          producer_id: string
+          published_at: string | null
+          serves: string | null
+          status: string
+          tier: string | null
+          title: string
+          type: string
+          updated_at: string
+          views: number | null
+        }
+        Insert: {
+          ai?: boolean | null
+          body?: string | null
+          cook_time?: string | null
+          created_at?: string
+          eligible_plans?: string[] | null
+          id?: string
+          ingredients?: Json | null
+          method_steps?: string[] | null
+          prep_time?: string | null
+          producer_id: string
+          published_at?: string | null
+          serves?: string | null
+          status?: string
+          tier?: string | null
+          title: string
+          type?: string
+          updated_at?: string
+          views?: number | null
+        }
+        Update: {
+          ai?: boolean | null
+          body?: string | null
+          cook_time?: string | null
+          created_at?: string
+          eligible_plans?: string[] | null
+          id?: string
+          ingredients?: Json | null
+          method_steps?: string[] | null
+          prep_time?: string | null
+          producer_id?: string
+          published_at?: string | null
+          serves?: string | null
+          status?: string
+          tier?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          avatar: string | null
+          created_at: string
+          id: string
+          name: string
+          plan: string
+          producer_id: string
+          unread: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          plan: string
+          producer_id: string
+          unread?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          plan?: string
+          producer_id?: string
+          unread?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      demo_configs: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          name: string | null
+          producer_id: string
+          updated_at: string
+        }
+        Insert: {
+          config: Json
+          created_at?: string
+          id?: string
+          name?: string | null
+          producer_id: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          name?: string | null
+          producer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_configs_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drops: {
+        Row: {
+          created_at: string
+          description: string | null
+          drop_date: string | null
+          drop_time: string | null
+          eligible_plans: string[] | null
+          end_date: string | null
+          end_time: string | null
+          id: string
+          items: Json | null
+          notify: boolean | null
+          price_num: number
+          producer_id: string
+          remaining: number
+          status: string
+          title: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          drop_date?: string | null
+          drop_time?: string | null
+          eligible_plans?: string[] | null
+          end_date?: string | null
+          end_time?: string | null
+          id?: string
+          items?: Json | null
+          notify?: boolean | null
+          price_num?: number
+          producer_id: string
+          remaining?: number
+          status?: string
+          title: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          drop_date?: string | null
+          drop_time?: string | null
+          eligible_plans?: string[] | null
+          end_date?: string | null
+          end_time?: string | null
+          id?: string
+          items?: Json | null
+          notify?: boolean | null
+          price_num?: number
+          producer_id?: string
+          remaining?: number
+          status?: string
+          title?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drops_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          additional_notes: string | null
+          business_name: string | null
+          business_type: string | null
+          created_at: string
+          customer_count: string | null
+          email: string
+          hear_about: string | null
+          id: string
+          interested_plan: string | null
+          interests: string[] | null
+          message: string | null
+          name: string | null
+          newsletter: boolean | null
+          notes: string | null
+          phone: string | null
+          status: string
+          terms: boolean | null
+          type: string
+          website: string | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string
+          customer_count?: string | null
+          email: string
+          hear_about?: string | null
+          id?: string
+          interested_plan?: string | null
+          interests?: string[] | null
+          message?: string | null
+          name?: string | null
+          newsletter?: boolean | null
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          terms?: boolean | null
+          type: string
+          website?: string | null
+        }
+        Update: {
+          additional_notes?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string
+          customer_count?: string | null
+          email?: string
+          hear_about?: string | null
+          id?: string
+          interested_plan?: string | null
+          interests?: string[] | null
+          message?: string | null
+          name?: string | null
+          newsletter?: boolean | null
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          terms?: boolean | null
+          type?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          sender: string
+          sent_at: string | null
+          text: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender: string
+          sent_at?: string | null
+          text: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender?: string
+          sent_at?: string | null
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          active: boolean
+          benefits: string[] | null
+          created_at: string
+          description: string | null
+          id: string
+          is_free: boolean
+          name: string
+          price_num: number
+          producer_id: string
+          show_on_public_page: boolean
+          sort_order: number | null
+          subscriber_limit: number | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          benefits?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_free?: boolean
+          name: string
+          price_num?: number
+          producer_id: string
+          show_on_public_page?: boolean
+          sort_order?: number | null
+          subscriber_limit?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          benefits?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_free?: boolean
+          name?: string
+          price_num?: number
+          producer_id?: string
+          show_on_public_page?: boolean
+          sort_order?: number | null
+          subscriber_limit?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plans_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           accent_color: string | null
@@ -22,16 +394,23 @@ export type Database = {
           business_type: string | null
           cover_url: string | null
           created_at: string
+          description: string | null
           email: string
+          facebook: string | null
           id: string
+          instagram: string | null
           logo_url: string | null
           notification_prefs: Json | null
           phone: string | null
           plan: string
+          public_visible: boolean | null
           stripe_connect_id: string | null
           stripe_customer_id: string | null
           tagline: string | null
+          twitter: string | null
           updated_at: string
+          url_slug: string | null
+          website: string | null
         }
         Insert: {
           accent_color?: string | null
@@ -40,16 +419,23 @@ export type Database = {
           business_type?: string | null
           cover_url?: string | null
           created_at?: string
+          description?: string | null
           email: string
+          facebook?: string | null
           id: string
+          instagram?: string | null
           logo_url?: string | null
           notification_prefs?: Json | null
           phone?: string | null
           plan?: string
+          public_visible?: boolean | null
           stripe_connect_id?: string | null
           stripe_customer_id?: string | null
           tagline?: string | null
+          twitter?: string | null
           updated_at?: string
+          url_slug?: string | null
+          website?: string | null
         }
         Update: {
           accent_color?: string | null
@@ -58,18 +444,75 @@ export type Database = {
           business_type?: string | null
           cover_url?: string | null
           created_at?: string
+          description?: string | null
           email?: string
+          facebook?: string | null
           id?: string
+          instagram?: string | null
           logo_url?: string | null
           notification_prefs?: Json | null
           phone?: string | null
           plan?: string
+          public_visible?: boolean | null
           stripe_connect_id?: string | null
           stripe_customer_id?: string | null
           tagline?: string | null
+          twitter?: string | null
           updated_at?: string
+          url_slug?: string | null
+          website?: string | null
         }
         Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          joined_at: string | null
+          name: string
+          phone: string | null
+          plan: string
+          producer_id: string
+          revenue: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          joined_at?: string | null
+          name: string
+          phone?: string | null
+          plan: string
+          producer_id: string
+          revenue?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          joined_at?: string | null
+          name?: string
+          phone?: string | null
+          plan?: string
+          producer_id?: string
+          revenue?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscribers_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

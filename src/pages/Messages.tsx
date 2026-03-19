@@ -5,7 +5,7 @@ import { useDashboard } from "@/contexts/DashboardContext";
 
 const Messages = () => {
   const { conversations, setConversations } = useDashboard();
-  const [activeId, setActiveId] = useState(conversations[0]?.id || 0);
+  const [activeId, setActiveId] = useState(conversations[0]?.id || "");
   const [search, setSearch] = useState("");
   const [newMsg, setNewMsg] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -26,7 +26,7 @@ const Messages = () => {
     setNewMsg("");
   };
 
-  const selectConversation = (id: number) => {
+  const selectConversation = (id: string) => {
     setActiveId(id);
     setConversations(prev => prev.map(c => c.id === id ? { ...c, unread: false } : c));
   };

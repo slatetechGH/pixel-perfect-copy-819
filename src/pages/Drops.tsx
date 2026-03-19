@@ -15,7 +15,7 @@ const statusDot: Record<string, string> = {
 const statusFilters = ["All", "Draft", "Scheduled", "Live", "Ended"] as const;
 
 const emptyDrop: Omit<Drop, "id"> = {
-  title: "", description: "", status: "draft", total: 10, remaining: 10, price: "£0.00", priceNum: 0,
+  title: "", description: "", status: "draft" as const, total: 10, remaining: 10, price: "£0.00", priceNum: 0,
   revenue: "£0", endsIn: "—", dropDate: "", dropTime: "09:00", endDate: "", endTime: "18:00",
   eligiblePlans: [], items: [{ name: "", quantity: "" }], notify: true,
 };
@@ -33,7 +33,7 @@ const Drops = () => {
 
   const openEditor = (drop?: Drop) => {
     if (drop) { setEditing({ ...drop, items: drop.items.map(i => ({ ...i })), eligiblePlans: [...drop.eligiblePlans] }); setIsNew(false); }
-    else { setEditing({ ...emptyDrop, id: Date.now(), items: [{ name: "", quantity: "" }], eligiblePlans: [] } as Drop); setIsNew(true); }
+    else { setEditing({ ...emptyDrop, id: crypto.randomUUID(), items: [{ name: "", quantity: "" }], eligiblePlans: [] } as Drop); setIsNew(true); }
   };
 
   const updateField = (field: keyof Drop, value: any) => {
@@ -71,7 +71,7 @@ const Drops = () => {
   };
 
   const duplicate = (drop: Drop) => {
-    const dup = { ...drop, id: Date.now(), title: `${drop.title} (Copy)`, status: "draft" as const, remaining: drop.total, revenue: "£0" };
+    const dup: Drop = { ...drop, id: crypto.randomUUID(), title: `${drop.title} (Copy)`, status: "draft" as const, remaining: drop.total, revenue: "£0" };
     setDrops(prev => [...prev, dup]);
     toast.success("Drop duplicated");
   };
