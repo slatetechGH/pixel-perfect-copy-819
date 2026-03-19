@@ -86,50 +86,52 @@ export interface DemoProfile {
 // ===== DEFAULT ACCENT =====
 const DEFAULT_ACCENT = "#F59E0B";
 
-// ===== INITIAL MOCK LEADS =====
-const initialLeads: Lead[] = [
-  {
-    id: "sig-1", type: "signup", status: "new", timestamp: "2026-03-18T14:30:00",
-    email: "tom@greenfieldsfarm.co.uk", name: "Tom Greenfield", phone: "07812 345678",
-    businessName: "Greenfields Farm Shop", businessType: "Farm Shop",
-    website: "greenfieldsfarm.co.uk", customerCount: "50–200", interests: ["Subscription boxes", "Product drops"],
-    notes: "",
-  },
-  {
-    id: "sig-2", type: "signup", status: "reviewed", timestamp: "2026-03-15T09:15:00",
-    email: "lisa@craftbakery.com", name: "Lisa Baker", phone: "07900 111222",
-    businessName: "The Craft Bakery", businessType: "Baker",
-    website: "instagram.com/craftbakery", customerCount: "200–500", interests: ["Subscription boxes", "Recipe & content sharing", "Analytics & insights"],
-    notes: "Very keen, wants to start with sourdough subscriptions",
-  },
-  {
-    id: "sig-3", type: "signup", status: "contacted", timestamp: "2026-03-10T16:45:00",
-    email: "james@smokeandoak.co", name: "James Harlow", phone: "",
-    businessName: "Smoke & Oak Charcuterie", businessType: "Butcher",
-    website: "smokeandoak.co", customerCount: "Under 50", interests: ["All of the above"],
-    interestedPlan: "growth", notes: "Call scheduled for next week",
-  },
-  {
-    id: "con-1", type: "contact", status: "new", timestamp: "2026-03-17T11:20:00",
-    email: "hello@cheesecellar.co.uk", name: "Margaret White",
-    businessName: "The Cheese Cellar", businessType: "Cheesemaker",
-    message: "We're interested in setting up a cheese subscription box. Can we arrange a demo?",
-    notes: "",
-  },
-  {
-    id: "con-2", type: "contact", status: "reviewed", timestamp: "2026-03-12T08:30:00",
-    email: "info@hopyard.beer", name: "Dan Hopper", phone: "01234 567890",
-    businessName: "Hopyard Brewing", businessType: "Brewery / Distillery",
-    hearAbout: "Social Media",
-    message: "Love the concept! We'd like to explore a beer subscription and limited-edition drops for seasonal brews.",
-    notes: "Sent intro email with pricing deck",
-  },
-  { id: "news-1", type: "newsletter", status: "new", timestamp: "2026-03-19T08:00:00", email: "curious@gmail.com", notes: "" },
-  { id: "news-2", type: "newsletter", status: "new", timestamp: "2026-03-18T19:30:00", email: "foodie.fan@outlook.com", notes: "" },
-  { id: "news-3", type: "newsletter", status: "new", timestamp: "2026-03-17T12:00:00", email: "market.lover@yahoo.com", notes: "" },
-  { id: "news-4", type: "newsletter", status: "reviewed", timestamp: "2026-03-15T10:00:00", email: "chef.pat@gmail.com", notes: "" },
-  { id: "news-5", type: "newsletter", status: "reviewed", timestamp: "2026-03-12T15:45:00", email: "localfood@proton.me", notes: "" },
-];
+// ===== LEAD ↔ ROW TRANSFORMERS =====
+function leadToRow(lead: Omit<Lead, "id" | "timestamp" | "status" | "notes"> & Partial<Pick<Lead, "id" | "timestamp" | "status" | "notes">>) {
+  return {
+    type: lead.type,
+    status: lead.status || "new",
+    email: lead.email,
+    name: lead.name || null,
+    phone: lead.phone || null,
+    business_name: lead.businessName || null,
+    business_type: lead.businessType || null,
+    hear_about: lead.hearAbout || null,
+    message: lead.message || null,
+    newsletter: lead.newsletter || null,
+    website: lead.website || null,
+    customer_count: lead.customerCount || null,
+    interests: lead.interests || null,
+    additional_notes: lead.additionalNotes || null,
+    interested_plan: lead.interestedPlan || null,
+    terms: lead.terms || null,
+    notes: lead.notes || "",
+  };
+}
+
+function rowToLead(row: any): Lead {
+  return {
+    id: row.id,
+    type: row.type,
+    status: row.status,
+    timestamp: row.created_at,
+    email: row.email,
+    name: row.name,
+    phone: row.phone,
+    businessName: row.business_name,
+    businessType: row.business_type,
+    hearAbout: row.hear_about,
+    message: row.message,
+    newsletter: row.newsletter,
+    website: row.website,
+    customerCount: row.customer_count,
+    interests: row.interests,
+    additionalNotes: row.additional_notes,
+    interestedPlan: row.interested_plan,
+    terms: row.terms,
+    notes: row.notes || "",
+  };
+}
 
 // ===== CONTEXT =====
 interface AppContextType {
@@ -139,6 +141,8 @@ interface AppContextType {
   leads: Lead[];
   setLeads: React.Dispatch<React.SetStateAction<Lead[]>>;
   addLead: (lead: Omit<Lead, "id" | "timestamp" | "status" | "notes">) => boolean;
+  updateLead: (id: string, updates: Partial<Lead>) => Promise<void>;
+  deleteLead: (id: string) => Promise<void>;
   accentColor: string;
   setAccentColor: (color: string) => void;
   resetAccentColor: () => void;
@@ -157,7 +161,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionState>({
     isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null,
   });
-  const [leads, setLeads] = useState<Lead[]>(initialLeads);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [accentColor, setAccentColorState] = useState<string>(DEFAULT_ACCENT);
   const [demoActive, setDemoActive] = useState(false);
   const [demoBusinessName, setDemoBusinessName] = useState("");
@@ -174,7 +178,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supaSession) => {
       if (supaSession?.user) {
-        // Use setTimeout to avoid Supabase auth deadlock
         const profile = await fetchProfile(supaSession.user.id);
         setSession({
           isLoggedIn: true,
@@ -191,7 +194,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setAuthLoading(false);
     });
 
-    // Also check existing session on mount
     supabase.auth.getSession().then(async ({ data: { session: existing } }) => {
       if (existing?.user) {
         const profile = await fetchProfile(existing.user.id);
@@ -208,6 +210,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Fetch leads from Supabase when authenticated
+  useEffect(() => {
+    if (!session.supabaseUser) return;
+
+    const fetchLeads = async () => {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (data && !error) {
+        setLeads(data.map(rowToLead));
+      }
+    };
+
+    fetchLeads();
+  }, [session.supabaseUser?.id]);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--accent-dynamic", accentColor);
@@ -233,15 +252,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (lead.type === "signup" && leads.some(l => l.type === "signup" && l.email === lead.email)) return false;
     if (lead.type === "newsletter" && leads.some(l => l.type === "newsletter" && l.email === lead.email)) return false;
 
-    const newLead: Lead = {
-      ...lead,
-      id: `${lead.type.slice(0, 3)}-${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      status: "new",
-      notes: "",
-    };
-    setLeads(prev => [newLead, ...prev]);
+    // Insert into Supabase (works for both anon and authenticated)
+    const row = leadToRow(lead);
+    supabase.from("leads").insert(row as any).select().single().then(({ data, error }) => {
+      if (data && !error) {
+        const newLead = rowToLead(data);
+        setLeads(prev => [newLead, ...prev]);
+      } else {
+        // Fallback: add locally with generated id
+        const fallbackLead: Lead = {
+          ...lead,
+          id: `${lead.type.slice(0, 3)}-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          status: "new",
+          notes: "",
+        };
+        setLeads(prev => [fallbackLead, ...prev]);
+      }
+    });
+
     return true;
+  };
+
+  const updateLead = async (id: string, updates: Partial<Lead>) => {
+    setLeads(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
+    if (session.supabaseUser) {
+      const dbUpdates: Record<string, any> = {};
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+      await supabase.from("leads").update(dbUpdates).eq("id", id);
+    }
+  };
+
+  const deleteLead = async (id: string) => {
+    setLeads(prev => prev.filter(l => l.id !== id));
+    if (session.supabaseUser) {
+      await supabase.from("leads").delete().eq("id", id);
+    }
   };
 
   const signOut = async () => {
@@ -251,7 +298,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      session, setSession, authLoading, leads, setLeads, addLead,
+      session, setSession, authLoading, leads, setLeads, addLead, updateLead, deleteLead,
       accentColor, setAccentColor, resetAccentColor,
       demoActive, demoBusinessName, activateDemo, deactivateDemo,
       demoConfig, setDemoConfig, signOut,
