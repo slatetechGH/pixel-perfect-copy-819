@@ -395,7 +395,7 @@ const DemoSetup = () => {
       ];
       
       convos.push({
-        id: i + 1,
+        id: crypto.randomUUID(),
         name,
         plan,
         avatar: initials,
@@ -464,7 +464,7 @@ const DemoSetup = () => {
         joinDate.setMonth(joinDate.getMonth() - joinMonth);
 
         return {
-          id: i + 1, name, email: `${name.toLowerCase().replace(" ", ".")}@email.com`,
+          id: crypto.randomUUID(), name, email: `${name.toLowerCase().replace(" ", ".")}@email.com`,
           phone: `07700 ${String(900000 + i).slice(0, 6)}`, plan: planForSub.name,
           status: Math.random() > 0.1 ? "active" as const : Math.random() > 0.5 ? "paused" as const : "cancelled" as const,
           joined: `${Math.floor(Math.random() * 28) + 1} ${monthNames[joinDate.getMonth()]} ${joinDate.getFullYear()}`,
@@ -474,14 +474,14 @@ const DemoSetup = () => {
 
       // Generate plans for dashboard
       const dashPlans = validPlans.map((p, i) => ({
-        id: i + 1, name: p.name, price: p.isFree ? "Free" : `£${p.price}/mo`, priceNum: p.price,
+        id: crypto.randomUUID(), name: p.name, price: p.isFree ? "Free" : `£${p.price}/mo`, priceNum: p.price,
         subscribers: p.projectedSubscribers, isFree: p.isFree, benefits: p.features,
         description: "", active: true, showOnPublicPage: true,
       }));
 
       // Generate drops for dashboard
       const dashDrops = drops.filter(d => d.name).map((d, i) => ({
-        id: i + 1, title: d.name, description: "",
+        id: crypto.randomUUID(), title: d.name, description: "",
         status: d.status as any, total: d.quantity, remaining: d.quantity - d.sold,
         price: `£${d.price.toFixed(2)}`, priceNum: d.price,
         revenue: `£${(d.sold * d.price).toLocaleString()}`, endsIn: d.status === "live" ? "3 days" : d.status === "ended" ? "Ended" : "—",
@@ -492,7 +492,7 @@ const DemoSetup = () => {
 
       // Generate content for dashboard
       const dashContent = content.filter(c => c.title).map((c, i) => ({
-        id: i + 1, title: c.title, type: c.type, body: "",
+        id: crypto.randomUUID(), title: c.title, type: c.type, body: "",
         status: c.status as any, tier: "Free", views: Math.floor(Math.random() * 300),
         date: c.status === "published" ? "12 Mar 2026" : "—", ai: false,
         prepTime: c.prepTime, cookTime: c.cookTime, serves: c.serves,
