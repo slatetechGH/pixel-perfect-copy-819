@@ -156,8 +156,8 @@ const GetStarted = () => {
             <div className="w-12 h-12 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
               <Check size={24} className="text-amber" />
             </div>
-            <h2 className="text-[28px] font-bold text-foreground mb-2">You're on the list, {firstName}!</h2>
-            <p className="text-[16px] text-slate-mid mb-6">We'll be in touch within 48 hours.</p>
+            <h2 className="text-[28px] font-bold text-foreground mb-2">Check your email, {firstName}!</h2>
+            <p className="text-[16px] text-slate-mid mb-6">We've sent a confirmation link to <strong>{form.email}</strong>. Click it to activate your account.</p>
             <Button variant="slate-outline" onClick={() => navigate("/")}>Back to homepage</Button>
           </div>
         ) : (
