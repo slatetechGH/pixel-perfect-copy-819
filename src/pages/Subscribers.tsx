@@ -22,6 +22,7 @@ const Subscribers = () => {
   const [sort, setSort] = useState("Newest");
   const [selected, setSelected] = useState<number | null>(null);
   const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
+  const [pauseConfirm, setPauseConfirm] = useState<number | null>(null);
 
   const filtered = subscribers
     .filter(s => (s.name + s.email).toLowerCase().includes(search.toLowerCase()))
@@ -46,11 +47,21 @@ const Subscribers = () => {
     toast.success("Subscription cancelled");
   };
 
+  const pauseSub = (subId: number) => {
+    setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, status: "paused" as const } : s));
+    toast.success("Subscription paused");
+  };
+
+  const resumeSub = (subId: number) => {
+    setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, status: "active" as const } : s));
+    toast.success("Subscription resumed");
+  };
+
   return (
     <DashboardLayout
       title="Subscribers"
-      subtitle={`${subscribers.length} total subscribers`}
-      actions={<Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1.5" /> Export CSV</Button>}
+      subtitle={`${filtered.length} of ${subscribers.length} subscribers`}
+      actions={<Button variant="outline" size="sm" onClick={() => toast("Export coming soon")}><Download className="h-4 w-4 mr-1.5" /> Export CSV</Button>}
     >
       <Card className="border-0 shadow-card">
         <CardContent className="p-0">
@@ -75,30 +86,39 @@ const Subscribers = () => {
               <option>Alphabetical</option>
             </select>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  {["Name", "Email", "Plan", "Joined", "Status", "Revenue", ""].map(h => (
-                    <th key={h} className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((sub) => (
-                  <tr key={sub.id} className="border-b last:border-0 hover:bg-background/60 transition-colors duration-150 cursor-pointer" onClick={() => setSelected(sub.id)}>
-                    <td className="p-4 text-[15px] font-medium text-foreground">{sub.name}</td>
-                    <td className="p-4 text-[13px] text-muted-foreground">{sub.email}</td>
-                    <td className="p-4"><span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-secondary text-foreground">{sub.plan}</span></td>
-                    <td className="p-4 text-[13px] text-muted-foreground">{sub.joined}</td>
-                    <td className="p-4"><span className="flex items-center gap-2 text-[13px] text-muted-foreground capitalize"><span className={`h-2 w-2 rounded-full ${statusDot[sub.status]}`} />{sub.status}</span></td>
-                    <td className="p-4 text-[15px] font-medium text-foreground">{sub.revenue}</td>
-                    <td className="p-4"><ChevronDown size={16} className="text-muted-foreground" /></td>
+
+          {filtered.length === 0 ? (
+            <div className="text-center py-16">
+              <Search size={48} className="text-muted-foreground mx-auto mb-4" />
+              <p className="text-[16px] font-medium text-muted-foreground mb-2">No results found</p>
+              <p className="text-[14px] text-muted-foreground">Try a different search term</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    {["Name", "Email", "Plan", "Joined", "Status", "Revenue", ""].map(h => (
+                      <th key={h} className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filtered.map((sub) => (
+                    <tr key={sub.id} className="border-b last:border-0 hover:bg-background/60 transition-colors duration-150 cursor-pointer" onClick={() => setSelected(sub.id)}>
+                      <td className="p-4 text-[15px] font-medium text-foreground">{sub.name}</td>
+                      <td className="p-4 text-[13px] text-muted-foreground">{sub.email}</td>
+                      <td className="p-4"><span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-secondary text-foreground">{sub.plan}</span></td>
+                      <td className="p-4 text-[13px] text-muted-foreground">{sub.joined}</td>
+                      <td className="p-4"><span className="flex items-center gap-2 text-[13px] text-muted-foreground capitalize"><span className={`h-2 w-2 rounded-full ${statusDot[sub.status]}`} />{sub.status}</span></td>
+                      <td className="p-4 text-[15px] font-medium text-foreground">{sub.revenue}</td>
+                      <td className="p-4"><ChevronDown size={16} className="text-muted-foreground" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -125,8 +145,14 @@ const Subscribers = () => {
                 {plans.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
               </select>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Button variant="slate" onClick={() => { setSelected(null); navigate("/dashboard/messages"); }}>Message</Button>
+              {selectedSub.status === "active" && (
+                <Button variant="outline" onClick={() => setPauseConfirm(selectedSub.id)}>Pause</Button>
+              )}
+              {selectedSub.status === "paused" && (
+                <Button variant="outline" onClick={() => resumeSub(selectedSub.id)}>Resume</Button>
+              )}
               {selectedSub.status !== "cancelled" && (
                 <Button variant="outline" className="text-destructive" onClick={() => setCancelConfirm(selectedSub.id)}>Cancel Subscription</Button>
               )}
@@ -136,6 +162,7 @@ const Subscribers = () => {
       </SlideOverPanel>
 
       <ConfirmDialog open={!!cancelConfirm} onClose={() => setCancelConfirm(null)} onConfirm={() => cancelConfirm && cancelSub(cancelConfirm)} title="Cancel subscription" description="This will cancel the subscription. The subscriber will lose access at the end of their billing period." confirmText="Cancel subscription" destructive />
+      <ConfirmDialog open={!!pauseConfirm} onClose={() => setPauseConfirm(null)} onConfirm={() => { if (pauseConfirm) pauseSub(pauseConfirm); setPauseConfirm(null); }} title="Pause subscription" description="This will pause the subscription. The subscriber can be resumed at any time." confirmText="Pause subscription" />
     </DashboardLayout>
   );
 };
