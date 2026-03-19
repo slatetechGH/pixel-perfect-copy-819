@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Users, CreditCard, FileText, Zap, MessageSquare, BarChart3, Settings, LogOut, UserPlus,
 } from "lucide-react";
