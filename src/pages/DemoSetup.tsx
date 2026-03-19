@@ -464,7 +464,7 @@ const DemoSetup = () => {
         joinDate.setMonth(joinDate.getMonth() - joinMonth);
 
         return {
-          id: i + 1, name, email: `${name.toLowerCase().replace(" ", ".")}@email.com`,
+          id: crypto.randomUUID(), name, email: `${name.toLowerCase().replace(" ", ".")}@email.com`,
           phone: `07700 ${String(900000 + i).slice(0, 6)}`, plan: planForSub.name,
           status: Math.random() > 0.1 ? "active" as const : Math.random() > 0.5 ? "paused" as const : "cancelled" as const,
           joined: `${Math.floor(Math.random() * 28) + 1} ${monthNames[joinDate.getMonth()]} ${joinDate.getFullYear()}`,
