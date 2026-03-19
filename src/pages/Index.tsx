@@ -42,7 +42,7 @@ const DashboardHome = () => {
         </div>
       }
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
         <div className="cursor-pointer" onClick={() => navigate("/dashboard/analytics")}>
           <MetricCard title="Monthly Recurring Revenue" value={kpiData.mrr} change={kpiData.mrrChange} trend="up" delay={0} />
         </div>

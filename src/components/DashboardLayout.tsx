@@ -53,20 +53,20 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <MerchantSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden max-w-[100vw]">
           {/* Demo mode strip */}
           {demoActive && (
             <div
-              className="flex items-center justify-between px-8 shrink-0"
+              className="flex items-center justify-between px-4 md:px-8 shrink-0 overflow-hidden"
               style={{
                 height: 36,
                 backgroundColor: `${accentColor}14`,
               }}
             >
-              <span className="text-[12px] font-medium" style={{ color: accentColor }}>
+              <span className="text-[12px] font-medium truncate mr-2" style={{ color: accentColor }}>
                 Demo Mode — {demoBusinessName}
               </span>
-              <div className="flex items-center gap-1 text-[11px] font-medium" style={{ color: "hsl(215, 16%, 47%)" }}>
+              <div className="flex items-center gap-1 text-[11px] font-medium shrink-0" style={{ color: "hsl(215, 16%, 47%)" }}>
                 <button
                   onClick={() => navigate("/demo-setup")}
                   className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
@@ -84,7 +84,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
             </div>
           )}
 
-          <main className="flex-1 p-8 overflow-auto relative">
+          <main className="flex-1 p-4 md:p-8 overflow-auto overflow-x-hidden relative">
             {/* Cover photo banner (demo mode with cover) */}
             {demoActive && settings.coverUrl && isDashboardHome && (
               <div
@@ -107,12 +107,12 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
 
             {/* Page header — hide if cover photo shown on dashboard home */}
             {!(demoActive && settings.coverUrl && isDashboardHome) && (
-              <div className="flex items-start justify-between mb-7">
-                <div>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-7">
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <SidebarTrigger className="text-muted-foreground -ml-2 mr-1" />
                     <h1
-                      className="font-bold text-foreground leading-tight"
+                      className="font-bold text-foreground leading-tight truncate"
                       style={{ fontSize: demoActive && isDashboardHome ? 28 : 24 }}
                     >
                       {displayTitle}
@@ -127,7 +127,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
                     </p>
                   )}
                 </div>
-                {actions && <div className="flex items-center gap-3">{actions}</div>}
+                {actions && <div className="flex items-center gap-3 flex-wrap ml-9 sm:ml-0">{actions}</div>}
               </div>
             )}
 
