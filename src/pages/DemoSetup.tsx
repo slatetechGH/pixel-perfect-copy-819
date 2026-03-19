@@ -492,7 +492,7 @@ const DemoSetup = () => {
 
       // Generate content for dashboard
       const dashContent = content.filter(c => c.title).map((c, i) => ({
-        id: i + 1, title: c.title, type: c.type, body: "",
+        id: crypto.randomUUID(), title: c.title, type: c.type, body: "",
         status: c.status as any, tier: "Free", views: Math.floor(Math.random() * 300),
         date: c.status === "published" ? "12 Mar 2026" : "—", ai: false,
         prepTime: c.prepTime, cookTime: c.cookTime, serves: c.serves,
