@@ -62,45 +62,78 @@ const GetStarted = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // First submission: show password fields
+    if (!showPasswordFields) {
+      const v = validate();
+      if (Object.keys(v).length) { setErrors(v); return; }
+      setShowPasswordFields(true);
+      return;
+    }
+
+    // Second submission: validate all including password, then sign up
     const v = validate();
     if (Object.keys(v).length) { setErrors(v); return; }
 
     setLoading(true);
-    setTimeout(() => {
-      const success = addLead({
-        type: "signup",
-        email: form.email,
-        name: form.name,
-        phone: form.phone,
-        businessName: form.businessName,
-        businessType: form.businessType,
-        website: form.website,
-        customerCount: form.customerCount,
-        interests: form.interests,
-        additionalNotes: form.notes,
-        newsletter: form.newsletter,
-        interestedPlan: planFromUrl || undefined,
-      });
 
+    // Save lead to AppContext (will wire to Supabase in Phase 2)
+    const success = addLead({
+      type: "signup",
+      email: form.email,
+      name: form.name,
+      phone: form.phone,
+      businessName: form.businessName,
+      businessType: form.businessType,
+      website: form.website,
+      customerCount: form.customerCount,
+      interests: form.interests,
+      additionalNotes: form.notes,
+      newsletter: form.newsletter,
+      interestedPlan: planFromUrl || undefined,
+    });
+
+    if (!success) {
       setLoading(false);
+      setDuplicate(true);
+      return;
+    }
 
-      if (!success) {
+    if (form.newsletter) {
+      addLead({ type: "newsletter", email: form.email });
+    }
+
+    // Sign up with Supabase Auth
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: {
+          full_name: form.name,
+          business_name: form.businessName,
+          business_type: form.businessType,
+        },
+      },
+    });
+
+    setLoading(false);
+
+    if (error) {
+      if (error.message.includes("already registered")) {
         setDuplicate(true);
-        return;
+      } else {
+        setErrors({ password: error.message });
       }
+      return;
+    }
 
-      // If newsletter checked, also add newsletter lead
-      if (form.newsletter) {
-        addLead({ type: "newsletter", email: form.email });
-      }
-
-      console.log("Signup submission:", JSON.stringify(form));
-      setFirstName(form.name.split(" ")[0]);
-      setSubmitted(true);
-      toast.success("Application submitted!");
-    }, 600);
+    console.log("Signup submission:", JSON.stringify(form));
+    setFirstName(form.name.split(" ")[0]);
+    setSubmitted(true);
+    toast.success("Check your email to confirm your account!");
   };
 
   const inputCls = (field: string) =>
