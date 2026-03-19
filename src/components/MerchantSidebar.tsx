@@ -28,8 +28,8 @@ export function MerchantSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
-  const { conversations } = useDashboard();
-  const { leads, setSession } = useApp();
+  const { conversations, settings } = useDashboard();
+  const { leads, setSession, demoActive } = useApp();
   const unreadMessages = conversations.filter(c => c.unread).length;
   const newLeadCount = leads.filter(l => l.status === "new").length;
 
@@ -39,14 +39,33 @@ export function MerchantSidebar() {
     navigate("/");
   };
 
+  const logoInitial = settings.businessName ? settings.businessName.charAt(0).toUpperCase() : "S";
+
   return (
     <Sidebar collapsible="icon" className="border-r-0" style={{ width: collapsed ? undefined : "230px" }}>
       <SidebarContent className="bg-sidebar">
         <div className="px-5 py-6">
-          {!collapsed ? (
-            <SlateLogo size={20} dark />
+          {/* Show business logo/name when demo is active, otherwise show Slate logo */}
+          {demoActive && settings.businessName !== "The Harbour Fish Co." ? (
+            <div className="flex items-center gap-2.5">
+              {settings.logoUrl ? (
+                <img src={settings.logoUrl} alt="" className="h-7 w-7 rounded-md object-cover shrink-0" />
+              ) : (
+                <div
+                  className="h-7 w-7 rounded-md flex items-center justify-center text-white text-[13px] font-bold shrink-0"
+                  style={{ backgroundColor: "hsl(217, 33%, 17%)" }}
+                >
+                  {logoInitial}
+                </div>
+              )}
+              {!collapsed && (
+                <span className="text-[14px] font-semibold text-sidebar-foreground truncate">
+                  {settings.businessName}
+                </span>
+              )}
+            </div>
           ) : (
-            <SlateLogo size={18} dark />
+            !collapsed ? <SlateLogo size={20} dark /> : <SlateLogo size={18} dark />
           )}
         </div>
 
@@ -89,7 +108,7 @@ export function MerchantSidebar() {
             <div className="border-t border-sidebar-border pt-4 space-y-3">
               <div>
                 <p className="text-caption text-sidebar-foreground/50">Current plan</p>
-                <p className="text-[13px] font-medium text-sidebar-foreground">Growth — £79/mo</p>
+                <p className="text-[13px] font-medium text-sidebar-foreground">{settings.currentPlan} — {settings.currentPlanPrice}</p>
               </div>
               <button
                 onClick={handleLogout}

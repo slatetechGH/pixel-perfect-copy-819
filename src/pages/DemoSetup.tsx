@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApp, DemoPlan, DemoDrop, DemoContent, DemoProfile } from "@/contexts/AppContext";
-import { useDashboard } from "@/contexts/DashboardContext";
+import { useDashboard, type Conversation, type Message } from "@/contexts/DashboardContext";
 import { toast } from "sonner";
 import {
   Beef, CakeSlice, Fish, Milk, Tractor, Beer, X, Plus, Loader2, Save, RotateCcw, Rocket,
@@ -155,6 +155,37 @@ function generateNames(count: number): string[] {
   return names;
 }
 
+// ===== MESSAGE TEMPLATES BY BUSINESS TYPE =====
+const messageTemplates: Record<string, { subscriber: string; producer: string }[]> = {
+  Butcher: [
+    { subscriber: "Hi! What cuts do you recommend for a weekend BBQ for 6 people?", producer: "Great question! I'd suggest our BBQ pack: 12 sausages, 6 burgers, and 4 rib-eye steaks. Want me to set one aside?" },
+    { subscriber: "The lamb shanks in my last box were incredible! Best I've ever had.", producer: "Thank you! Those were from a local farm in Kent — grass-fed and dry-aged for 21 days. Glad you enjoyed!" },
+    { subscriber: "Do you do anything for Christmas? Looking to pre-order a turkey.", producer: "Absolutely! We'll have our Christmas order form up in November. I'll make sure you get early access as a premium member." },
+    { subscriber: "Can I swap the pork chops in my next box for chicken thighs?", producer: "Of course! I've made a note on your account. Your next box will have free-range chicken thighs instead." },
+    { subscriber: "Is the mince in the weekly box suitable for freezing?", producer: "Yes, all our mince freezes beautifully for up to 3 months. We vacuum-pack it specifically for that reason." },
+  ],
+  Baker: [
+    { subscriber: "Can I get my sourdough delivery on Saturdays instead of Fridays?", producer: "Of course! I've updated your delivery day. You'll get fresh bread every Saturday morning from next week." },
+    { subscriber: "Your croissants are honestly the best I've ever had. What's the secret?", producer: "Thank you! It's all about the butter — we use French AOC butter and do a 3-day lamination process. Glad you can taste the difference!" },
+    { subscriber: "Do you do gluten-free options? My partner has coeliac disease.", producer: "We're working on a GF range! We should have sourdough and rolls available next month. I'll add you to the waitlist." },
+    { subscriber: "I'd love to book one of your baking workshops for my birthday.", producer: "Happy to help! We have croissant and bread-making workshops on Saturdays. I'll send you the booking link." },
+  ],
+  Fishmonger: [
+    { subscriber: "Hi! Can you tell me about your delivery areas? I've just moved to Canterbury.", producer: "Hi! We deliver across Kent — Canterbury is well within our range. Orders placed before 2pm get next-day delivery." },
+    { subscriber: "The sea bass was amazing! Best I've ever had.", producer: "That was line-caught from our day boats. Glad you enjoyed it!" },
+    { subscriber: "Can I request monkfish for next month's premium box?", producer: "Absolutely! Monkfish season is just starting so the timing is perfect. I'll make a note." },
+    { subscriber: "Do you have allergen info for your smoked products?", producer: "Great question — all our smoked products are processed in a nut-free, gluten-free facility. I'll send the full allergen sheet." },
+    { subscriber: "I'm hosting a dinner party for 8. Can you suggest a selection?", producer: "I'd recommend our party platter: whole sea bream, king prawns, and crab claws. Shall I add it to your next order?" },
+  ],
+  default: [
+    { subscriber: "Hi! I'm interested in upgrading my subscription. What extra benefits do I get?", producer: "Great question! The premium tier gives you priority access to all drops, exclusive content, and a monthly curated box. Want me to switch you over?" },
+    { subscriber: "Your products are fantastic quality. Keep up the great work!", producer: "Thank you so much! We put a lot of care into sourcing the best. Really appreciate the kind words." },
+    { subscriber: "Can I pause my subscription for a couple of weeks while I'm on holiday?", producer: "Of course! I've paused your account. Just drop me a message when you're back and I'll reactivate it straight away." },
+    { subscriber: "Do you deliver outside your usual area? I'm about 30 miles away.", producer: "We can arrange special deliveries! There's a small delivery charge for areas outside our core zone. Let me check the exact cost for you." },
+    { subscriber: "I'd love to gift a subscription to my mum for her birthday. Is that possible?", producer: "What a lovely idea! We do gift subscriptions — I can set one up with a personalised card. How many months were you thinking?" },
+  ],
+};
+
 // ===== COMPONENT =====
 const emptyPlan = (): DemoPlan => ({ name: "", price: 0, isFree: false, features: [""], projectedSubscribers: 0 });
 const emptyDrop = (): DemoDrop => ({ name: "", price: 0, status: "draft", quantity: 0, sold: 0 });
@@ -162,7 +193,7 @@ const emptyContent = (): DemoContent => ({ title: "", type: "Recipe", status: "d
 
 const DemoSetup = () => {
   const navigate = useNavigate();
-  const { activateDemo, setSession, accentColor } = useApp();
+  const { activateDemo, setSession, demoConfig, setDemoConfig, demoActive } = useApp();
   const dashboard = useDashboard();
   const [launching, setLaunching] = useState(false);
   const [launchProgress, setLaunchProgress] = useState(0);
@@ -198,6 +229,30 @@ const DemoSetup = () => {
   const [monthsActive, setMonthsActive] = useState(6);
   const [growthRate, setGrowthRate] = useState(15);
   const [autoMessages, setAutoMessages] = useState(true);
+
+  // Pre-fill from active demo config when returning via "Edit demo"
+  useEffect(() => {
+    if (demoConfig) {
+      setBusinessName(demoConfig.businessName);
+      setBusinessType(demoConfig.businessType);
+      setTagline(demoConfig.tagline);
+      setLocation(demoConfig.location);
+      setEmail(demoConfig.email);
+      setPhone(demoConfig.phone);
+      setWebsite(demoConfig.website);
+      setLogoUrl(demoConfig.logoUrl);
+      setCoverUrl(demoConfig.coverUrl);
+      setSelectedColor(demoConfig.accentColor);
+      setPlans(demoConfig.plans);
+      setDrops(demoConfig.drops);
+      setContent(demoConfig.content);
+      setTotalSubscribers(demoConfig.totalSubscribers);
+      setMonthsActive(demoConfig.monthsActive);
+      setGrowthRate(demoConfig.growthRate);
+      setAutoNames(demoConfig.autoGenerateNames);
+      setAutoMessages(demoConfig.autoGenerateMessages);
+    }
+  }, []);
 
   // Saved profiles
   const [savedProfiles, setSavedProfiles] = useState<DemoProfile[]>(() => {
@@ -266,7 +321,7 @@ const DemoSetup = () => {
     input.click();
   };
 
-  // Generate revenue data
+  // Generate revenue data curves
   const generateRevenueData = () => {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const now = new Date();
@@ -280,6 +335,95 @@ const DemoSetup = () => {
       data.push({ month: months[mIdx], revenue: Math.round(jitter) });
     }
     return data;
+  };
+
+  const generateSubscriberGrowth = () => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const now = new Date();
+    const data: { month: string; new: number; churned: number }[] = [];
+    const avgNewPerMonth = Math.max(Math.round(calcTotalSubs / monthsActive * (1 + growthRate / 100)), 5);
+    for (let i = monthsActive - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mIdx = d.getMonth();
+      const progress = (monthsActive - i) / monthsActive;
+      const newSubs = Math.round(avgNewPerMonth * progress * (0.7 + Math.random() * 0.6));
+      const churned = Math.round(newSubs * (0.1 + Math.random() * 0.1));
+      data.push({ month: months[mIdx], new: Math.max(newSubs, 3), churned: Math.max(churned, 1) });
+    }
+    return data;
+  };
+
+  const generateRevenueDataSets = (baseData: { month: string; revenue: number }[]) => {
+    const lastRev = baseData[baseData.length - 1]?.revenue || calcMRR;
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const dailyAvg = Math.round(lastRev / 30);
+    
+    return {
+      "7d": days.map(d => ({ month: d, revenue: Math.round(dailyAvg * (0.7 + Math.random() * 0.6)) })),
+      "30d": [
+        { month: "W1", revenue: Math.round(lastRev * 0.22) },
+        { month: "W2", revenue: Math.round(lastRev * 0.25) },
+        { month: "W3", revenue: Math.round(lastRev * 0.24) },
+        { month: "W4", revenue: Math.round(lastRev * 0.29) },
+      ],
+      "3m": baseData.slice(-3),
+      "6m": baseData.slice(-6),
+      "12m": baseData.length >= 12 ? baseData : [
+        ...Array.from({ length: 12 - baseData.length }, (_, i) => ({ month: ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i] || "—", revenue: 0 })),
+        ...baseData,
+      ],
+      "all": baseData,
+    };
+  };
+
+  // Generate conversations
+  const generateConversations = (subNames: string[], planNames: string[]): Conversation[] => {
+    const tpls = messageTemplates[businessType] || messageTemplates["default"];
+    const convCount = Math.min(subNames.length, 5);
+    const convos: Conversation[] = [];
+    
+    for (let i = 0; i < convCount; i++) {
+      const name = subNames[i];
+      const plan = planNames[i % planNames.length] || "Standard";
+      const tpl = tpls[i % tpls.length];
+      const initials = name.split(" ").map(n => n[0]).join("");
+      const times = ["10:23 AM", "Yesterday", "2 hours ago", "Mar 15", "Mar 12"];
+      
+      const messages: Message[] = [
+        { id: `${i}a`, text: tpl.subscriber, sender: "subscriber", time: times[i % times.length] },
+        { id: `${i}b`, text: tpl.producer, sender: "producer", time: times[i % times.length] },
+      ];
+      
+      convos.push({
+        id: i + 1,
+        name,
+        plan,
+        avatar: initials,
+        unread: i < 2,
+        messages,
+      });
+    }
+    return convos;
+  };
+
+  // Generate activity feed
+  const generateActivityFeed = (subNames: string[], planNames: string[], dropNames: string[], contentTitles: string[]) => {
+    const times = ["2 min ago", "15 min ago", "1 hr ago", "3 hr ago", "5 hr ago", "6 hr ago"];
+    const items: { id: number; type: "subscribe" | "drop" | "cancel" | "recipe"; name: string; detail: string; time: string; link: string }[] = [];
+    let id = 1;
+
+    // Mix of signups, drops, cancels, recipes
+    if (subNames.length > 0) items.push({ id: id++, type: "subscribe", name: subNames[0], detail: planNames[1] || planNames[0], time: times[0], link: "/dashboard/subscribers" });
+    if (dropNames.length > 0) {
+      const liveDrop = drops.find(d => d.status === "live");
+      items.push({ id: id++, type: "drop", name: dropNames[0], detail: liveDrop ? `${liveDrop.sold}/${liveDrop.quantity} sold` : "Active", time: times[1], link: "/dashboard/drops" });
+    }
+    if (subNames.length > 1) items.push({ id: id++, type: "subscribe", name: subNames[1], detail: planNames[0] || "Standard", time: times[2], link: "/dashboard/subscribers" });
+    if (subNames.length > 2) items.push({ id: id++, type: "cancel", name: subNames[2], detail: planNames[1] || planNames[0], time: times[3], link: "/dashboard/subscribers" });
+    if (subNames.length > 3) items.push({ id: id++, type: "subscribe", name: subNames[3], detail: planNames[planNames.length - 1] || "Premium", time: times[4], link: "/dashboard/subscribers" });
+    if (contentTitles.length > 0) items.push({ id: id++, type: "recipe", name: contentTitles[0], detail: `${Math.floor(Math.random() * 200 + 50)} views`, time: times[5], link: "/dashboard/content" });
+
+    return items;
   };
 
   // Launch demo
@@ -300,20 +444,36 @@ const DemoSetup = () => {
 
       // Generate subscriber data
       const subNames = autoNames ? generateNames(calcTotalSubs) : [];
+      const validPlans = plans.filter(p => p.name);
+      const planNames = validPlans.map(p => p.name);
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
       const generatedSubscribers = subNames.slice(0, Math.min(calcTotalSubs, 30)).map((name, i) => {
-        const planIdx = i % plans.length;
-        const plan = plans[planIdx];
+        // Distribute proportionally across plans
+        let cumulative = 0;
+        let planForSub = validPlans[0];
+        const totalProjected = validPlans.reduce((s, p) => s + p.projectedSubscribers, 0);
+        const targetIdx = (i / Math.min(calcTotalSubs, 30)) * totalProjected;
+        for (const p of validPlans) {
+          cumulative += p.projectedSubscribers;
+          if (targetIdx < cumulative) { planForSub = p; break; }
+        }
+
+        const joinMonth = Math.floor(Math.random() * monthsActive);
+        const joinDate = new Date();
+        joinDate.setMonth(joinDate.getMonth() - joinMonth);
+
         return {
           id: i + 1, name, email: `${name.toLowerCase().replace(" ", ".")}@email.com`,
-          phone: `07700 ${String(900000 + i).slice(0, 6)}`, plan: plan.name,
+          phone: `07700 ${String(900000 + i).slice(0, 6)}`, plan: planForSub.name,
           status: Math.random() > 0.1 ? "active" as const : Math.random() > 0.5 ? "paused" as const : "cancelled" as const,
-          joined: `${Math.floor(Math.random() * 28) + 1} ${["Jan", "Feb", "Mar"][Math.floor(Math.random() * 3)]} 2026`,
-          revenue: plan.isFree ? "£0" : `£${Math.floor(plan.price * (Math.random() * 6 + 1))}`,
+          joined: `${Math.floor(Math.random() * 28) + 1} ${monthNames[joinDate.getMonth()]} ${joinDate.getFullYear()}`,
+          revenue: planForSub.isFree ? "£0" : `£${Math.floor(planForSub.price * (joinMonth + 1))}`,
         };
       });
 
       // Generate plans for dashboard
-      const dashPlans = plans.filter(p => p.name).map((p, i) => ({
+      const dashPlans = validPlans.map((p, i) => ({
         id: i + 1, name: p.name, price: p.isFree ? "Free" : `£${p.price}/mo`, priceNum: p.price,
         subscribers: p.projectedSubscribers, isFree: p.isFree, benefits: p.features,
         description: "", active: true, showOnPublicPage: true,
@@ -326,7 +486,7 @@ const DemoSetup = () => {
         price: `£${d.price.toFixed(2)}`, priceNum: d.price,
         revenue: `£${(d.sold * d.price).toLocaleString()}`, endsIn: d.status === "live" ? "3 days" : d.status === "ended" ? "Ended" : "—",
         dropDate: "", dropTime: "", endDate: "", endTime: "",
-        eligiblePlans: plans.filter(p => p.name).map(p => p.name),
+        eligiblePlans: planNames,
         items: [], notify: true,
       }));
 
@@ -336,28 +496,84 @@ const DemoSetup = () => {
         status: c.status as any, tier: "Free", views: Math.floor(Math.random() * 300),
         date: c.status === "published" ? "12 Mar 2026" : "—", ai: false,
         prepTime: c.prepTime, cookTime: c.cookTime, serves: c.serves,
-        eligiblePlans: plans.filter(p => p.name).map(p => p.name),
+        eligiblePlans: planNames,
       }));
 
       // Revenue data
       const revData = generateRevenueData();
+      const subGrowth = generateSubscriberGrowth();
+      const revDataSets = generateRevenueDataSets(revData);
 
-      // Write to dashboard context
+      // KPI calculations
+      const churnRate = (2 + Math.random() * 3).toFixed(1);
+      const arpu = calcTotalSubs > 0 ? (calcMRR / calcTotalSubs).toFixed(2) : "0";
+
+      const kpi = {
+        mrr: `£${calcMRR.toLocaleString()}`,
+        mrrChange: `+${growthRate}%`,
+        totalSubs: String(calcTotalSubs),
+        subsChange: `+${Math.round(growthRate * 0.8)}%`,
+        churn: `${churnRate}%`,
+        churnChange: `-${(Math.random() * 1.5).toFixed(1)}%`,
+        arpu: `£${arpu}`,
+        arpuChange: `+${(Math.random() * 4 + 1).toFixed(1)}%`,
+      };
+
+      // Activity feed
+      const dropNames = drops.filter(d => d.name).map(d => d.name);
+      const contentTitles = content.filter(c => c.title).map(c => c.title);
+      const activity = generateActivityFeed(subNames, planNames, dropNames, contentTitles);
+
+      // Conversations
+      const conversations = autoMessages
+        ? generateConversations(subNames, planNames)
+        : [];
+
+      // Tier breakdown for analytics
+      const pieColors = ["hsl(213, 27%, 62%)", "hsl(217, 33%, 17%)", "hsl(38, 92%, 50%)", "hsl(280, 60%, 50%)", "hsl(160, 60%, 40%)"];
+      const tierData = validPlans.map((p, i) => ({
+        name: p.name,
+        value: p.projectedSubscribers,
+        color: pieColors[i % pieColors.length],
+      }));
+
+      // WRITE ALL DATA TO DASHBOARD CONTEXT
       dashboard.setPlans(dashPlans);
       dashboard.setDrops(dashDrops);
       dashboard.setContent(dashContent);
       dashboard.setSubscribers(generatedSubscribers);
+      dashboard.setConversations(conversations);
+      dashboard.setKpiData(kpi);
+      dashboard.setRevenueChartData(revData);
+      dashboard.setSubscriberGrowthData(subGrowth);
+      dashboard.setRevenueDataSets(revDataSets);
+      dashboard.setActivityFeed(activity);
+      dashboard.setTierBreakdown(tierData);
 
       // Update settings
+      const slug = businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
       dashboard.setSettings(prev => ({
         ...prev,
-        businessName: businessName,
-        businessType: businessType,
+        businessName,
+        businessType,
         description: tagline,
         email: email || prev.email,
         phone: phone || prev.phone,
         website: website || prev.website,
+        urlSlug: slug,
+        accentColor: selectedColor,
+        logoUrl,
+        coverUrl,
       }));
+
+      // Save demo config for "Edit demo" pre-fill
+      const config: DemoProfile = {
+        id: `active-${Date.now()}`, name: businessName, businessName, businessType, tagline, location,
+        email, phone, website, logoUrl, coverUrl, accentColor: selectedColor, plans, drops, content,
+        totalSubscribers: calcTotalSubs, monthsActive, growthRate, startingMRR: calcMRR,
+        autoGenerateNames: autoNames, autoGenerateMessages: autoMessages,
+      };
+      setDemoConfig(config);
 
       // Activate demo mode
       activateDemo(businessName, selectedColor);
@@ -664,7 +880,7 @@ const DemoSetup = () => {
                   onClick={handleLaunch}
                   className="w-full py-3.5 px-8 bg-foreground hover:bg-[#0F172A] text-white text-[18px] font-bold rounded-[10px] transition-colors cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <Rocket size={20} /> Launch Demo
+                  <Rocket size={20} /> {demoActive ? "Re-launch Demo" : "Launch Demo"}
                 </button>
               )}
             </div>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
 
 // ===== TYPES =====
 export interface Plan {
@@ -98,6 +98,8 @@ export interface BusinessSettings {
   urlSlug: string;
   publicVisible: boolean;
   accentColor: string;
+  logoUrl?: string | null;
+  coverUrl?: string | null;
   notifications: {
     newSubscriber: boolean;
     cancellation: boolean;
@@ -114,6 +116,32 @@ export interface BusinessSettings {
 export interface RevenueData {
   month: string;
   revenue: number;
+}
+
+export interface KPIData {
+  mrr: string;
+  mrrChange: string;
+  totalSubs: string;
+  subsChange: string;
+  churn: string;
+  churnChange: string;
+  arpu: string;
+  arpuChange: string;
+}
+
+export interface ActivityItem {
+  id: number;
+  type: "subscribe" | "drop" | "cancel" | "recipe";
+  name: string;
+  detail: string;
+  time: string;
+  link: string;
+}
+
+export interface SubscriberGrowthData {
+  month: string;
+  new: number;
+  churned: number;
 }
 
 // ===== INITIAL DATA =====
@@ -292,6 +320,8 @@ const initialSettings: BusinessSettings = {
   urlSlug: "harbour-fish-co",
   publicVisible: true,
   accentColor: "#1E293B",
+  logoUrl: null,
+  coverUrl: null,
   notifications: {
     newSubscriber: true,
     cancellation: true,
@@ -312,7 +342,35 @@ const initialSettings: BusinessSettings = {
   ],
 };
 
-const revenueDataSets: Record<string, RevenueData[]> = {
+const initialKPI: KPIData = {
+  mrr: "£4,850", mrrChange: "+15.5%",
+  totalSubs: "187", subsChange: "+12.3%",
+  churn: "3.2%", churnChange: "-0.8%",
+  arpu: "£25.90", arpuChange: "+2.1%",
+};
+
+const initialRevenueChart: RevenueData[] = [
+  { month: "Sep", revenue: 800 }, { month: "Oct", revenue: 1200 }, { month: "Nov", revenue: 1800 },
+  { month: "Dec", revenue: 2400 }, { month: "Jan", revenue: 3100 }, { month: "Feb", revenue: 3800 }, { month: "Mar", revenue: 4850 },
+];
+
+const initialSubscriberGrowth: SubscriberGrowthData[] = [
+  { month: "Sep", new: 12, churned: 3 }, { month: "Oct", new: 18, churned: 4 },
+  { month: "Nov", new: 22, churned: 5 }, { month: "Dec", new: 28, churned: 6 },
+  { month: "Jan", new: 35, churned: 7 }, { month: "Feb", new: 30, churned: 5 },
+  { month: "Mar", new: 38, churned: 6 },
+];
+
+const initialActivity: ActivityItem[] = [
+  { id: 1, type: "subscribe", name: "Sarah Mitchell", detail: "Chef's Catch Club", time: "2 min ago", link: "/dashboard/subscribers" },
+  { id: 2, type: "drop", name: "Weekend Smokehouse Selection", detail: "18/25 sold", time: "15 min ago", link: "/dashboard/drops" },
+  { id: 3, type: "subscribe", name: "James Chen", detail: "The Standard Catch", time: "1 hr ago", link: "/dashboard/subscribers" },
+  { id: 4, type: "cancel", name: "Emma Davies", detail: "The Standard Catch", time: "3 hr ago", link: "/dashboard/subscribers" },
+  { id: 5, type: "subscribe", name: "Oliver Thompson", detail: "Chef's Catch Club", time: "5 hr ago", link: "/dashboard/subscribers" },
+  { id: 6, type: "recipe", name: "Pan-Seared Sea Bass", detail: "142 views", time: "6 hr ago", link: "/dashboard/content" },
+];
+
+const initialRevenueDataSets: Record<string, RevenueData[]> = {
   "7d": [
     { month: "Mon", revenue: 680 }, { month: "Tue", revenue: 720 }, { month: "Wed", revenue: 690 },
     { month: "Thu", revenue: 810 }, { month: "Fri", revenue: 920 }, { month: "Sat", revenue: 1050 }, { month: "Sun", revenue: 780 },
@@ -339,6 +397,12 @@ const revenueDataSets: Record<string, RevenueData[]> = {
   ],
 };
 
+const initialTierBreakdown = [
+  { name: "Free", value: 64, color: "hsl(213, 27%, 62%)" },
+  { name: "Standard", value: 89, color: "hsl(217, 33%, 17%)" },
+  { name: "Premium", value: 34, color: "hsl(38, 92%, 50%)" },
+];
+
 // ===== CONTEXT =====
 interface DashboardContextType {
   plans: Plan[];
@@ -354,6 +418,18 @@ interface DashboardContextType {
   settings: BusinessSettings;
   setSettings: React.Dispatch<React.SetStateAction<BusinessSettings>>;
   revenueDataSets: Record<string, RevenueData[]>;
+  setRevenueDataSets: React.Dispatch<React.SetStateAction<Record<string, RevenueData[]>>>;
+  kpiData: KPIData;
+  setKpiData: React.Dispatch<React.SetStateAction<KPIData>>;
+  revenueChartData: RevenueData[];
+  setRevenueChartData: React.Dispatch<React.SetStateAction<RevenueData[]>>;
+  subscriberGrowthData: SubscriberGrowthData[];
+  setSubscriberGrowthData: React.Dispatch<React.SetStateAction<SubscriberGrowthData[]>>;
+  activityFeed: ActivityItem[];
+  setActivityFeed: React.Dispatch<React.SetStateAction<ActivityItem[]>>;
+  tierBreakdown: { name: string; value: number; color: string }[];
+  setTierBreakdown: React.Dispatch<React.SetStateAction<{ name: string; value: number; color: string }[]>>;
+  resetToDefaults: () => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | null>(null);
@@ -365,12 +441,37 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [subscribers, setSubscribers] = useState<Subscriber[]>(initialSubscribers);
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
   const [settings, setSettings] = useState<BusinessSettings>(initialSettings);
+  const [revenueDataSets, setRevenueDataSets] = useState<Record<string, RevenueData[]>>(initialRevenueDataSets);
+  const [kpiData, setKpiData] = useState<KPIData>(initialKPI);
+  const [revenueChartData, setRevenueChartData] = useState<RevenueData[]>(initialRevenueChart);
+  const [subscriberGrowthData, setSubscriberGrowthData] = useState<SubscriberGrowthData[]>(initialSubscriberGrowth);
+  const [activityFeed, setActivityFeed] = useState<ActivityItem[]>(initialActivity);
+  const [tierBreakdown, setTierBreakdown] = useState(initialTierBreakdown);
+
+  const resetToDefaults = useCallback(() => {
+    setPlans(initialPlans);
+    setDrops(initialDrops);
+    setContent(initialContent);
+    setSubscribers(initialSubscribers);
+    setConversations(initialConversations);
+    setSettings(initialSettings);
+    setRevenueDataSets(initialRevenueDataSets);
+    setKpiData(initialKPI);
+    setRevenueChartData(initialRevenueChart);
+    setSubscriberGrowthData(initialSubscriberGrowth);
+    setActivityFeed(initialActivity);
+    setTierBreakdown(initialTierBreakdown);
+  }, []);
 
   return (
     <DashboardContext.Provider value={{
       plans, setPlans, drops, setDrops, content, setContent,
       subscribers, setSubscribers, conversations, setConversations,
-      settings, setSettings, revenueDataSets,
+      settings, setSettings, revenueDataSets, setRevenueDataSets,
+      kpiData, setKpiData, revenueChartData, setRevenueChartData,
+      subscriberGrowthData, setSubscriberGrowthData,
+      activityFeed, setActivityFeed, tierBreakdown, setTierBreakdown,
+      resetToDefaults,
     }}>
       {children}
     </DashboardContext.Provider>

@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { MerchantSidebar } from "@/components/MerchantSidebar";
 import { useApp } from "@/contexts/AppContext";
+import { useDashboard } from "@/contexts/DashboardContext";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -15,14 +16,15 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, title, subtitle, actions }: DashboardLayoutProps) {
   const { demoActive, demoBusinessName, deactivateDemo } = useApp();
+  const { resetToDefaults } = useDashboard();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
 
   const handleReset = () => {
+    resetToDefaults();
     deactivateDemo();
-    // Force reload to reset dashboard data
-    window.location.href = "/dashboard";
+    navigate("/dashboard");
   };
 
   return (
@@ -37,11 +39,11 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
                 <div className="relative">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium cursor-pointer transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium cursor-pointer transition-colors max-w-[280px]"
                     style={{ backgroundColor: "rgba(245,158,11,0.15)", color: "#F59E0B" }}
                   >
-                    Demo Mode: {demoBusinessName}
-                    <ChevronDown size={12} />
+                    <span className="truncate">Demo Mode: {demoBusinessName}</span>
+                    <ChevronDown size={12} className="shrink-0" />
                   </button>
                   {dropdownOpen && (
                     <>
