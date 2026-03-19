@@ -36,23 +36,23 @@ const Subscribers = () => {
 
   const selectedSub = subscribers.find(s => s.id === selected);
 
-  const changePlan = (subId: number, newPlan: string) => {
+  const changePlan = (subId: string, newPlan: string) => {
     setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, plan: newPlan } : s));
     toast.success("Plan updated");
   };
 
-  const cancelSub = (subId: number) => {
+  const cancelSub = (subId: string) => {
     setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, status: "cancelled" as const } : s));
     setSelected(null);
     toast.success("Subscription cancelled");
   };
 
-  const pauseSub = (subId: number) => {
+  const pauseSub = (subId: string) => {
     setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, status: "paused" as const } : s));
     toast.success("Subscription paused");
   };
 
-  const resumeSub = (subId: number) => {
+  const resumeSub = (subId: string) => {
     setSubscribers(prev => prev.map(s => s.id === subId ? { ...s, status: "active" as const } : s));
     toast.success("Subscription resumed");
   };

@@ -71,7 +71,7 @@ const Drops = () => {
   };
 
   const duplicate = (drop: Drop) => {
-    const dup = { ...drop, id: Date.now(), title: `${drop.title} (Copy)`, status: "draft" as const, remaining: drop.total, revenue: "£0" };
+    const dup: Drop = { ...drop, id: crypto.randomUUID(), title: `${drop.title} (Copy)`, status: "draft" as const, remaining: drop.total, revenue: "£0" };
     setDrops(prev => [...prev, dup]);
     toast.success("Drop duplicated");
   };

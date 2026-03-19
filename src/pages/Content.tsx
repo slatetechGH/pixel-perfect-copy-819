@@ -33,7 +33,7 @@ const Content = () => {
       setIsNew(false);
     } else {
       setEditing({
-        id: Date.now(), title: "", type: "Recipe", body: "", status: "draft", tier: "Free",
+        id: crypto.randomUUID(), title: "", type: "Recipe", body: "", status: "draft", tier: "Free",
         views: 0, date: "—", ai: false, eligiblePlans: [],
         ingredients: [{ quantity: "", name: "" }], methodSteps: [""],
       });

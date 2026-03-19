@@ -26,7 +26,7 @@ const Messages = () => {
     setNewMsg("");
   };
 
-  const selectConversation = (id: number) => {
+  const selectConversation = (id: string) => {
     setActiveId(id);
     setConversations(prev => prev.map(c => c.id === id ? { ...c, unread: false } : c));
   };
