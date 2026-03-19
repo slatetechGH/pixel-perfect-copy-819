@@ -33,7 +33,7 @@ const Drops = () => {
 
   const openEditor = (drop?: Drop) => {
     if (drop) { setEditing({ ...drop, items: drop.items.map(i => ({ ...i })), eligiblePlans: [...drop.eligiblePlans] }); setIsNew(false); }
-    else { setEditing({ ...emptyDrop, id: Date.now(), items: [{ name: "", quantity: "" }], eligiblePlans: [] } as Drop); setIsNew(true); }
+    else { setEditing({ ...emptyDrop, id: crypto.randomUUID(), items: [{ name: "", quantity: "" }], eligiblePlans: [] } as Drop); setIsNew(true); }
   };
 
   const updateField = (field: keyof Drop, value: any) => {
