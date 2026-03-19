@@ -28,6 +28,9 @@ export interface Lead {
 export interface SessionState {
   isLoggedIn: boolean;
   currentUser: string;
+  supabaseUser: User | null;
+  supabaseSession: Session | null;
+  profile: Record<string, any> | null;
 }
 
 export interface DemoPlan {
