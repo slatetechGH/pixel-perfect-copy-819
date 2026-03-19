@@ -1,23 +1,45 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import SlateLogo from "@/components/SlateLogo";
+import { useApp } from "@/contexts/AppContext";
+import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { session, setSession } = useApp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // If already logged in, redirect
+  if (session.isLoggedIn) {
+    navigate("/dashboard", { replace: true });
+    return null;
+  }
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/dashboard");
+    const errs: Record<string, string> = {};
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Valid email required";
+    if (!password || password.length < 3) errs.password = "Password is required";
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+
+    setLoading(true);
+    setTimeout(() => {
+      setSession({ isLoggedIn: true, currentUser: "The Harbour Fish Co." });
+      toast.success("Welcome back!");
+      navigate("/dashboard");
+    }, 500);
   };
 
   return (
     <div className="min-h-screen bg-secondary flex items-center justify-center px-6">
       <div className="w-full max-w-[400px]">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 cursor-pointer" onClick={() => navigate("/")}>
           <SlateLogo size={30} />
         </div>
 
@@ -31,30 +53,32 @@ const Login = () => {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setErrors(prev => { const n = { ...prev }; delete n.email; return n; }); }}
                 placeholder="you@yourbusiness.co.uk"
-                className="w-full h-11 px-4 rounded-lg border border-slate-light/40 bg-white text-[15px] text-foreground placeholder:text-slate-light focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
+                className={`w-full h-11 px-4 rounded-lg border bg-white text-[15px] text-foreground placeholder:text-slate-light focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all ${errors.email ? "border-destructive" : "border-slate-light/40"}`}
               />
+              {errors.email && <p className="text-[13px] text-destructive mt-1">{errors.email}</p>}
             </div>
             <div>
               <label className="text-[13px] font-medium text-slate-mid block mb-1.5">Password</label>
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setErrors(prev => { const n = { ...prev }; delete n.password; return n; }); }}
                 placeholder="••••••••"
-                className="w-full h-11 px-4 rounded-lg border border-slate-light/40 bg-white text-[15px] text-foreground placeholder:text-slate-light focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
+                className={`w-full h-11 px-4 rounded-lg border bg-white text-[15px] text-foreground placeholder:text-slate-light focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all ${errors.password ? "border-destructive" : "border-slate-light/40"}`}
               />
+              {errors.password && <p className="text-[13px] text-destructive mt-1">{errors.password}</p>}
             </div>
 
-            <Button variant="slate" className="w-full h-11 text-[15px]" type="submit">
-              Log in
+            <Button variant="slate" className="w-full h-11 text-[15px]" type="submit" disabled={loading}>
+              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Logging in...</> : "Log in"}
             </Button>
           </form>
 
           <div className="mt-4 text-center">
             {forgotSent ? (
-              <p className="text-[14px] text-success">Check your inbox for a reset link.</p>
+              <p className="text-[14px] text-success">We've sent a reset link to your email.</p>
             ) : (
               <button
                 onClick={() => setForgotSent(true)}

@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Instagram, Twitter, Linkedin, Check } from "lucide-react";
+import { Mail, Instagram, Twitter, Linkedin, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/marketing/Navbar";
 import Footer from "@/components/marketing/Footer";
+import { useApp } from "@/contexts/AppContext";
+import { toast } from "sonner";
 
 const businessTypes = [
   "Butcher", "Baker", "Fishmonger", "Cheesemaker", "Farm Shop",
@@ -17,8 +19,10 @@ const hearAbout = [
 
 const Contact = () => {
   const navigate = useNavigate();
+  const { addLead } = useApp();
   const [submitted, setSubmitted] = useState(false);
   const [firstName, setFirstName] = useState("");
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: "", email: "", phone: "", business: "", businessType: "", hearAbout: "", message: "", newsletter: false,
   });
@@ -26,11 +30,11 @@ const Contact = () => {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.fullName) e.fullName = "Required";
+    if (!form.fullName || form.fullName.length < 2) e.fullName = "Required (min 2 characters)";
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Valid email required";
     if (!form.business) e.business = "Required";
     if (!form.businessType) e.businessType = "Required";
-    if (!form.message) e.message = "Required";
+    if (!form.message || form.message.length < 10) e.message = "Required (min 10 characters)";
     return e;
   };
 
@@ -38,9 +42,32 @@ const Contact = () => {
     e.preventDefault();
     const v = validate();
     if (Object.keys(v).length) { setErrors(v); return; }
-    console.log(JSON.stringify(form));
-    setFirstName(form.fullName.split(" ")[0]);
-    setSubmitted(true);
+
+    setLoading(true);
+    setTimeout(() => {
+      addLead({
+        type: "contact",
+        email: form.email,
+        name: form.fullName,
+        phone: form.phone,
+        businessName: form.business,
+        businessType: form.businessType,
+        hearAbout: form.hearAbout,
+        message: form.message,
+        newsletter: form.newsletter,
+      });
+
+      // If newsletter checked, also add newsletter lead
+      if (form.newsletter) {
+        addLead({ type: "newsletter", email: form.email });
+      }
+
+      console.log("Contact submission:", JSON.stringify(form));
+      setFirstName(form.fullName.split(" ")[0]);
+      setLoading(false);
+      setSubmitted(true);
+      toast.success("Message sent!");
+    }, 600);
   };
 
   const inputCls = (field: string) =>
@@ -118,8 +145,8 @@ const Contact = () => {
                   <input type="checkbox" checked={form.newsletter} onChange={(e) => setForm({ ...form, newsletter: e.target.checked })} className="w-[18px] h-[18px] rounded border-slate-light/40 accent-foreground" />
                   <span className="text-[14px] text-slate-mid">Keep me updated with Slate news and producer tips</span>
                 </label>
-                <Button variant="slate" className="h-11 px-7 text-[15px] md:w-auto w-full" type="submit">
-                  Send message
+                <Button variant="slate" className="h-11 px-7 text-[15px] md:w-auto w-full" type="submit" disabled={loading}>
+                  {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</> : "Send message"}
                 </Button>
               </form>
             )}

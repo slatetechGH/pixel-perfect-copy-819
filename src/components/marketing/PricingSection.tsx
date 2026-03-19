@@ -11,6 +11,7 @@ const plans = [
     desc: "Perfect for getting started",
     features: ["Up to 50 subscribers", "1 subscription tier", "Basic analytics", "Email support", "Slate-branded page"],
     popular: false,
+    planKey: "starter",
   },
   {
     name: "Growth",
@@ -18,6 +19,7 @@ const plans = [
     desc: "For producers ready to scale",
     features: ["Unlimited subscribers", "Unlimited tiers", "Product drops", "Full analytics", "Custom branding", "Priority support"],
     popular: true,
+    planKey: "growth",
   },
   {
     name: "Pro",
@@ -25,6 +27,7 @@ const plans = [
     desc: "For established businesses",
     features: ["Everything in Growth", "API access", "Dedicated account manager", "Advanced messaging", "Multi-location support", "Custom integrations"],
     popular: false,
+    planKey: "pro",
   },
 ];
 
@@ -74,7 +77,7 @@ const PricingSection = () => {
                 <Button
                   variant={plan.popular ? "slate" : "slate-outline"}
                   className="w-full"
-                  onClick={() => navigate("/get-started")}
+                  onClick={() => navigate(`/get-started?plan=${plan.planKey}`)}
                 >
                   Get started
                 </Button>

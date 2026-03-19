@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Check } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/marketing/Navbar";
 import Footer from "@/components/marketing/Footer";
+import SlateLogo from "@/components/SlateLogo";
+import { useApp } from "@/contexts/AppContext";
+import { toast } from "sonner";
 
 const businessTypes = [
   "Butcher", "Baker", "Fishmonger", "Cheesemaker", "Farm Shop",
@@ -19,8 +22,13 @@ const interests = [
 
 const GetStarted = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const planFromUrl = searchParams.get("plan") || "";
+  const { addLead } = useApp();
   const [submitted, setSubmitted] = useState(false);
+  const [duplicate, setDuplicate] = useState(false);
   const [firstName, setFirstName] = useState("");
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: "", email: "", phone: "", businessName: "", businessType: "",
     website: "", customerCount: "", interests: [] as string[], notes: "",
@@ -30,7 +38,7 @@ const GetStarted = () => {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.name) e.name = "Required";
+    if (!form.name || form.name.length < 2) e.name = "Required (min 2 characters)";
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Valid email required";
     if (!form.businessName) e.businessName = "Required";
     if (!form.businessType) e.businessType = "Required";
@@ -49,9 +57,41 @@ const GetStarted = () => {
     e.preventDefault();
     const v = validate();
     if (Object.keys(v).length) { setErrors(v); return; }
-    console.log(JSON.stringify(form));
-    setFirstName(form.name.split(" ")[0]);
-    setSubmitted(true);
+
+    setLoading(true);
+    setTimeout(() => {
+      const success = addLead({
+        type: "signup",
+        email: form.email,
+        name: form.name,
+        phone: form.phone,
+        businessName: form.businessName,
+        businessType: form.businessType,
+        website: form.website,
+        customerCount: form.customerCount,
+        interests: form.interests,
+        additionalNotes: form.notes,
+        newsletter: form.newsletter,
+        interestedPlan: planFromUrl || undefined,
+      });
+
+      setLoading(false);
+
+      if (!success) {
+        setDuplicate(true);
+        return;
+      }
+
+      // If newsletter checked, also add newsletter lead
+      if (form.newsletter) {
+        addLead({ type: "newsletter", email: form.email });
+      }
+
+      console.log("Signup submission:", JSON.stringify(form));
+      setFirstName(form.name.split(" ")[0]);
+      setSubmitted(true);
+      toast.success("Application submitted!");
+    }, 600);
   };
 
   const inputCls = (field: string) =>
@@ -61,7 +101,16 @@ const GetStarted = () => {
     <div className="min-h-screen bg-secondary">
       <Navbar />
       <div className="pt-32 pb-24 max-w-[560px] mx-auto px-6">
-        {submitted ? (
+        {duplicate ? (
+          <div className="bg-white rounded-2xl shadow-card p-10 text-center">
+            <div className="w-12 h-12 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
+              <Check size={24} className="text-amber" />
+            </div>
+            <h2 className="text-[24px] font-bold text-foreground mb-2">Looks like you've already signed up!</h2>
+            <p className="text-[16px] text-slate-mid mb-6">We'll be in touch soon. If you need to update your details, email us at <a href="mailto:hello@getslate.co" className="text-amber hover:underline">hello@getslate.co</a></p>
+            <Button variant="slate-outline" onClick={() => navigate("/")}>Back to homepage</Button>
+          </div>
+        ) : submitted ? (
           <div className="bg-white rounded-2xl shadow-card p-10 text-center">
             <div className="w-12 h-12 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
               <Check size={24} className="text-amber" />
@@ -73,6 +122,9 @@ const GetStarted = () => {
         ) : (
           <>
             <div className="text-center mb-8">
+              <div className="mb-4 cursor-pointer inline-block" onClick={() => navigate("/")}>
+                <SlateLogo size={28} />
+              </div>
               <h1 className="text-[36px] md:text-[44px] font-bold text-foreground tracking-[-0.01em] mb-2">Start your Slate</h1>
               <p className="text-[18px] text-slate-mid">Tell us about your business and we'll get you set up. Takes less than 2 minutes.</p>
             </div>
@@ -152,8 +204,8 @@ const GetStarted = () => {
                   <input type="checkbox" checked={form.newsletter} onChange={(e) => setForm({ ...form, newsletter: e.target.checked })} className="w-[18px] h-[18px] rounded border-slate-light/40 accent-foreground" />
                   <span className="text-[14px] text-slate-mid">Send me tips on growing a subscription business</span>
                 </label>
-                <Button variant="slate" className="w-full h-11 text-[15px]" type="submit">
-                  Request early access
+                <Button variant="slate" className="w-full h-11 text-[15px]" type="submit" disabled={loading}>
+                  {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Submitting...</> : "Request early access"}
                 </Button>
               </form>
             </div>
