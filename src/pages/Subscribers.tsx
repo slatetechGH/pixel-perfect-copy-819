@@ -30,8 +30,8 @@ const Subscribers = () => {
     .filter(s => statusFilter === "All" || s.status === statusFilter)
     .sort((a, b) => {
       if (sort === "Alphabetical") return a.name.localeCompare(b.name);
-      if (sort === "Oldest") return a.id - b.id;
-      return b.id - a.id;
+      if (sort === "Oldest") return a.id.localeCompare(b.id);
+      return b.id.localeCompare(a.id);
     });
 
   const selectedSub = subscribers.find(s => s.id === selected);
