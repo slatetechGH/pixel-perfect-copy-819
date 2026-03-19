@@ -22,7 +22,7 @@ const Subscribers = () => {
   const [sort, setSort] = useState("Newest");
   const [selected, setSelected] = useState<string | null>(null);
   const [cancelConfirm, setCancelConfirm] = useState<string | null>(null);
-  const [pauseConfirm, setPauseConfirm] = useState<number | null>(null);
+  const [pauseConfirm, setPauseConfirm] = useState<string | null>(null);
 
   const filtered = subscribers
     .filter(s => (s.name + s.email).toLowerCase().includes(search.toLowerCase()))
