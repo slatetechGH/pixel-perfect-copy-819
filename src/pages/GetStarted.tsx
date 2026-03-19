@@ -48,6 +48,10 @@ const GetStarted = () => {
     if (!form.businessName) e.businessName = "Required";
     if (!form.businessType) e.businessType = "Required";
     if (!form.terms) e.terms = "You must agree to the terms";
+    if (showPasswordFields) {
+      if (!password || password.length < 6) e.password = "Min 6 characters";
+      if (password !== confirmPassword) e.confirmPassword = "Passwords don't match";
+    }
     return e;
   };
 
