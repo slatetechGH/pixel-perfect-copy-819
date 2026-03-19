@@ -31,7 +31,7 @@ const revenueData = [
 ];
 
 const DashboardHome = () => {
-  const { subscribers, drops, content, conversations } = useDashboard();
+  const { subscribers, drops, content, conversations, settings } = useDashboard();
   const navigate = useNavigate();
 
   const recentActivity = [
