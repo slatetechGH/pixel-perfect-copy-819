@@ -30,12 +30,12 @@ export function MerchantSidebar() {
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
   const { conversations, settings } = useDashboard();
-  const { leads, setSession, demoActive, accentColor } = useApp();
+  const { leads, signOut, demoActive, accentColor } = useApp();
   const unreadMessages = conversations.filter(c => c.unread).length;
   const newLeadCount = leads.filter(l => l.status === "new").length;
 
-  const handleLogout = () => {
-    setSession({ isLoggedIn: false, currentUser: "" });
+  const handleLogout = async () => {
+    await signOut();
     toast.success("Logged out");
     navigate("/");
   };
