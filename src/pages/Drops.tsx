@@ -15,7 +15,7 @@ const statusDot: Record<string, string> = {
 const statusFilters = ["All", "Draft", "Scheduled", "Live", "Ended"] as const;
 
 const emptyDrop: Omit<Drop, "id"> = {
-  title: "", description: "", status: "draft", total: 10, remaining: 10, price: "£0.00", priceNum: 0,
+  title: "", description: "", status: "draft" as const, total: 10, remaining: 10, price: "£0.00", priceNum: 0,
   revenue: "£0", endsIn: "—", dropDate: "", dropTime: "09:00", endDate: "", endTime: "18:00",
   eligiblePlans: [], items: [{ name: "", quantity: "" }], notify: true,
 };
