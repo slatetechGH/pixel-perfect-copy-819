@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import SlateLogo from "@/components/SlateLogo";
 import { useApp } from "@/contexts/AppContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { session, setSession } = useApp();
+  const { session } = useApp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
@@ -21,7 +22,7 @@ const Login = () => {
     return null;
   }
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Valid email required";
@@ -29,11 +30,33 @@ const Login = () => {
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
     setLoading(true);
-    setTimeout(() => {
-      setSession({ isLoggedIn: true, currentUser: "The Harbour Fish Co." });
-      toast.success("Welcome back!");
-      navigate("/dashboard");
-    }, 500);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+
+    if (error) {
+      if (error.message.includes("Invalid login")) {
+        setErrors({ password: "Invalid email or password" });
+      } else if (error.message.includes("Email not confirmed")) {
+        setErrors({ email: "Please confirm your email first" });
+      } else {
+        setErrors({ password: error.message });
+      }
+      return;
+    }
+
+    toast.success("Welcome back!");
+    navigate("/dashboard");
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErrors({ email: "Enter your email address first" });
+      return;
+    }
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotSent(true);
   };
 
   return (
@@ -81,7 +104,7 @@ const Login = () => {
               <p className="text-[14px] text-success">We've sent a reset link to your email.</p>
             ) : (
               <button
-                onClick={() => setForgotSent(true)}
+                onClick={handleForgotPassword}
                 className="text-[14px] text-slate-mid hover:text-foreground transition-colors cursor-pointer"
               >
                 Forgot password?

@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          accent_color: string | null
+          address: string | null
+          business_name: string | null
+          business_type: string | null
+          cover_url: string | null
+          created_at: string
+          email: string
+          id: string
+          logo_url: string | null
+          notification_prefs: Json | null
+          phone: string | null
+          plan: string
+          stripe_connect_id: string | null
+          stripe_customer_id: string | null
+          tagline: string | null
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          address?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          cover_url?: string | null
+          created_at?: string
+          email: string
+          id: string
+          logo_url?: string | null
+          notification_prefs?: Json | null
+          phone?: string | null
+          plan?: string
+          stripe_connect_id?: string | null
+          stripe_customer_id?: string | null
+          tagline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          address?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          cover_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          logo_url?: string | null
+          notification_prefs?: Json | null
+          phone?: string | null
+          plan?: string
+          stripe_connect_id?: string | null
+          stripe_customer_id?: string | null
+          tagline?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -6,6 +6,7 @@ import Navbar from "@/components/marketing/Navbar";
 import Footer from "@/components/marketing/Footer";
 import SlateLogo from "@/components/SlateLogo";
 import { useApp } from "@/contexts/AppContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const businessTypes = [
@@ -29,6 +30,9 @@ const GetStarted = () => {
   const [duplicate, setDuplicate] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [form, setForm] = useState({
     name: "", email: "", phone: "", businessName: "", businessType: "",
     website: "", customerCount: "", interests: [] as string[], notes: "",
@@ -43,6 +47,10 @@ const GetStarted = () => {
     if (!form.businessName) e.businessName = "Required";
     if (!form.businessType) e.businessType = "Required";
     if (!form.terms) e.terms = "You must agree to the terms";
+    if (showPasswordFields) {
+      if (!password || password.length < 6) e.password = "Min 6 characters";
+      if (password !== confirmPassword) e.confirmPassword = "Passwords don't match";
+    }
     return e;
   };
 
@@ -53,45 +61,78 @@ const GetStarted = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // First submission: show password fields
+    if (!showPasswordFields) {
+      const v = validate();
+      if (Object.keys(v).length) { setErrors(v); return; }
+      setShowPasswordFields(true);
+      return;
+    }
+
+    // Second submission: validate all including password, then sign up
     const v = validate();
     if (Object.keys(v).length) { setErrors(v); return; }
 
     setLoading(true);
-    setTimeout(() => {
-      const success = addLead({
-        type: "signup",
-        email: form.email,
-        name: form.name,
-        phone: form.phone,
-        businessName: form.businessName,
-        businessType: form.businessType,
-        website: form.website,
-        customerCount: form.customerCount,
-        interests: form.interests,
-        additionalNotes: form.notes,
-        newsletter: form.newsletter,
-        interestedPlan: planFromUrl || undefined,
-      });
 
+    // Save lead to AppContext (will wire to Supabase in Phase 2)
+    const success = addLead({
+      type: "signup",
+      email: form.email,
+      name: form.name,
+      phone: form.phone,
+      businessName: form.businessName,
+      businessType: form.businessType,
+      website: form.website,
+      customerCount: form.customerCount,
+      interests: form.interests,
+      additionalNotes: form.notes,
+      newsletter: form.newsletter,
+      interestedPlan: planFromUrl || undefined,
+    });
+
+    if (!success) {
       setLoading(false);
+      setDuplicate(true);
+      return;
+    }
 
-      if (!success) {
+    if (form.newsletter) {
+      addLead({ type: "newsletter", email: form.email });
+    }
+
+    // Sign up with Supabase Auth
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: {
+          full_name: form.name,
+          business_name: form.businessName,
+          business_type: form.businessType,
+        },
+      },
+    });
+
+    setLoading(false);
+
+    if (error) {
+      if (error.message.includes("already registered")) {
         setDuplicate(true);
-        return;
+      } else {
+        setErrors({ password: error.message });
       }
+      return;
+    }
 
-      // If newsletter checked, also add newsletter lead
-      if (form.newsletter) {
-        addLead({ type: "newsletter", email: form.email });
-      }
-
-      console.log("Signup submission:", JSON.stringify(form));
-      setFirstName(form.name.split(" ")[0]);
-      setSubmitted(true);
-      toast.success("Application submitted!");
-    }, 600);
+    console.log("Signup submission:", JSON.stringify(form));
+    setFirstName(form.name.split(" ")[0]);
+    setSubmitted(true);
+    toast.success("Check your email to confirm your account!");
   };
 
   const inputCls = (field: string) =>
@@ -115,8 +156,8 @@ const GetStarted = () => {
             <div className="w-12 h-12 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
               <Check size={24} className="text-amber" />
             </div>
-            <h2 className="text-[28px] font-bold text-foreground mb-2">You're on the list, {firstName}!</h2>
-            <p className="text-[16px] text-slate-mid mb-6">We'll be in touch within 48 hours.</p>
+            <h2 className="text-[28px] font-bold text-foreground mb-2">Check your email, {firstName}!</h2>
+            <p className="text-[16px] text-slate-mid mb-6">We've sent a confirmation link to <strong>{form.email}</strong>. Click it to activate your account.</p>
             <Button variant="slate-outline" onClick={() => navigate("/")}>Back to homepage</Button>
           </div>
         ) : (
@@ -204,8 +245,22 @@ const GetStarted = () => {
                   <input type="checkbox" checked={form.newsletter} onChange={(e) => setForm({ ...form, newsletter: e.target.checked })} className="w-[18px] h-[18px] rounded border-slate-light/40 accent-foreground" />
                   <span className="text-[14px] text-slate-mid">Send me tips on growing a subscription business</span>
                 </label>
+                {showPasswordFields && (
+                  <>
+                    <div>
+                      <label className="text-[13px] font-medium text-slate-mid block mb-1.5">Create a Password <span className="text-amber">*</span></label>
+                      <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); setErrors(prev => { const n = { ...prev }; delete n.password; return n; }); }} className={inputCls("password")} placeholder="Min 6 characters" />
+                      {errors.password && <p className="text-[13px] text-destructive mt-1">{errors.password}</p>}
+                    </div>
+                    <div>
+                      <label className="text-[13px] font-medium text-slate-mid block mb-1.5">Confirm Password <span className="text-amber">*</span></label>
+                      <input type="password" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); setErrors(prev => { const n = { ...prev }; delete n.confirmPassword; return n; }); }} className={inputCls("confirmPassword")} placeholder="Re-enter password" />
+                      {errors.confirmPassword && <p className="text-[13px] text-destructive mt-1">{errors.confirmPassword}</p>}
+                    </div>
+                  </>
+                )}
                 <Button variant="slate" className="w-full h-11 text-[15px]" type="submit" disabled={loading}>
-                  {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Submitting...</> : "Request early access"}
+                  {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating account...</> : showPasswordFields ? "Create account" : "Continue"}
                 </Button>
               </form>
             </div>

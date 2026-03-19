@@ -577,7 +577,7 @@ const DemoSetup = () => {
 
       // Activate demo mode
       activateDemo(businessName, selectedColor);
-      setSession({ isLoggedIn: true, currentUser: businessName });
+      setSession(prev => ({ ...prev, isLoggedIn: true, currentUser: businessName }));
 
       setTimeout(() => {
         setLaunching(false);

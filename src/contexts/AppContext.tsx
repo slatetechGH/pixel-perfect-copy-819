@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User, Session } from "@supabase/supabase-js";
 
 // ===== TYPES =====
 export interface Lead {
@@ -26,6 +28,9 @@ export interface Lead {
 export interface SessionState {
   isLoggedIn: boolean;
   currentUser: string;
+  supabaseUser: User | null;
+  supabaseSession: Session | null;
+  profile: Record<string, any> | null;
 }
 
 export interface DemoPlan {
@@ -130,6 +135,7 @@ const initialLeads: Lead[] = [
 interface AppContextType {
   session: SessionState;
   setSession: React.Dispatch<React.SetStateAction<SessionState>>;
+  authLoading: boolean;
   leads: Lead[];
   setLeads: React.Dispatch<React.SetStateAction<Lead[]>>;
   addLead: (lead: Omit<Lead, "id" | "timestamp" | "status" | "notes">) => boolean;
@@ -142,17 +148,66 @@ interface AppContextType {
   deactivateDemo: () => void;
   demoConfig: DemoProfile | null;
   setDemoConfig: (config: DemoProfile | null) => void;
+  signOut: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<SessionState>({ isLoggedIn: false, currentUser: "" });
+  const [session, setSession] = useState<SessionState>({
+    isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null,
+  });
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [accentColor, setAccentColorState] = useState<string>(DEFAULT_ACCENT);
   const [demoActive, setDemoActive] = useState(false);
   const [demoBusinessName, setDemoBusinessName] = useState("");
   const [demoConfig, setDemoConfig] = useState<DemoProfile | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Fetch profile helper
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
+    return data;
+  };
+
+  // Supabase auth state listener
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supaSession) => {
+      if (supaSession?.user) {
+        // Use setTimeout to avoid Supabase auth deadlock
+        const profile = await fetchProfile(supaSession.user.id);
+        setSession({
+          isLoggedIn: true,
+          currentUser: profile?.business_name || supaSession.user.email || "",
+          supabaseUser: supaSession.user,
+          supabaseSession: supaSession,
+          profile,
+        });
+      } else {
+        setSession({
+          isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null,
+        });
+      }
+      setAuthLoading(false);
+    });
+
+    // Also check existing session on mount
+    supabase.auth.getSession().then(async ({ data: { session: existing } }) => {
+      if (existing?.user) {
+        const profile = await fetchProfile(existing.user.id);
+        setSession({
+          isLoggedIn: true,
+          currentUser: profile?.business_name || existing.user.email || "",
+          supabaseUser: existing.user,
+          supabaseSession: existing,
+          profile,
+        });
+      }
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--accent-dynamic", accentColor);
@@ -189,12 +244,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setSession({ isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null });
+  };
+
   return (
     <AppContext.Provider value={{
-      session, setSession, leads, setLeads, addLead,
+      session, setSession, authLoading, leads, setLeads, addLead,
       accentColor, setAccentColor, resetAccentColor,
       demoActive, demoBusinessName, activateDemo, deactivateDemo,
-      demoConfig, setDemoConfig,
+      demoConfig, setDemoConfig, signOut,
     }}>
       {children}
     </AppContext.Provider>

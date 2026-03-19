@@ -26,7 +26,8 @@ import DemoSetup from "./pages/DemoSetup";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session } = useApp();
+  const { session, authLoading } = useApp();
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" /></div>;
   if (!session.isLoggedIn) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
