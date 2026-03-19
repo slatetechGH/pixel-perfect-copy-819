@@ -65,10 +65,18 @@ const DashboardHome = () => {
       }
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
-        <MetricCard title="Monthly Recurring Revenue" value="£4,850" change="+15.5%" trend="up" delay={0} />
-        <MetricCard title="Total Subscribers" value={String(subscribers.length)} change="+12.3%" trend="up" delay={80} />
-        <MetricCard title="Churn Rate" value="3.2%" change="-0.8%" trend="up" delay={160} />
-        <MetricCard title="Avg. Revenue Per User" value="£25.90" change="+2.1%" trend="up" delay={240} />
+        <div className="cursor-pointer" onClick={() => navigate("/dashboard/analytics")}>
+          <MetricCard title="Monthly Recurring Revenue" value="£4,850" change="+15.5%" trend="up" delay={0} />
+        </div>
+        <div className="cursor-pointer" onClick={() => navigate("/dashboard/subscribers")}>
+          <MetricCard title="Total Subscribers" value={String(subscribers.length)} change="+12.3%" trend="up" delay={80} />
+        </div>
+        <div className="cursor-pointer" onClick={() => navigate("/dashboard/analytics")}>
+          <MetricCard title="Churn Rate" value="3.2%" change="-0.8%" trend="up" delay={160} />
+        </div>
+        <div className="cursor-pointer" onClick={() => navigate("/dashboard/analytics")}>
+          <MetricCard title="Avg. Revenue Per User" value="£25.90" change="+2.1%" trend="up" delay={240} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-7">
