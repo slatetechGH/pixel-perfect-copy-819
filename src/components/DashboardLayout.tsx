@@ -57,16 +57,16 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
           {/* Demo mode strip */}
           {demoActive && (
             <div
-              className="flex items-center justify-between px-8 shrink-0"
+              className="flex items-center justify-between px-4 md:px-8 shrink-0 overflow-hidden"
               style={{
                 height: 36,
                 backgroundColor: `${accentColor}14`,
               }}
             >
-              <span className="text-[12px] font-medium" style={{ color: accentColor }}>
+              <span className="text-[12px] font-medium truncate mr-2" style={{ color: accentColor }}>
                 Demo Mode — {demoBusinessName}
               </span>
-              <div className="flex items-center gap-1 text-[11px] font-medium" style={{ color: "hsl(215, 16%, 47%)" }}>
+              <div className="flex items-center gap-1 text-[11px] font-medium shrink-0" style={{ color: "hsl(215, 16%, 47%)" }}>
                 <button
                   onClick={() => navigate("/demo-setup")}
                   className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
