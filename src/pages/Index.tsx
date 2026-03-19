@@ -30,7 +30,7 @@ const revenueData = [
 ];
 
 const DashboardHome = () => {
-  const { subscribers, drops, content, conversations } = useDashboard();
+  const { subscribers, drops, content, conversations, settings } = useDashboard();
   const navigate = useNavigate();
 
   const recentActivity = [
@@ -52,7 +52,7 @@ const DashboardHome = () => {
   return (
     <DashboardLayout
       title="Dashboard"
-      subtitle="The Harbour Fish Co. — Overview"
+      subtitle={`${settings.businessName} — Overview`}
       actions={
         <div className="flex gap-3">
           <Button variant="outline" size="sm" className="text-[14px] font-medium" onClick={() => navigate("/dashboard/drops")}>

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useApp } from "@/contexts/AppContext";
 
 interface SlateLogoProps {
   dark?: boolean;
@@ -9,44 +10,56 @@ interface SlateLogoProps {
 
 const SlateLogo = ({ dark = false, size = 20, asLink = true, className = "" }: SlateLogoProps) => {
   const navigate = useNavigate();
+  const { accentColor } = useApp();
 
-  // Bar dimensions scale with font size
-  const barWidth = size * 0.85;
-  const barHeight = Math.max(3, size * 0.19);
-  const barGap = Math.max(2.5, size * 0.16);
-  const barRadius = 1;
-  const iconHeight = barHeight * 3 + barGap * 2;
+  // Tile dimensions scale with font size
+  const tileW = size * 0.8;
+  const tileH = size * 0.5;
+  const offsetX = size * 0.2;
+  const offsetY = size * 0.2;
+  const tileR = 2;
+  const svgW = tileW + offsetX * 2;
+  const svgH = tileH + offsetY * 2;
 
-  // Colors
-  const bars = dark
+  // Colors for tiles
+  const tiles = dark
     ? [
-        "rgba(248,250,252,0.9)",  // top - white 90%
-        "rgba(148,163,184,0.6)",  // mid - slate-light 60%
-        "rgba(71,85,105,0.4)",    // bot - slate-mid 40%
+        { fill: "#475569", opacity: 0.4 },  // back
+        { fill: "#94A3B8", opacity: 0.6 },  // middle
+        { fill: "#F8FAFC", opacity: 0.9 },  // front
       ]
     : [
-        "#1E293B", // top - slate-dark
-        "#475569", // mid - slate-mid
-        "#94A3B8", // bot - slate-light
+        { fill: "#94A3B8", opacity: 1 },    // back (lightest)
+        { fill: "#475569", opacity: 1 },    // middle
+        { fill: "#1E293B", opacity: 1 },    // front (darkest)
       ];
 
   const wordColor = dark ? "#F8FAFC" : "#1E293B";
+  const dotColor = accentColor;
 
   const content = (
-    <span className={`inline-flex items-center gap-[0.35em] ${className}`} style={{ fontSize: size }}>
-      {/* Stacked bars icon */}
+    <span className={`inline-flex items-center ${className}`} style={{ fontSize: size, gap: size * 0.4 }}>
+      {/* Overlapping tiles icon */}
       <svg
-        width={barWidth}
-        height={iconHeight}
-        viewBox={`0 0 ${barWidth} ${iconHeight}`}
+        width={svgW}
+        height={svgH}
+        viewBox={`0 0 ${svgW} ${svgH}`}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="shrink-0"
-        style={{ marginTop: size * 0.05 }}
       >
-        <rect x="0" y="0" width={barWidth} height={barHeight} rx={barRadius} fill={bars[0]} />
-        <rect x="0" y={barHeight + barGap} width={barWidth} height={barHeight} rx={barRadius} fill={bars[1]} />
-        <rect x="0" y={(barHeight + barGap) * 2} width={barWidth} height={barHeight} rx={barRadius} fill={bars[2]} />
+        {tiles.map((tile, i) => (
+          <rect
+            key={i}
+            x={offsetX * i}
+            y={offsetY * i}
+            width={tileW}
+            height={tileH}
+            rx={tileR}
+            fill={tile.fill}
+            fillOpacity={tile.opacity}
+          />
+        ))}
       </svg>
       {/* Wordmark */}
       <span
@@ -54,14 +67,14 @@ const SlateLogo = ({ dark = false, size = 20, asLink = true, className = "" }: S
         style={{ color: wordColor, fontSize: "1em" }}
       >
         slate
-        {/* Amber rounded square dot */}
+        {/* Accent rounded square dot */}
         <span
           className="inline-block align-baseline"
           style={{
-            width: size * 0.22,
-            height: size * 0.22,
-            backgroundColor: "#F59E0B",
-            borderRadius: 2,
+            width: size * 0.25,
+            height: size * 0.25,
+            backgroundColor: dotColor,
+            borderRadius: Math.max(1.5, size * 0.08),
             marginLeft: size * 0.04,
             marginBottom: size * 0.02,
           }}

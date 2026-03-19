@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 // ===== TYPES =====
 export interface Lead {
@@ -7,17 +7,14 @@ export interface Lead {
   status: "new" | "reviewed" | "contacted";
   timestamp: string;
   notes: string;
-  // Common fields
   email: string;
   name?: string;
   phone?: string;
   businessName?: string;
   businessType?: string;
-  // Contact-specific
   hearAbout?: string;
   message?: string;
   newsletter?: boolean;
-  // Signup-specific
   website?: string;
   customerCount?: string;
   interests?: string[];
@@ -31,9 +28,61 @@ export interface SessionState {
   currentUser: string;
 }
 
-// ===== INITIAL MOCK DATA =====
+export interface DemoPlan {
+  name: string;
+  price: number;
+  isFree: boolean;
+  features: string[];
+  projectedSubscribers: number;
+}
+
+export interface DemoDrop {
+  name: string;
+  price: number;
+  status: "draft" | "scheduled" | "live" | "ended";
+  quantity: number;
+  sold: number;
+}
+
+export interface DemoContent {
+  title: string;
+  type: "Recipe" | "Update" | "Story" | "Tip";
+  status: "published" | "draft";
+  prepTime?: string;
+  cookTime?: string;
+  serves?: string;
+}
+
+export interface DemoProfile {
+  id: string;
+  name: string;
+  businessName: string;
+  businessType: string;
+  tagline: string;
+  location: string;
+  email: string;
+  phone: string;
+  website: string;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  accentColor: string;
+  plans: DemoPlan[];
+  drops: DemoDrop[];
+  content: DemoContent[];
+  totalSubscribers: number;
+  monthsActive: number;
+  growthRate: number;
+  startingMRR: number;
+  autoGenerateNames: boolean;
+  autoGenerateMessages: boolean;
+  lastUsed?: string;
+}
+
+// ===== DEFAULT ACCENT =====
+const DEFAULT_ACCENT = "#F59E0B";
+
+// ===== INITIAL MOCK LEADS =====
 const initialLeads: Lead[] = [
-  // Signup requests
   {
     id: "sig-1", type: "signup", status: "new", timestamp: "2026-03-18T14:30:00",
     email: "tom@greenfieldsfarm.co.uk", name: "Tom Greenfield", phone: "07812 345678",
@@ -55,7 +104,6 @@ const initialLeads: Lead[] = [
     website: "smokeandoak.co", customerCount: "Under 50", interests: ["All of the above"],
     interestedPlan: "growth", notes: "Call scheduled for next week",
   },
-  // Contact enquiries
   {
     id: "con-1", type: "contact", status: "new", timestamp: "2026-03-17T11:20:00",
     email: "hello@cheesecellar.co.uk", name: "Margaret White",
@@ -71,7 +119,6 @@ const initialLeads: Lead[] = [
     message: "Love the concept! We'd like to explore a beer subscription and limited-edition drops for seasonal brews.",
     notes: "Sent intro email with pricing deck",
   },
-  // Newsletter signups
   { id: "news-1", type: "newsletter", status: "new", timestamp: "2026-03-19T08:00:00", email: "curious@gmail.com", notes: "" },
   { id: "news-2", type: "newsletter", status: "new", timestamp: "2026-03-18T19:30:00", email: "foodie.fan@outlook.com", notes: "" },
   { id: "news-3", type: "newsletter", status: "new", timestamp: "2026-03-17T12:00:00", email: "market.lover@yahoo.com", notes: "" },
@@ -86,6 +133,15 @@ interface AppContextType {
   leads: Lead[];
   setLeads: React.Dispatch<React.SetStateAction<Lead[]>>;
   addLead: (lead: Omit<Lead, "id" | "timestamp" | "status" | "notes">) => boolean;
+  // Accent colour theming
+  accentColor: string;
+  setAccentColor: (color: string) => void;
+  resetAccentColor: () => void;
+  // Demo mode
+  demoActive: boolean;
+  demoBusinessName: string;
+  activateDemo: (businessName: string, accent: string) => void;
+  deactivateDemo: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -93,9 +149,31 @@ const AppContext = createContext<AppContextType | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionState>({ isLoggedIn: false, currentUser: "" });
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
+  const [accentColor, setAccentColorState] = useState<string>(DEFAULT_ACCENT);
+  const [demoActive, setDemoActive] = useState(false);
+  const [demoBusinessName, setDemoBusinessName] = useState("");
+
+  // Sync CSS custom property
+  useEffect(() => {
+    document.documentElement.style.setProperty("--accent-dynamic", accentColor);
+  }, [accentColor]);
+
+  const setAccentColor = (color: string) => setAccentColorState(color);
+  const resetAccentColor = () => setAccentColorState(DEFAULT_ACCENT);
+
+  const activateDemo = (businessName: string, accent: string) => {
+    setDemoActive(true);
+    setDemoBusinessName(businessName);
+    setAccentColorState(accent);
+  };
+
+  const deactivateDemo = () => {
+    setDemoActive(false);
+    setDemoBusinessName("");
+    setAccentColorState(DEFAULT_ACCENT);
+  };
 
   const addLead = (lead: Omit<Lead, "id" | "timestamp" | "status" | "notes">): boolean => {
-    // Duplicate check for signup and newsletter
     if (lead.type === "signup" && leads.some(l => l.type === "signup" && l.email === lead.email)) return false;
     if (lead.type === "newsletter" && leads.some(l => l.type === "newsletter" && l.email === lead.email)) return false;
 
@@ -111,7 +189,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AppContext.Provider value={{ session, setSession, leads, setLeads, addLead }}>
+    <AppContext.Provider value={{
+      session, setSession, leads, setLeads, addLead,
+      accentColor, setAccentColor, resetAccentColor,
+      demoActive, demoBusinessName, activateDemo, deactivateDemo,
+    }}>
       {children}
     </AppContext.Provider>
   );
