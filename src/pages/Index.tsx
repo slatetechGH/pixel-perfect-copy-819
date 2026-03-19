@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Zap, FileText, TrendingUp } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
 } from "recharts";
