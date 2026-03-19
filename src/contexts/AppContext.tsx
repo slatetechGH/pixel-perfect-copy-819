@@ -135,6 +135,7 @@ const initialLeads: Lead[] = [
 interface AppContextType {
   session: SessionState;
   setSession: React.Dispatch<React.SetStateAction<SessionState>>;
+  authLoading: boolean;
   leads: Lead[];
   setLeads: React.Dispatch<React.SetStateAction<Lead[]>>;
   addLead: (lead: Omit<Lead, "id" | "timestamp" | "status" | "notes">) => boolean;
@@ -147,6 +148,7 @@ interface AppContextType {
   deactivateDemo: () => void;
   demoConfig: DemoProfile | null;
   setDemoConfig: (config: DemoProfile | null) => void;
+  signOut: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
