@@ -122,8 +122,8 @@ export function MerchantSidebar() {
                         )}
                         {!collapsed && badgeCount > 0 && (
                           <span
-                            className="w-5 h-5 rounded-full text-white text-[11px] font-medium flex items-center justify-center"
-                            style={{ backgroundColor: demoActive ? accentColor : undefined }}
+                            className={cn("w-5 h-5 rounded-full text-white text-[11px] font-medium flex items-center justify-center", !demoActive && "bg-amber")}
+                            style={demoActive ? { backgroundColor: accentColor } : undefined}
                           >
                             {badgeCount}
                           </span>
