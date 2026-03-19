@@ -53,7 +53,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <MerchantSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden max-w-[100vw]">
           {/* Demo mode strip */}
           {demoActive && (
             <div
