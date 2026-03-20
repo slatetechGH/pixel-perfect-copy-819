@@ -30,7 +30,7 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-[40px] md:text-[64px] font-bold text-foreground leading-[1.05] tracking-[-0.02em] mb-7"
             >
-              The free subscription platform for independent producers.
+              The subscription platform for independent producers.
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 16 }}
@@ -38,7 +38,7 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-[18px] md:text-[20px] text-slate-mid leading-relaxed mb-10 max-w-lg"
             >
-              Build recurring revenue with zero upfront cost. We only succeed when you do — taking just 6% of what you earn.
+              Build recurring revenue with no monthly fees. We only succeed when you do — taking just 6% commission on what you earn.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -47,28 +47,12 @@ const HeroSection = () => {
               className="flex flex-wrap gap-3 mb-10"
             >
               <Button variant="slate" size="lg" className="text-[15px] px-7" onClick={() => navigate("/get-started")}>
-                Get started free
+                Get started
               </Button>
               <Button variant="slate-outline" size="lg" className="text-[15px] px-7" onClick={scrollToHowItWorks}>
                 See how it works
               </Button>
             </motion.div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="text-[14px] text-slate-light flex items-center gap-2"
-            >
-              <span className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <span
-                    key={i}
-                    className="inline-block w-7 h-7 rounded-full bg-secondary border-2 border-white"
-                  />
-                ))}
-              </span>
-              Trusted by 200+ independent producers
-            </motion.p>
           </div>
 
           {/* Dashboard mockup */}

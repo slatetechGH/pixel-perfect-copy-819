@@ -116,3 +116,10 @@
     letter-spacing: -0.01em;
   }
 }
+
+/* Hide Lovable badge */
+[data-lovable-badge],
+.lovable-badge,
+a[href*="lovable.dev"] {
+  display: none !important;
+}
