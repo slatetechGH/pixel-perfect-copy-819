@@ -186,17 +186,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supaSession) => {
       if (supaSession?.user) {
-        const profile = await fetchProfile(supaSession.user.id);
+        const [profile, role] = await Promise.all([
+          fetchProfile(supaSession.user.id),
+          fetchRole(supaSession.user.id),
+        ]);
         setSession({
           isLoggedIn: true,
           currentUser: profile?.business_name || supaSession.user.email || "",
           supabaseUser: supaSession.user,
           supabaseSession: supaSession,
           profile,
+          role,
         });
       } else {
         setSession({
-          isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null,
+          isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null, role: null,
         });
       }
       setAuthLoading(false);
