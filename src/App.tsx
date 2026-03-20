@@ -63,16 +63,16 @@ const AppRoutes = () => (
       <Route path="/store/:businessSlug/content/:contentId" element={<StorefrontContent />} />
       <Route path="/store/:businessSlug/account" element={<StorefrontAccount />} />
 
-      {/* Dashboard — protected, shares same DashboardProvider */}
-      <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-      <Route path="/dashboard/subscribers" element={<ProtectedRoute><Subscribers /></ProtectedRoute>} />
-      <Route path="/dashboard/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
-      <Route path="/dashboard/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
-      <Route path="/dashboard/drops" element={<ProtectedRoute><Drops /></ProtectedRoute>} />
-      <Route path="/dashboard/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-      <Route path="/dashboard/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-      <Route path="/dashboard/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
-      <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      {/* Dashboard — protected, admin + producer only */}
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Index /></ProtectedRoute>} />
+      <Route path="/dashboard/subscribers" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Subscribers /></ProtectedRoute>} />
+      <Route path="/dashboard/plans" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Plans /></ProtectedRoute>} />
+      <Route path="/dashboard/content" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Content /></ProtectedRoute>} />
+      <Route path="/dashboard/drops" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Drops /></ProtectedRoute>} />
+      <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Messages /></ProtectedRoute>} />
+      <Route path="/dashboard/analytics" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Analytics /></ProtectedRoute>} />
+      <Route path="/dashboard/leads" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Leads /></ProtectedRoute>} />
+      <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Settings /></ProtectedRoute>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

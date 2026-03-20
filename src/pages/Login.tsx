@@ -46,7 +46,13 @@ const Login = () => {
     }
 
     toast.success("Welcome back!");
-    navigate("/dashboard");
+    // Role-based redirect will be handled by the session.isLoggedIn check above
+    // after onAuthStateChange fires. For immediate redirect:
+    const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: (await supabase.auth.getUser()).data.user?.id });
+    const role = roleData as string;
+    if (role === "admin") navigate("/admin");
+    else if (role === "customer") navigate("/");
+    else navigate("/dashboard");
   };
 
   const handleForgotPassword = async () => {
