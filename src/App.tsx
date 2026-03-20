@@ -25,13 +25,23 @@ import DemoSetup from "./pages/DemoSetup";
 import Storefront from "./pages/Storefront";
 import StorefrontContent from "./pages/StorefrontContent";
 import StorefrontAccount from "./pages/StorefrontAccount";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { session, authLoading } = useApp();
   if (authLoading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" /></div>;
   if (!session.isLoggedIn) return <Navigate to="/login" replace />;
+  
+  // Role-based access: if allowedRoles specified, check the user's role
+  if (allowedRoles && session.role && !allowedRoles.includes(session.role)) {
+    // Redirect to appropriate home
+    if (session.role === "customer") return <Navigate to="/" replace />;
+    if (session.role === "producer") return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
+  }
+  
   return <>{children}</>;
 }
 
