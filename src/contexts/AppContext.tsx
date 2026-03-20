@@ -25,12 +25,15 @@ export interface Lead {
   terms?: boolean;
 }
 
+export type UserRole = "admin" | "producer" | "customer";
+
 export interface SessionState {
   isLoggedIn: boolean;
   currentUser: string;
   supabaseUser: User | null;
   supabaseSession: Session | null;
   profile: Record<string, any> | null;
+  role: UserRole | null;
 }
 
 export interface DemoPlan {
