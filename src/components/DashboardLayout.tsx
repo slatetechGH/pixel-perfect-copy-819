@@ -67,6 +67,15 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
                 Demo Mode — {demoBusinessName}
               </span>
               <div className="flex items-center gap-1 text-[11px] font-medium shrink-0" style={{ color: "hsl(215, 16%, 47%)" }}>
+                <a
+                  href={`/store/${settings.urlSlug || settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
+                >
+                  Preview Storefront
+                </a>
+                <span className="opacity-40">·</span>
                 <button
                   onClick={() => navigate("/demo-setup")}
                   className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
