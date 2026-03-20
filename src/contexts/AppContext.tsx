@@ -309,7 +309,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setSession({ isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null });
+    setSession({ isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null, role: null });
   };
 
   return (
