@@ -49,6 +49,15 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
     ? `Overview — ${monthYear}`
     : subtitle;
 
+  const profileBusinessName = session.profile?.business_name || "";
+  const storefrontSlug =
+    settings.urlSlug ||
+    settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") ||
+    session.profile?.url_slug ||
+    (profileBusinessName
+      ? profileBusinessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+      : "");
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
