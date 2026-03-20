@@ -56,6 +56,7 @@ const AppRoutes = () => (
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/demo-setup" element={<DemoSetup />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Customer-facing storefront — public, no auth */}
       <Route path="/store/:businessSlug" element={<Storefront />} />
