@@ -50,7 +50,7 @@ const Navbar = () => {
         )}
       >
         <div className="max-w-[1200px] mx-auto px-8 h-full flex items-center justify-between">
-          <SlateLogo size={20} />
+          <SlateLogo size={26} />
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
