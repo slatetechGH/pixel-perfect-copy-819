@@ -16,9 +16,10 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // If already logged in, redirect
+  // If already logged in, redirect based on role
   if (session.isLoggedIn) {
-    navigate("/dashboard", { replace: true });
+    const dest = session.role === "admin" ? "/admin" : session.role === "customer" ? "/" : "/dashboard";
+    navigate(dest, { replace: true });
     return null;
   }
 
