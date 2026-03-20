@@ -15,7 +15,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title, subtitle, actions }: DashboardLayoutProps) {
-  const { demoActive, demoBusinessName, deactivateDemo, accentColor } = useApp();
+  const { demoActive, demoBusinessName, deactivateDemo, accentColor, session } = useApp();
   const { resetToDefaults, settings } = useDashboard();
   const navigate = useNavigate();
   const [resetConfirm, setResetConfirm] = useState(false);
