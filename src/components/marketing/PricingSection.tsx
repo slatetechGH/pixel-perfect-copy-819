@@ -38,17 +38,7 @@ const PricingSection = () => {
               <span className="text-[56px] font-bold text-foreground leading-none">£0</span>
               <span className="text-[18px] text-slate-mid ml-2">/month</span>
               <p className="text-[15px] text-slate-mid mt-3">
-                + 6% on subscriber payments
-              </p>
-            </div>
-
-            <div className="bg-secondary rounded-xl p-5 mb-8">
-              <p className="text-[13px] font-medium text-muted-foreground mb-1">Example</p>
-              <p className="text-[15px] text-foreground leading-relaxed">
-                Customer pays <span className="font-semibold">£60/mo</span> →
-                Stripe takes <span className="font-semibold">~£1.62</span> →
-                Slate takes <span className="font-semibold">£3.60</span> →
-                You receive <span className="font-bold text-foreground">£54.78</span>
+                Just 6% commission on subscriber revenue
               </p>
             </div>
 
