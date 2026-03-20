@@ -171,10 +171,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [demoConfig, setDemoConfig] = useState<DemoProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Fetch profile helper
+  // Fetch profile and role helpers
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
     return data;
+  };
+
+  const fetchRole = async (userId: string): Promise<UserRole | null> => {
+    const { data } = await supabase.rpc("get_user_role", { _user_id: userId });
+    return (data as UserRole) || null;
   };
 
   // Supabase auth state listener
