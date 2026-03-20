@@ -91,7 +91,6 @@ const GetStarted = () => {
       interests: form.interests,
       additionalNotes: form.notes,
       newsletter: form.newsletter,
-      interestedPlan: planFromUrl || undefined,
     });
 
     if (!success) {
