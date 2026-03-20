@@ -120,6 +120,7 @@ export function MerchantSidebar() {
               {navItems
                 .filter(item => !('adminOnly' in item && item.adminOnly) || session.role === "admin")
                 .map((item) => {
+                const badgeCount = item.title === "Messages" ? unreadMessages : item.title === "Leads" ? newLeadCount : 0;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild className="h-9">
