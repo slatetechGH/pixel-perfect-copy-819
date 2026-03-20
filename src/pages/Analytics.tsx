@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
 import { useDashboard } from "@/contexts/DashboardContext";
+import { CommissionCard } from "@/components/commission/CommissionCard";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, BarChart, Bar,
@@ -17,10 +18,20 @@ const ranges = [
   { key: "all", label: "All time" },
 ];
 
+function computeBreakdown(grossRevenue: number) {
+  const stripeFees = grossRevenue * 0.022 + 0.30;
+  const slateCommission = grossRevenue * 0.06;
+  const netRevenue = grossRevenue - stripeFees - slateCommission;
+  return { grossRevenue, stripeFees, slateCommission, netRevenue };
+}
+
 const Analytics = () => {
   const { revenueDataSets, kpiData, subscriberGrowthData, tierBreakdown } = useDashboard();
   const [range, setRange] = useState("6m");
   const data = revenueDataSets[range] || revenueDataSets["all"];
+
+  const mrrNum = parseFloat(kpiData.mrr.replace(/[^0-9.]/g, '')) || 0;
+  const breakdown = computeBreakdown(mrrNum);
 
   return (
     <DashboardLayout title="Analytics" subtitle="Performance insights">
@@ -39,6 +50,33 @@ const Analytics = () => {
         <MetricCard title="Drop Conversion" value="72%" change="+5.1%" trend="up" delay={160} />
         <MetricCard title="Content Engagement" value="3.2k" change="+22%" trend="up" delay={240} />
       </div>
+
+      {/* Revenue Breakdown Table */}
+      <Card className="border-0 shadow-card mb-7">
+        <CardHeader className="pb-2 px-7 pt-7">
+          <CardTitle className="text-[15px] font-medium text-foreground">Revenue Breakdown (Current Month)</CardTitle>
+        </CardHeader>
+        <CardContent className="px-7 pb-7">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-secondary rounded-xl p-4">
+              <p className="text-[12px] font-medium text-muted-foreground mb-1">Gross Revenue</p>
+              <p className="text-[20px] font-bold text-foreground">£{breakdown.grossRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            </div>
+            <div className="bg-secondary rounded-xl p-4">
+              <p className="text-[12px] font-medium text-muted-foreground mb-1">Stripe Fees</p>
+              <p className="text-[20px] font-bold text-muted-foreground">−£{breakdown.stripeFees.toFixed(2)}</p>
+            </div>
+            <div className="bg-secondary rounded-xl p-4">
+              <p className="text-[12px] font-medium text-muted-foreground mb-1">Slate Commission (6%)</p>
+              <p className="text-[20px] font-bold text-muted-foreground">−£{breakdown.slateCommission.toFixed(2)}</p>
+            </div>
+            <div className="bg-secondary rounded-xl p-4">
+              <p className="text-[12px] font-medium text-muted-foreground mb-1">Net Revenue</p>
+              <p className="text-[20px] font-bold text-foreground">£{breakdown.netRevenue.toFixed(2)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-7">
         <Card className="lg:col-span-2 border-0 shadow-card">
@@ -80,6 +118,11 @@ const Analytics = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Commission Card */}
+      <div className="mb-7">
+        <CommissionCard mrr={mrrNum} />
       </div>
 
       <Card className="border-0 shadow-card">
