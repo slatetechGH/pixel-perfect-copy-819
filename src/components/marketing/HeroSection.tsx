@@ -30,7 +30,7 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-[40px] md:text-[64px] font-bold text-foreground leading-[1.05] tracking-[-0.02em] mb-7"
             >
-              The free subscription platform for independent producers.
+              The subscription platform for independent producers.
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 16 }}
