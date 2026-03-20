@@ -162,7 +162,7 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionState>({
-    isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null,
+    isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null, role: null,
   });
   const [leads, setLeads] = useState<Lead[]>([]);
   const [accentColor, setAccentColorState] = useState<string>(DEFAULT_ACCENT);
