@@ -136,6 +136,24 @@ const GetStarted = () => {
       }).eq("id", signUpData.user.id);
     }
 
+    // Send notification email
+    try {
+      await supabase.functions.invoke("send-enquiry-email", {
+        body: {
+          type: "signup",
+          data: {
+            name: form.name,
+            email: form.email,
+            company: form.businessName,
+            interests: form.interests,
+            plan: null,
+          },
+        },
+      });
+    } catch {
+      console.warn("Signup notification email failed");
+    }
+
     setLoading(false);
     
     setFirstName(form.name.split(" ")[0]);
@@ -156,7 +174,7 @@ const GetStarted = () => {
               <Check size={24} className="text-amber" />
             </div>
             <h2 className="text-[24px] font-bold text-foreground mb-2">Looks like you've already signed up!</h2>
-            <p className="text-[16px] text-slate-mid mb-6">We'll be in touch soon. If you need to update your details, email us at <a href="mailto:hello@getslate.co" className="text-amber hover:underline">hello@getslate.co</a></p>
+            <p className="text-[16px] text-slate-mid mb-6">We'll be in touch soon. If you need to update your details, email us at <a href="mailto:sales@slatetech.co.uk" className="text-amber hover:underline">sales@slatetech.co.uk</a></p>
             <Button variant="slate-outline" onClick={() => navigate("/")}>Back to homepage</Button>
           </div>
         ) : submitted ? (

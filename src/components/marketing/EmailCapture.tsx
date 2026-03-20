@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const EmailCapture = () => {
@@ -9,7 +10,7 @@ const EmailCapture = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError("Please enter a valid email address");
@@ -24,7 +25,15 @@ const EmailCapture = () => {
       return;
     }
 
-    
+    // Send notification email
+    try {
+      await supabase.functions.invoke("send-enquiry-email", {
+        body: { type: "newsletter", data: { email } },
+      });
+    } catch {
+      console.warn("Newsletter notification email failed");
+    }
+
     setSubmitted(true);
     setEmail("");
     toast.success("You're in! Welcome to Slate.");

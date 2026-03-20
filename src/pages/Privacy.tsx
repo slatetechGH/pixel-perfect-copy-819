@@ -11,7 +11,7 @@ const Privacy = () => {
         <h1 className="text-[36px] font-bold text-foreground tracking-[-0.01em] mb-6">Privacy Policy</h1>
         <p className="text-[16px] text-slate-mid leading-relaxed mb-6">
           Our full privacy policy is being finalised. For any questions about how we handle your data, please contact us at{" "}
-          <a href="mailto:hello@getslate.co" className="text-amber hover:underline">hello@getslate.co</a>.
+          <a href="mailto:sales@slatetech.co.uk" className="text-amber hover:underline">sales@slatetech.co.uk</a>.
         </p>
         <button onClick={() => navigate("/contact")} className="text-[15px] font-medium text-amber hover:text-amber-hover transition-colors cursor-pointer">
           Contact us →

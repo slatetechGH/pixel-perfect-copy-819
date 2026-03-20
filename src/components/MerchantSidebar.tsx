@@ -20,7 +20,7 @@ const navItems = [
   { title: "Content", url: "/dashboard/content", icon: FileText },
   { title: "Product Drops", url: "/dashboard/drops", icon: Zap },
   { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
-  { title: "Leads", url: "/dashboard/leads", icon: UserPlus },
+  { title: "Leads", url: "/dashboard/leads", icon: UserPlus, adminOnly: true },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
 ];
@@ -117,7 +117,9 @@ export function MerchantSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
+              {navItems
+                .filter(item => !('adminOnly' in item && item.adminOnly) || session.role === "admin")
+                .map((item) => {
                 const badgeCount = item.title === "Messages" ? unreadMessages : item.title === "Leads" ? newLeadCount : 0;
                 return (
                   <SidebarMenuItem key={item.title}>

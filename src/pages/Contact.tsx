@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Mail, Instagram, Twitter, Linkedin, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/marketing/Navbar";
@@ -38,36 +39,52 @@ const Contact = () => {
     return e;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const v = validate();
     if (Object.keys(v).length) { setErrors(v); return; }
 
     setLoading(true);
-    setTimeout(() => {
-      addLead({
-        type: "contact",
-        email: form.email,
-        name: form.fullName,
-        phone: form.phone,
-        businessName: form.business,
-        businessType: form.businessType,
-        hearAbout: form.hearAbout,
-        message: form.message,
-        newsletter: form.newsletter,
+    
+    addLead({
+      type: "contact",
+      email: form.email,
+      name: form.fullName,
+      phone: form.phone,
+      businessName: form.business,
+      businessType: form.businessType,
+      hearAbout: form.hearAbout,
+      message: form.message,
+      newsletter: form.newsletter,
+    });
+
+    if (form.newsletter) {
+      addLead({ type: "newsletter", email: form.email });
+    }
+
+    // Send notification email
+    try {
+      await supabase.functions.invoke("send-enquiry-email", {
+        body: {
+          type: "contact",
+          data: {
+            name: form.fullName,
+            email: form.email,
+            company: form.business,
+            phone: form.phone,
+            message: form.message,
+          },
+        },
       });
+    } catch {
+      // Email send failed — lead is still saved
+      console.warn("Email notification failed");
+    }
 
-      // If newsletter checked, also add newsletter lead
-      if (form.newsletter) {
-        addLead({ type: "newsletter", email: form.email });
-      }
-
-      
-      setFirstName(form.fullName.split(" ")[0]);
-      setLoading(false);
-      setSubmitted(true);
-      toast.success("Message sent!");
-    }, 600);
+    setFirstName(form.fullName.split(" ")[0]);
+    setLoading(false);
+    setSubmitted(true);
+    toast.success("Thanks! We'll be in touch within 24 hours.");
   };
 
   const inputCls = (field: string) =>
@@ -157,7 +174,7 @@ const Contact = () => {
             <div className="bg-secondary rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-4">
                 <Mail size={18} className="text-slate-mid" />
-                <a href="mailto:hello@getslate.co" className="text-[15px] font-medium text-foreground hover:text-amber transition-colors">hello@getslate.co</a>
+                <a href="mailto:sales@slatetech.co.uk" className="text-[15px] font-medium text-foreground hover:text-amber transition-colors">sales@slatetech.co.uk</a>
               </div>
               <p className="text-[14px] text-slate-light mb-1">We typically respond within 24 hours</p>
               <p className="text-[14px] text-slate-light mb-8">Monday – Friday, 9am – 6pm GMT</p>
