@@ -16,9 +16,10 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // If already logged in, redirect
+  // If already logged in, redirect based on role
   if (session.isLoggedIn) {
-    navigate("/dashboard", { replace: true });
+    const dest = session.role === "admin" ? "/admin" : session.role === "customer" ? "/" : "/dashboard";
+    navigate(dest, { replace: true });
     return null;
   }
 
@@ -45,7 +46,13 @@ const Login = () => {
     }
 
     toast.success("Welcome back!");
-    navigate("/dashboard");
+    // Role-based redirect will be handled by the session.isLoggedIn check above
+    // after onAuthStateChange fires. For immediate redirect:
+    const { data: roleData } = await supabase.rpc("get_user_role", { _user_id: (await supabase.auth.getUser()).data.user?.id });
+    const role = roleData as string;
+    if (role === "admin") navigate("/admin");
+    else if (role === "customer") navigate("/");
+    else navigate("/dashboard");
   };
 
   const handleForgotPassword = async () => {

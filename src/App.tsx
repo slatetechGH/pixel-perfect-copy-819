@@ -25,13 +25,23 @@ import DemoSetup from "./pages/DemoSetup";
 import Storefront from "./pages/Storefront";
 import StorefrontContent from "./pages/StorefrontContent";
 import StorefrontAccount from "./pages/StorefrontAccount";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { session, authLoading } = useApp();
   if (authLoading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" /></div>;
   if (!session.isLoggedIn) return <Navigate to="/login" replace />;
+  
+  // Role-based access: if allowedRoles specified, check the user's role
+  if (allowedRoles && session.role && !allowedRoles.includes(session.role)) {
+    // Redirect to appropriate home
+    if (session.role === "customer") return <Navigate to="/" replace />;
+    if (session.role === "producer") return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
+  }
+  
   return <>{children}</>;
 }
 
@@ -46,22 +56,23 @@ const AppRoutes = () => (
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/demo-setup" element={<DemoSetup />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Customer-facing storefront — public, no auth */}
       <Route path="/store/:businessSlug" element={<Storefront />} />
       <Route path="/store/:businessSlug/content/:contentId" element={<StorefrontContent />} />
       <Route path="/store/:businessSlug/account" element={<StorefrontAccount />} />
 
-      {/* Dashboard — protected, shares same DashboardProvider */}
-      <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-      <Route path="/dashboard/subscribers" element={<ProtectedRoute><Subscribers /></ProtectedRoute>} />
-      <Route path="/dashboard/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
-      <Route path="/dashboard/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
-      <Route path="/dashboard/drops" element={<ProtectedRoute><Drops /></ProtectedRoute>} />
-      <Route path="/dashboard/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-      <Route path="/dashboard/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-      <Route path="/dashboard/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
-      <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      {/* Dashboard — protected, admin + producer only */}
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Index /></ProtectedRoute>} />
+      <Route path="/dashboard/subscribers" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Subscribers /></ProtectedRoute>} />
+      <Route path="/dashboard/plans" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Plans /></ProtectedRoute>} />
+      <Route path="/dashboard/content" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Content /></ProtectedRoute>} />
+      <Route path="/dashboard/drops" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Drops /></ProtectedRoute>} />
+      <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Messages /></ProtectedRoute>} />
+      <Route path="/dashboard/analytics" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Analytics /></ProtectedRoute>} />
+      <Route path="/dashboard/leads" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Leads /></ProtectedRoute>} />
+      <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Settings /></ProtectedRoute>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

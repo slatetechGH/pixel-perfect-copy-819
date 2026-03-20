@@ -25,12 +25,15 @@ export interface Lead {
   terms?: boolean;
 }
 
+export type UserRole = "admin" | "producer" | "customer";
+
 export interface SessionState {
   isLoggedIn: boolean;
   currentUser: string;
   supabaseUser: User | null;
   supabaseSession: Session | null;
   profile: Record<string, any> | null;
+  role: UserRole | null;
 }
 
 export interface DemoPlan {
@@ -159,7 +162,7 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionState>({
-    isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null,
+    isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null, role: null,
   });
   const [leads, setLeads] = useState<Lead[]>([]);
   const [accentColor, setAccentColorState] = useState<string>(DEFAULT_ACCENT);
@@ -168,27 +171,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [demoConfig, setDemoConfig] = useState<DemoProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Fetch profile helper
+  // Fetch profile and role helpers
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
     return data;
+  };
+
+  const fetchRole = async (userId: string): Promise<UserRole | null> => {
+    const { data } = await supabase.rpc("get_user_role", { _user_id: userId });
+    return (data as UserRole) || null;
   };
 
   // Supabase auth state listener
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supaSession) => {
       if (supaSession?.user) {
-        const profile = await fetchProfile(supaSession.user.id);
+        const [profile, role] = await Promise.all([
+          fetchProfile(supaSession.user.id),
+          fetchRole(supaSession.user.id),
+        ]);
         setSession({
           isLoggedIn: true,
           currentUser: profile?.business_name || supaSession.user.email || "",
           supabaseUser: supaSession.user,
           supabaseSession: supaSession,
           profile,
+          role,
         });
       } else {
         setSession({
-          isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null,
+          isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null, role: null,
         });
       }
       setAuthLoading(false);
@@ -196,13 +208,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(async ({ data: { session: existing } }) => {
       if (existing?.user) {
-        const profile = await fetchProfile(existing.user.id);
+        const [profile, role] = await Promise.all([
+          fetchProfile(existing.user.id),
+          fetchRole(existing.user.id),
+        ]);
         setSession({
           isLoggedIn: true,
           currentUser: profile?.business_name || existing.user.email || "",
           supabaseUser: existing.user,
           supabaseSession: existing,
           profile,
+          role,
         });
       }
       setAuthLoading(false);
@@ -293,7 +309,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setSession({ isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null });
+    setSession({ isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null, role: null });
   };
 
   return (
