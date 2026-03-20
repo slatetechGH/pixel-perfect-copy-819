@@ -20,7 +20,7 @@ const navItems = [
   { title: "Content", url: "/dashboard/content", icon: FileText },
   { title: "Product Drops", url: "/dashboard/drops", icon: Zap },
   { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
-  { title: "Leads", url: "/dashboard/leads", icon: UserPlus },
+  { title: "Leads", url: "/dashboard/leads", icon: UserPlus, adminOnly: true },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
 ];
