@@ -24,7 +24,7 @@ const interests = [
 const GetStarted = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const planFromUrl = searchParams.get("plan") || "";
+  // planFromUrl removed — no more tier selection
   const { addLead } = useApp();
   const [submitted, setSubmitted] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
