@@ -24,7 +24,7 @@ const EmailCapture = () => {
       return;
     }
 
-    console.log("Newsletter signup:", JSON.stringify({ email, type: "newsletter" }));
+    
     setSubmitted(true);
     setEmail("");
     toast.success("You're in! Welcome to Slate.");
