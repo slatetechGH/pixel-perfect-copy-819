@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/marketing/Navbar";
@@ -23,7 +23,6 @@ const interests = [
 
 const GetStarted = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   // planFromUrl removed — no more tier selection
   const { addLead } = useApp();
   const [submitted, setSubmitted] = useState(false);
