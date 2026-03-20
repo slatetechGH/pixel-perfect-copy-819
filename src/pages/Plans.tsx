@@ -6,6 +6,7 @@ import { Plus, Users, Check, Trash2 } from "lucide-react";
 import { useDashboard, Plan } from "@/contexts/DashboardContext";
 import { SlideOverPanel } from "@/components/SlideOverPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { PriceCalculator } from "@/components/commission/PriceCalculator";
 import { toast } from "sonner";
 
 const emptyPlan: Omit<Plan, "id"> = {
