@@ -105,7 +105,7 @@ const GetStarted = () => {
     }
 
     // Sign up with Supabase Auth
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: form.email,
       password,
       options: {
@@ -118,9 +118,8 @@ const GetStarted = () => {
       },
     });
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       if (error.message.includes("already registered")) {
         setDuplicate(true);
       } else {
@@ -129,6 +128,17 @@ const GetStarted = () => {
       return;
     }
 
+    // Save business details to the profile row created by the trigger
+    if (signUpData.user) {
+      await supabase.from("profiles").update({
+        business_name: form.businessName,
+        business_type: form.businessType,
+        phone: form.phone || null,
+        website: form.website || null,
+      }).eq("id", signUpData.user.id);
+    }
+
+    setLoading(false);
     console.log("Signup submission:", JSON.stringify(form));
     setFirstName(form.name.split(" ")[0]);
     setSubmitted(true);
