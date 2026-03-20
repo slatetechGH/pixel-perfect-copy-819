@@ -13,7 +13,7 @@ const CTASection = () => {
             Ready to build something worth subscribing to?
           </h2>
           <p className="text-[18px] text-slate-light mb-10 max-w-lg mx-auto">
-            Join hundreds of independent producers already growing with Slate.
+            Join hundreds of independent producers already growing with Slate. Zero upfront cost — we only succeed when you do.
           </p>
           <Button
             variant="slate"
@@ -21,10 +21,10 @@ const CTASection = () => {
             className="text-[15px] px-8 py-6 bg-white text-foreground hover:bg-white/90"
             onClick={() => navigate("/get-started")}
           >
-            Start for free
+            Get started free
           </Button>
           <p className="text-[14px] text-slate-light mt-6">
-            Free for your first 50 subscribers · Set up in under 10 minutes
+            Free forever · 6% commission on what you earn · No hidden fees
           </p>
         </AnimatedSection>
       </div>
