@@ -103,6 +103,11 @@ const DashboardHome = () => {
         </Card>
       </div>
 
+      {/* Commission Card */}
+      <div className="mb-7">
+        <CommissionCard mrr={parseFloat(kpiData.mrr.replace(/[^0-9.]/g, '')) || 0} />
+      </div>
+
       <Card className="opacity-0 animate-fade-in border-0 shadow-card" style={{ animationDelay: "450ms" }}>
         <CardHeader className="pb-2 px-7 pt-7">
           <CardTitle className="text-[15px] font-medium text-foreground">Recent Activity</CardTitle>
