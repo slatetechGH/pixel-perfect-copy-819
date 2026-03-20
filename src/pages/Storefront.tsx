@@ -19,7 +19,7 @@ const Storefront = () => {
   const { businessSlug } = useParams<{ businessSlug: string }>();
   const navigate = useNavigate();
   const { settings, plans, drops, content, subscribers } = useDashboard();
-  const { accentColor, demoActive } = useApp();
+  const { accentColor, demoActive, session } = useApp();
 
   // Check if the slug matches the current settings
   const currentSlug = settings.urlSlug || settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
