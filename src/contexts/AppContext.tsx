@@ -208,13 +208,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(async ({ data: { session: existing } }) => {
       if (existing?.user) {
-        const profile = await fetchProfile(existing.user.id);
+        const [profile, role] = await Promise.all([
+          fetchProfile(existing.user.id),
+          fetchRole(existing.user.id),
+        ]);
         setSession({
           isLoggedIn: true,
           currentUser: profile?.business_name || existing.user.email || "",
           supabaseUser: existing.user,
           supabaseSession: existing,
           profile,
+          role,
         });
       }
       setAuthLoading(false);
