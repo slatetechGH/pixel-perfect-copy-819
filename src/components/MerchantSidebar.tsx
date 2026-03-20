@@ -34,6 +34,8 @@ export function MerchantSidebar() {
   const unreadMessages = conversations.filter(c => c.unread).length;
   const newLeadCount = leads.filter(l => l.status === "new").length;
 
+  const storefrontSlug = settings.urlSlug || settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
   const handleLogout = async () => {
     await signOut();
     toast.success("Logged out");
