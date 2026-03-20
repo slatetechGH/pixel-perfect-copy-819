@@ -6,6 +6,7 @@ import { Zap, FileText, TrendingUp } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
+import { CommissionCard } from "@/components/commission/CommissionCard";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
 } from "recharts";
