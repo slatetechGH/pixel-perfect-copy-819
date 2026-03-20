@@ -24,7 +24,11 @@ const Storefront = () => {
   // Check if the slug matches the current settings
   const currentSlug = settings.urlSlug || settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-  if (!demoActive && currentSlug !== businessSlug) {
+  // Allow access if: demo mode is on, user is logged in (viewing own store), or slug matches
+  const isOwnStore = !!session.isLoggedIn;
+  const slugMatches = currentSlug && currentSlug === businessSlug;
+
+  if (!demoActive && !isOwnStore && !slugMatches) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
