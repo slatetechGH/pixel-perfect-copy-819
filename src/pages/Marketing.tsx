@@ -19,7 +19,7 @@ const Marketing = () => (
     <ProblemSection />
     <FeaturesSection />
     <HowItWorks />
-    <MetricsSection />
+    
     <TestimonialsSection />
     <PricingSection />
     <CTASection />

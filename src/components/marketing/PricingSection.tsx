@@ -56,7 +56,7 @@ const PricingSection = () => {
               className="w-full h-12 text-[15px]"
               onClick={() => navigate("/get-started")}
             >
-              Get started — it's free
+              Get started — it's free to join
             </Button>
           </div>
         </AnimatedSection>

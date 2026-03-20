@@ -53,22 +53,6 @@ const HeroSection = () => {
                 See how it works
               </Button>
             </motion.div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="text-[14px] text-slate-light flex items-center gap-2"
-            >
-              <span className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <span
-                    key={i}
-                    className="inline-block w-7 h-7 rounded-full bg-secondary border-2 border-white"
-                  />
-                ))}
-              </span>
-              Trusted by 200+ independent producers
-            </motion.p>
           </div>
 
           {/* Dashboard mockup */}
