@@ -4,7 +4,7 @@ import LogoBar from "@/components/marketing/LogoBar";
 import ProblemSection from "@/components/marketing/ProblemSection";
 import FeaturesSection from "@/components/marketing/FeaturesSection";
 import HowItWorks from "@/components/marketing/HowItWorks";
-import MetricsSection from "@/components/marketing/MetricsSection";
+
 import TestimonialsSection from "@/components/marketing/TestimonialsSection";
 import PricingSection from "@/components/marketing/PricingSection";
 import CTASection from "@/components/marketing/CTASection";
