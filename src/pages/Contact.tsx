@@ -157,7 +157,7 @@ const Contact = () => {
             <div className="bg-secondary rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-4">
                 <Mail size={18} className="text-slate-mid" />
-                <a href="mailto:hello@getslate.co" className="text-[15px] font-medium text-foreground hover:text-amber transition-colors">hello@getslate.co</a>
+                <a href="mailto:sales@slatetech.co.uk" className="text-[15px] font-medium text-foreground hover:text-amber transition-colors">sales@slatetech.co.uk</a>
               </div>
               <p className="text-[14px] text-slate-light mb-1">We typically respond within 24 hours</p>
               <p className="text-[14px] text-slate-light mb-8">Monday – Friday, 9am – 6pm GMT</p>
