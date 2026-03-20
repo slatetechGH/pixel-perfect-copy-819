@@ -38,7 +38,7 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-[18px] md:text-[20px] text-slate-mid leading-relaxed mb-10 max-w-lg"
             >
-              Build recurring revenue with no monthly fees. We only succeed when you do — taking just 6% commission on what you earn.
+              Build recurring revenue with no monthly fees. We only succeed when you do.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
