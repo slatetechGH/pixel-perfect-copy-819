@@ -22,6 +22,9 @@ import GetStarted from "./pages/GetStarted";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import DemoSetup from "./pages/DemoSetup";
+import Storefront from "./pages/Storefront";
+import StorefrontContent from "./pages/StorefrontContent";
+import StorefrontAccount from "./pages/StorefrontAccount";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +46,11 @@ const AppRoutes = () => (
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/demo-setup" element={<DemoSetup />} />
+
+      {/* Customer-facing storefront — public, no auth */}
+      <Route path="/store/:businessSlug" element={<Storefront />} />
+      <Route path="/store/:businessSlug/content/:contentId" element={<StorefrontContent />} />
+      <Route path="/store/:businessSlug/account" element={<StorefrontAccount />} />
 
       {/* Dashboard — protected, shares same DashboardProvider */}
       <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />

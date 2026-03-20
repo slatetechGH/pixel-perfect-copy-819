@@ -149,6 +149,17 @@ export function MerchantSidebar() {
                 <p className="text-caption text-sidebar-foreground/50">Current plan</p>
                 <p className="text-[13px] font-medium text-sidebar-foreground">{settings.currentPlan} — {settings.currentPlanPrice}</p>
               </div>
+              {settings.businessName && (
+                <a
+                  href={`/store/${storefrontSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"
+                >
+                  <ExternalLink className="h-4 w-4" strokeWidth={1.5} />
+                  My Storefront
+                </a>
+              )}
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"
