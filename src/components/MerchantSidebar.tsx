@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Users, CreditCard, FileText, Zap, MessageSquare, BarChart3, Settings, LogOut, UserPlus,
+  LayoutDashboard, Users, CreditCard, FileText, Zap, MessageSquare, BarChart3, Settings, LogOut, UserPlus, ExternalLink,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -33,6 +33,8 @@ export function MerchantSidebar() {
   const { leads, signOut, demoActive, accentColor } = useApp();
   const unreadMessages = conversations.filter(c => c.unread).length;
   const newLeadCount = leads.filter(l => l.status === "new").length;
+
+  const storefrontSlug = settings.urlSlug || settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
   const handleLogout = async () => {
     await signOut();
@@ -147,6 +149,17 @@ export function MerchantSidebar() {
                 <p className="text-caption text-sidebar-foreground/50">Current plan</p>
                 <p className="text-[13px] font-medium text-sidebar-foreground">{settings.currentPlan} — {settings.currentPlanPrice}</p>
               </div>
+              {settings.businessName && (
+                <a
+                  href={`/store/${storefrontSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"
+                >
+                  <ExternalLink className="h-4 w-4" strokeWidth={1.5} />
+                  My Storefront
+                </a>
+              )}
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"

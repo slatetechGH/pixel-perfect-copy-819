@@ -866,7 +866,7 @@ const DemoSetup = () => {
             </div>
 
             {/* Launch */}
-            <div className="pb-10">
+            <div className="pb-10 space-y-3">
               {launching ? (
                 <div className="w-full p-6 bg-foreground rounded-[10px] text-center">
                   <Loader2 className="h-6 w-6 text-white animate-spin mx-auto mb-3" />
@@ -876,12 +876,25 @@ const DemoSetup = () => {
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={handleLaunch}
-                  className="w-full py-3.5 px-8 bg-foreground hover:bg-[#0F172A] text-white text-[18px] font-bold rounded-[10px] transition-colors cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <Rocket size={20} /> {demoActive ? "Re-launch Demo" : "Launch Demo"}
-                </button>
+                <>
+                  <button
+                    onClick={handleLaunch}
+                    className="w-full py-3.5 px-8 bg-foreground hover:bg-[#0F172A] text-white text-[18px] font-bold rounded-[10px] transition-colors cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Rocket size={20} /> {demoActive ? "Re-launch Demo" : "Launch Demo"}
+                  </button>
+                  {demoActive && businessName && (
+                    <a
+                      href={`/store/${businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3 px-8 border-2 text-[16px] font-semibold rounded-[10px] transition-colors cursor-pointer flex items-center justify-center gap-2 hover:opacity-80"
+                      style={{ borderColor: selectedColor, color: selectedColor }}
+                    >
+                      View Customer Storefront ↗
+                    </a>
+                  )}
+                </>
               )}
             </div>
           </div>
