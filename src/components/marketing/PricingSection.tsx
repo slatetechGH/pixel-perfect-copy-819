@@ -25,11 +25,10 @@ const PricingSection = () => {
             Pricing
           </p>
           <h2 className="text-[36px] md:text-[48px] font-bold text-foreground leading-tight tracking-[-0.02em] mb-4 text-center">
-            Completely free to use.
+            Simple, transparent pricing.
           </h2>
           <p className="text-[18px] md:text-[20px] text-slate-mid text-center max-w-2xl mx-auto mb-16 leading-relaxed">
-            Pay nothing upfront. We only make money when you do.{" "}
-            <span className="text-foreground font-semibold">6% commission</span> on your subscriber revenue.
+            No monthly fees. No setup costs. Just a small commission when you earn.
           </p>
         </AnimatedSection>
 
