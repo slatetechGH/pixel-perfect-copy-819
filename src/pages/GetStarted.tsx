@@ -24,7 +24,7 @@ const interests = [
 const GetStarted = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const planFromUrl = searchParams.get("plan") || "";
+  // planFromUrl removed — no more tier selection
   const { addLead } = useApp();
   const [submitted, setSubmitted] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
@@ -91,7 +91,6 @@ const GetStarted = () => {
       interests: form.interests,
       additionalNotes: form.notes,
       newsletter: form.newsletter,
-      interestedPlan: planFromUrl || undefined,
     });
 
     if (!success) {
@@ -166,8 +165,9 @@ const GetStarted = () => {
             <div className="w-12 h-12 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
               <Check size={24} className="text-amber" />
             </div>
-            <h2 className="text-[28px] font-bold text-foreground mb-2">Check your email, {firstName}!</h2>
-            <p className="text-[16px] text-slate-mid mb-6">We've sent a confirmation link to <strong>{form.email}</strong>. Click it to activate your account.</p>
+            <h2 className="text-[28px] font-bold text-foreground mb-2">You're in, {firstName}!</h2>
+            <p className="text-[16px] text-slate-mid mb-3">We've sent a confirmation link to <strong>{form.email}</strong>. Click it to activate your account.</p>
+            <p className="text-[15px] text-slate-mid mb-6">Your Slate storefront is free. Set up your first subscription plan to start accepting customers. We take 6% commission on what you earn.</p>
             <Button variant="slate-outline" onClick={() => navigate("/")}>Back to homepage</Button>
           </div>
         ) : (

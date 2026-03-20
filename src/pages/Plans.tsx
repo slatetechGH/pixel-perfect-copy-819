@@ -6,6 +6,7 @@ import { Plus, Users, Check, Trash2 } from "lucide-react";
 import { useDashboard, Plan } from "@/contexts/DashboardContext";
 import { SlideOverPanel } from "@/components/SlideOverPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { PriceCalculator } from "@/components/commission/PriceCalculator";
 import { toast } from "sonner";
 
 const emptyPlan: Omit<Plan, "id"> = {
@@ -134,6 +135,7 @@ const Plans = () => {
                 <span className="text-[15px] text-muted-foreground">£</span>
                 <input type="number" min="0" step="0.50" value={editing.priceNum} onChange={e => updateField("priceNum", parseFloat(e.target.value) || 0)} className="w-full h-11 px-4 rounded-lg border border-border bg-white text-[15px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all" />
               </div>
+              <PriceCalculator priceNum={editing.priceNum} />
             </div>
             <div>
               <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Description</label>

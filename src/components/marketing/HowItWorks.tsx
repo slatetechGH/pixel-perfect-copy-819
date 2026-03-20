@@ -3,18 +3,23 @@ import AnimatedSection from "./AnimatedSection";
 const steps = [
   {
     num: "1",
-    title: "Set up your slate",
-    desc: "Create your profile, add your products, and set your subscription tiers.",
+    title: "Sign up free",
+    desc: "Create your account in under two minutes. No credit card, no commitment.",
   },
   {
     num: "2",
-    title: "Share your link",
-    desc: "Send customers to your Slate page from your stall, social media, or website.",
+    title: "Set your prices",
+    desc: "Create subscription plans at whatever price works for your business. You're in control.",
   },
   {
     num: "3",
-    title: "Watch it grow",
-    desc: "Subscribers roll in, revenue becomes predictable, and you focus on what you do best.",
+    title: "Accept customers",
+    desc: "Share your Slate storefront. Customers subscribe and pay directly through Stripe.",
+  },
+  {
+    num: "4",
+    title: "Get paid",
+    desc: "Money goes straight to your bank account. We take 6% — you keep the rest.",
   },
 ];
 
@@ -30,7 +35,7 @@ const HowItWorks = () => (
         </h2>
       </AnimatedSection>
 
-      <div className="grid md:grid-cols-3 gap-10">
+      <div className="grid md:grid-cols-4 gap-10">
         {steps.map((s, i) => (
           <AnimatedSection key={s.num} delay={i * 0.1}>
             <div className="relative">

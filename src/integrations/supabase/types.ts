@@ -343,6 +343,7 @@ export type Database = {
           producer_id: string
           show_on_public_page: boolean
           sort_order: number | null
+          stripe_price_id: string | null
           subscriber_limit: number | null
           updated_at: string
         }
@@ -358,6 +359,7 @@ export type Database = {
           producer_id: string
           show_on_public_page?: boolean
           sort_order?: number | null
+          stripe_price_id?: string | null
           subscriber_limit?: number | null
           updated_at?: string
         }
@@ -373,6 +375,7 @@ export type Database = {
           producer_id?: string
           show_on_public_page?: boolean
           sort_order?: number | null
+          stripe_price_id?: string | null
           subscriber_limit?: number | null
           updated_at?: string
         }
@@ -392,6 +395,7 @@ export type Database = {
           address: string | null
           business_name: string | null
           business_type: string | null
+          commission_percentage: number
           cover_url: string | null
           created_at: string
           description: string | null
@@ -405,6 +409,7 @@ export type Database = {
           plan: string
           public_visible: boolean | null
           stripe_connect_id: string | null
+          stripe_connect_status: string
           stripe_customer_id: string | null
           tagline: string | null
           twitter: string | null
@@ -417,6 +422,7 @@ export type Database = {
           address?: string | null
           business_name?: string | null
           business_type?: string | null
+          commission_percentage?: number
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -430,6 +436,7 @@ export type Database = {
           plan?: string
           public_visible?: boolean | null
           stripe_connect_id?: string | null
+          stripe_connect_status?: string
           stripe_customer_id?: string | null
           tagline?: string | null
           twitter?: string | null
@@ -442,6 +449,7 @@ export type Database = {
           address?: string | null
           business_name?: string | null
           business_type?: string | null
+          commission_percentage?: number
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -455,6 +463,7 @@ export type Database = {
           plan?: string
           public_visible?: boolean | null
           stripe_connect_id?: string | null
+          stripe_connect_status?: string
           stripe_customer_id?: string | null
           tagline?: string | null
           twitter?: string | null
@@ -510,6 +519,117 @@ export type Database = {
             columns: ["producer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          customer_email: string
+          id: string
+          plan_id: string | null
+          producer_id: string
+          producer_net: number
+          slate_commission_earned: number
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_paid?: number
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          customer_email: string
+          id?: string
+          plan_id?: string | null
+          producer_id: string
+          producer_net?: number
+          slate_commission_earned?: number
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          customer_email?: string
+          id?: string
+          plan_id?: string | null
+          producer_id?: string
+          producer_net?: number
+          slate_commission_earned?: number
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          producer_id: string
+          stripe_event_id: string | null
+          subscription_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          producer_id: string
+          stripe_event_id?: string | null
+          subscription_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          producer_id?: string
+          stripe_event_id?: string | null
+          subscription_id?: string | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
             referencedColumns: ["id"]
           },
         ]

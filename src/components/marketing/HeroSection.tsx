@@ -30,7 +30,7 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-[40px] md:text-[64px] font-bold text-foreground leading-[1.05] tracking-[-0.02em] mb-7"
             >
-              Your produce deserves a platform.
+              The free subscription platform for independent producers.
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 16 }}
@@ -38,7 +38,7 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-[18px] md:text-[20px] text-slate-mid leading-relaxed mb-10 max-w-lg"
             >
-              Slate helps independent producers build recurring revenue through subscriptions, product drops, and a direct line to their customers.
+              Build recurring revenue with zero upfront cost. We only succeed when you do — taking just 6% of what you earn.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -47,7 +47,7 @@ const HeroSection = () => {
               className="flex flex-wrap gap-3 mb-10"
             >
               <Button variant="slate" size="lg" className="text-[15px] px-7" onClick={() => navigate("/get-started")}>
-                Start for free
+                Get started free
               </Button>
               <Button variant="slate-outline" size="lg" className="text-[15px] px-7" onClick={scrollToHowItWorks}>
                 See how it works

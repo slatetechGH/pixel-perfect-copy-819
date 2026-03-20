@@ -156,8 +156,8 @@ export function MerchantSidebar() {
           <div className="px-5 pb-5">
             <div className="border-t border-sidebar-border pt-4 space-y-3">
               <div>
-                <p className="text-caption text-sidebar-foreground/50">Current plan</p>
-                <p className="text-[13px] font-medium text-sidebar-foreground">{settings.currentPlan} — {settings.currentPlanPrice}</p>
+                <p className="text-caption text-sidebar-foreground/50">Commission</p>
+                <p className="text-[13px] font-medium text-sidebar-foreground">6% on revenue</p>
               </div>
               {storefrontSlug && (
                 <button

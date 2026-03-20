@@ -26,6 +26,7 @@ import Storefront from "./pages/Storefront";
 import StorefrontContent from "./pages/StorefrontContent";
 import StorefrontAccount from "./pages/StorefrontAccount";
 import ResetPassword from "./pages/ResetPassword";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,9 @@ const AppRoutes = () => (
       <Route path="/dashboard/analytics" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Analytics /></ProtectedRoute>} />
       <Route path="/dashboard/leads" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Leads /></ProtectedRoute>} />
       <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Settings /></ProtectedRoute>} />
+
+      {/* Admin — admin only */}
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><Admin /></ProtectedRoute>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>
