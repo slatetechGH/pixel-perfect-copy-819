@@ -62,7 +62,7 @@ const Contact = () => {
         addLead({ type: "newsletter", email: form.email });
       }
 
-      console.log("Contact submission:", JSON.stringify(form));
+      
       setFirstName(form.fullName.split(" ")[0]);
       setLoading(false);
       setSubmitted(true);

@@ -35,10 +35,9 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
   if (!session.isLoggedIn) return <Navigate to="/login" replace />;
   
   // Role-based access: if allowedRoles specified, check the user's role
-  if (allowedRoles && session.role && !allowedRoles.includes(session.role)) {
-    // Redirect to appropriate home
+  if (allowedRoles && (!session.role || !allowedRoles.includes(session.role))) {
+    // Redirect to appropriate home based on whatever role they do have
     if (session.role === "customer") return <Navigate to="/" replace />;
-    if (session.role === "producer") return <Navigate to="/dashboard" replace />;
     return <Navigate to="/" replace />;
   }
   

@@ -139,7 +139,7 @@ const GetStarted = () => {
     }
 
     setLoading(false);
-    console.log("Signup submission:", JSON.stringify(form));
+    
     setFirstName(form.name.split(" ")[0]);
     setSubmitted(true);
     toast.success("Check your email to confirm your account!");
