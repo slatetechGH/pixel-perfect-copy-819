@@ -47,7 +47,7 @@ const HeroSection = () => {
               className="flex flex-wrap gap-3 mb-10"
             >
               <Button variant="slate" size="lg" className="text-[15px] px-7" onClick={() => navigate("/get-started")}>
-                Get started free
+                Get started
               </Button>
               <Button variant="slate-outline" size="lg" className="text-[15px] px-7" onClick={scrollToHowItWorks}>
                 See how it works
