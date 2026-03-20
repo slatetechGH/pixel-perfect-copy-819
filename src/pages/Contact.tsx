@@ -39,36 +39,52 @@ const Contact = () => {
     return e;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const v = validate();
     if (Object.keys(v).length) { setErrors(v); return; }
 
     setLoading(true);
-    setTimeout(() => {
-      addLead({
-        type: "contact",
-        email: form.email,
-        name: form.fullName,
-        phone: form.phone,
-        businessName: form.business,
-        businessType: form.businessType,
-        hearAbout: form.hearAbout,
-        message: form.message,
-        newsletter: form.newsletter,
+    
+    addLead({
+      type: "contact",
+      email: form.email,
+      name: form.fullName,
+      phone: form.phone,
+      businessName: form.business,
+      businessType: form.businessType,
+      hearAbout: form.hearAbout,
+      message: form.message,
+      newsletter: form.newsletter,
+    });
+
+    if (form.newsletter) {
+      addLead({ type: "newsletter", email: form.email });
+    }
+
+    // Send notification email
+    try {
+      await supabase.functions.invoke("send-enquiry-email", {
+        body: {
+          type: "contact",
+          data: {
+            name: form.fullName,
+            email: form.email,
+            company: form.business,
+            phone: form.phone,
+            message: form.message,
+          },
+        },
       });
+    } catch {
+      // Email send failed — lead is still saved
+      console.warn("Email notification failed");
+    }
 
-      // If newsletter checked, also add newsletter lead
-      if (form.newsletter) {
-        addLead({ type: "newsletter", email: form.email });
-      }
-
-      
-      setFirstName(form.fullName.split(" ")[0]);
-      setLoading(false);
-      setSubmitted(true);
-      toast.success("Message sent!");
-    }, 600);
+    setFirstName(form.fullName.split(" ")[0]);
+    setLoading(false);
+    setSubmitted(true);
+    toast.success("Thanks! We'll be in touch within 24 hours.");
   };
 
   const inputCls = (field: string) =>

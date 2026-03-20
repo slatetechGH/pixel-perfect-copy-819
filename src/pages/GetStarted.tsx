@@ -136,6 +136,24 @@ const GetStarted = () => {
       }).eq("id", signUpData.user.id);
     }
 
+    // Send notification email
+    try {
+      await supabase.functions.invoke("send-enquiry-email", {
+        body: {
+          type: "signup",
+          data: {
+            name: form.name,
+            email: form.email,
+            company: form.businessName,
+            interests: form.interests,
+            plan: null,
+          },
+        },
+      });
+    } catch {
+      console.warn("Signup notification email failed");
+    }
+
     setLoading(false);
     
     setFirstName(form.name.split(" ")[0]);
