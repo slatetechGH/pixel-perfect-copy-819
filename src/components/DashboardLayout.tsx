@@ -15,7 +15,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title, subtitle, actions }: DashboardLayoutProps) {
-  const { demoActive, demoBusinessName, deactivateDemo, accentColor } = useApp();
+  const { demoActive, demoBusinessName, deactivateDemo, accentColor, session } = useApp();
   const { resetToDefaults, settings } = useDashboard();
   const navigate = useNavigate();
   const [resetConfirm, setResetConfirm] = useState(false);
@@ -49,6 +49,15 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
     ? `Overview — ${monthYear}`
     : subtitle;
 
+  const profileBusinessName = session.profile?.business_name || "";
+  const storefrontSlug =
+    settings.urlSlug ||
+    settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") ||
+    session.profile?.url_slug ||
+    (profileBusinessName
+      ? profileBusinessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+      : "");
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -67,14 +76,12 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
                 Demo Mode — {demoBusinessName}
               </span>
               <div className="flex items-center gap-1 text-[11px] font-medium shrink-0" style={{ color: "hsl(215, 16%, 47%)" }}>
-                <a
-                  href={`/store/${settings.urlSlug || settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => storefrontSlug && navigate(`/store/${storefrontSlug}`)}
                   className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
                 >
                   Preview Storefront
-                </a>
+                </button>
                 <span className="opacity-40">·</span>
                 <button
                   onClick={() => navigate("/demo-setup")}
