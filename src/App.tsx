@@ -74,6 +74,9 @@ const AppRoutes = () => (
       <Route path="/dashboard/leads" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Leads /></ProtectedRoute>} />
       <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Settings /></ProtectedRoute>} />
 
+      {/* Admin — admin only */}
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><Admin /></ProtectedRoute>} />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   </DashboardProvider>
