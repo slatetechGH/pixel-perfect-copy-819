@@ -11,9 +11,6 @@ import { toast } from "sonner";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
 } from "recharts";
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
-} from "recharts";
 
 const DashboardHome = () => {
   const { subscribers, settings, kpiData, revenueChartData, subscriberGrowthData, activityFeed } = useDashboard();
