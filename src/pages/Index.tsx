@@ -17,6 +17,16 @@ const DashboardHome = () => {
   const { demoActive, accentColor } = useApp();
   const navigate = useNavigate();
 
+  const storefrontSlug =
+    settings.urlSlug ||
+    settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const storefrontUrl = `slatetech.co.uk/store/${storefrontSlug}`;
+
+  const copyStorefrontUrl = () => {
+    navigator.clipboard.writeText(`https://${storefrontUrl}`);
+    toast.success("Storefront URL copied!");
+  };
+
   const activityDotColor: Record<string, string> = {
     subscribe: "bg-amber",
     drop: "bg-amber",
