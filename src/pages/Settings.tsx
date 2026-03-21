@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import { toast } from "sonner";
-import { Instagram, Globe, Twitter, Facebook, Upload, Eye, Loader2, CreditCard, X } from "lucide-react";
+import { Instagram, Globe, Twitter, Facebook, Upload, Eye, Loader2, CreditCard, X, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 const tabs = ["Business Profile", "Public Page", "Notifications", "Billing & Plan"] as const;
