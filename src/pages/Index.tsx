@@ -2,11 +2,12 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { MetricCard } from "@/components/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Zap, FileText, TrendingUp } from "lucide-react";
+import { Zap, FileText, TrendingUp, Copy, ExternalLink } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
 import { CommissionCard } from "@/components/commission/CommissionCard";
+import { toast } from "sonner";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
 } from "recharts";
@@ -15,6 +16,16 @@ const DashboardHome = () => {
   const { subscribers, settings, kpiData, revenueChartData, subscriberGrowthData, activityFeed } = useDashboard();
   const { demoActive, accentColor } = useApp();
   const navigate = useNavigate();
+
+  const storefrontSlug =
+    settings.urlSlug ||
+    settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const storefrontUrl = `slatetech.co.uk/store/${storefrontSlug}`;
+
+  const copyStorefrontUrl = () => {
+    navigator.clipboard.writeText(`https://${storefrontUrl}`);
+    toast.success("Storefront URL copied!");
+  };
 
   const activityDotColor: Record<string, string> = {
     subscribe: "bg-amber",
@@ -43,6 +54,24 @@ const DashboardHome = () => {
         </div>
       }
     >
+      {/* Storefront URL banner */}
+      {storefrontSlug && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-7 px-5 py-4 rounded-xl border border-border bg-secondary/50">
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-medium text-muted-foreground">Share your storefront</p>
+            <p className="text-[14px] font-medium text-foreground truncate">{storefrontUrl}</p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <Button variant="outline" size="sm" onClick={copyStorefrontUrl}>
+              <Copy className="h-3.5 w-3.5 mr-1.5" />Copy
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.open(`/store/${storefrontSlug}`, "_blank")}>
+              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />View
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
         <div className="cursor-pointer" onClick={() => navigate("/dashboard/analytics")}>
           <MetricCard title="Monthly Recurring Revenue" value={kpiData.mrr} change={kpiData.mrrChange} trend="up" delay={0} />

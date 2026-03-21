@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import { toast } from "sonner";
-import { Instagram, Globe, Twitter, Facebook, Upload, Eye, Loader2, CreditCard, X } from "lucide-react";
+import { Instagram, Globe, Twitter, Facebook, Upload, Eye, Loader2, CreditCard, X, Copy } from "lucide-react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 const tabs = ["Business Profile", "Public Page", "Notifications", "Billing & Plan"] as const;
@@ -135,15 +135,25 @@ const Settings = () => {
               <div>
                 <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Custom URL</label>
                 <div className="flex items-center">
-                  <span className="h-11 px-3 bg-secondary rounded-l-lg border border-r-0 border-border flex items-center text-[14px] text-muted-foreground">getslate.co/</span>
+                  <span className="h-11 px-3 bg-secondary rounded-l-lg border border-r-0 border-border flex items-center text-[14px] text-muted-foreground">slatetech.co.uk/store/</span>
                   <input
                     value={settings.urlSlug}
                     onChange={e => {
                       const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
                       updateField("urlSlug", val);
                     }}
-                    className={inputCls + " rounded-l-none"}
+                    className={inputCls + " rounded-l-none rounded-r-none"}
                   />
+                  <button
+                    onClick={() => {
+                      const slug = settings.urlSlug || settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+                      navigator.clipboard.writeText(`https://slatetech.co.uk/store/${slug}`);
+                      toast.success("Storefront URL copied!");
+                    }}
+                    className="h-11 px-3 bg-secondary rounded-r-lg border border-l-0 border-border flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
               <div className="flex items-center justify-between">

@@ -25,6 +25,7 @@ import DemoSetup from "./pages/DemoSetup";
 import Storefront from "./pages/Storefront";
 import StorefrontContent from "./pages/StorefrontContent";
 import StorefrontAccount from "./pages/StorefrontAccount";
+import StorefrontJoin from "./pages/StorefrontJoin";
 import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
 
@@ -61,6 +62,7 @@ const AppRoutes = () => (
       {/* Customer-facing storefront — public, no auth */}
       <Route path="/store/:businessSlug" element={<Storefront />} />
       <Route path="/store/:businessSlug/content/:contentId" element={<StorefrontContent />} />
+      <Route path="/store/:businessSlug/join" element={<StorefrontJoin />} />
       <Route path="/store/:businessSlug/account" element={<StorefrontAccount />} />
 
       {/* Dashboard — protected, admin + producer only */}
