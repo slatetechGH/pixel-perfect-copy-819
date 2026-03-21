@@ -61,6 +61,17 @@ export function MerchantSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0" style={{ width: collapsed ? undefined : "230px" }}>
       <SidebarContent className="bg-sidebar">
+        {/* Admin badge */}
+        {session.role === "admin" && !collapsed && (
+          <div className="px-5 pt-4 pb-1">
+            <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-semibold tracking-wide uppercase"
+              style={{ backgroundColor: "rgba(251, 191, 36, 0.15)", color: "#F59E0B" }}>
+              <ShieldCheck className="h-3 w-3" />
+              Admin
+            </span>
+          </div>
+        )}
+
         {showBrandHeader ? (
           <div className="px-6 pt-7 pb-5 flex flex-col items-center">
             {/* Large logo or initial */}

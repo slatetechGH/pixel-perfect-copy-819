@@ -55,7 +55,7 @@ const AppRoutes = () => (
       <Route path="/login" element={<Login />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
-      <Route path="/demo-setup" element={<DemoSetup />} />
+      <Route path="/demo-setup" element={<ProtectedRoute allowedRoles={["admin"]}><DemoSetup /></ProtectedRoute>} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Customer-facing storefront — public, no auth */}
