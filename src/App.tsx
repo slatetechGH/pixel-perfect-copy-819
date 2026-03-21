@@ -62,6 +62,7 @@ const AppRoutes = () => (
       {/* Customer-facing storefront — public, no auth */}
       <Route path="/store/:businessSlug" element={<Storefront />} />
       <Route path="/store/:businessSlug/content/:contentId" element={<StorefrontContent />} />
+      <Route path="/store/:businessSlug/join" element={<StorefrontJoin />} />
       <Route path="/store/:businessSlug/account" element={<StorefrontAccount />} />
 
       {/* Dashboard — protected, admin + producer only */}

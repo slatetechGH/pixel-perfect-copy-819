@@ -126,6 +126,54 @@ export type Database = {
           },
         ]
       }
+      customer_profiles: {
+        Row: {
+          id: string
+          joined_at: string
+          name: string
+          phone: string | null
+          plan_id: string | null
+          producer_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          name?: string
+          phone?: string | null
+          plan_id?: string | null
+          producer_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          name?: string
+          phone?: string | null
+          plan_id?: string | null
+          producer_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_profiles_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_profiles_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demo_configs: {
         Row: {
           config: Json
