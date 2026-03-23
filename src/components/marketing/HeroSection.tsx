@@ -123,7 +123,7 @@ const HeroSection = () => {
               className="flex flex-col sm:flex-row gap-3 mb-4"
             >
               <Button variant="slate" size="lg" className="text-[15px] px-7 w-full sm:w-auto" onClick={() => navigate("/get-started")}>
-                Get started — it's free
+                Get started
               </Button>
               <Button variant="slate-outline" size="lg" className="text-[15px] px-7 w-full sm:w-auto" onClick={scrollToHowItWorks}>
                 See how it works
