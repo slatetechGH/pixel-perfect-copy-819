@@ -969,6 +969,20 @@ const DemoSetup = () => {
           </div>
         </div>
       </div>
+      <AssignToProducerModal
+        open={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        businessName={businessName}
+        businessType={businessType}
+        tagline={tagline}
+        accentColor={selectedColor}
+        logoUrl={logoUrl}
+        coverUrl={coverUrl}
+        description={tagline}
+        plans={plans}
+        drops={drops}
+        content={content}
+      />
     </div>
   );
 };
