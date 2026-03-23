@@ -31,9 +31,18 @@ export function MerchantSidebar() {
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
   const { conversations, settings } = useDashboard();
-  const { leads, signOut, demoActive, accentColor, session } = useApp();
+  const { signOut, demoActive, accentColor, session } = useApp();
   const unreadMessages = conversations.filter(c => c.unread).length;
-  const newLeadCount = leads.filter(l => l.status === "new").length;
+  const [newLeadCount, setNewLeadCount] = useState(0);
+
+  useEffect(() => {
+    if (session.role !== "admin") return;
+    supabase
+      .from("leads")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "new")
+      .then(({ count }) => setNewLeadCount(count || 0));
+  }, [session.role]);
 
   const profileBusinessName = session.profile?.business_name || "";
   const fallbackProfileSlug =
