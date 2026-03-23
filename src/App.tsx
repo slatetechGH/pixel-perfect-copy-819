@@ -28,6 +28,7 @@ import StorefrontAccount from "./pages/StorefrontAccount";
 import StorefrontJoin from "./pages/StorefrontJoin";
 import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
+import AdminProducers from "./pages/AdminProducers";
 
 const queryClient = new QueryClient();
 
