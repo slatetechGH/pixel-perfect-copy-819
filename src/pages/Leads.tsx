@@ -56,15 +56,16 @@ const Leads = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const fetchLeads = useCallback(async () => {
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from("leads")
-      .select("*")
+      .select("*", { count: "exact" })
       .order("created_at", { ascending: false });
-    if (data && !error) {
-      setLeads(data as Lead[]);
-    } else if (error) {
+    console.log("Leads query result:", { data, error, count });
+    if (error) {
       console.error("Failed to fetch leads:", error.message);
+      toast.error("Failed to load leads: " + error.message);
     }
+    setLeads((data as Lead[]) || []);
     setLoading(false);
   }, []);
 

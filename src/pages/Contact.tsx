@@ -46,20 +46,28 @@ const Contact = () => {
 
     setLoading(true);
     
-    addLead({
+    // Save lead directly to Supabase
+    const { error: leadErr } = await supabase.from("leads").insert({
       type: "contact",
       email: form.email,
       name: form.fullName,
-      phone: form.phone,
-      businessName: form.business,
-      businessType: form.businessType,
-      hearAbout: form.hearAbout,
+      phone: form.phone || null,
+      business_name: form.business,
+      business_type: form.businessType,
+      hear_about: form.hearAbout || null,
       message: form.message,
       newsletter: form.newsletter,
+      status: "new",
     });
+    console.log("Contact lead insert:", leadErr ? leadErr.message : "success");
 
     if (form.newsletter) {
-      addLead({ type: "newsletter", email: form.email });
+      const { error: nlErr } = await supabase.from("leads").insert({
+        type: "newsletter",
+        email: form.email,
+        status: "new",
+      });
+      console.log("Newsletter lead insert:", nlErr ? nlErr.message : "success");
     }
 
     // Send notification email

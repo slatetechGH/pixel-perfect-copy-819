@@ -77,29 +77,37 @@ const GetStarted = () => {
 
     setLoading(true);
 
-    // Save lead to AppContext (will wire to Supabase in Phase 2)
-    const success = addLead({
+    // Save lead directly to Supabase
+    const { error: leadErr } = await supabase.from("leads").insert({
       type: "signup",
       email: form.email,
       name: form.name,
-      phone: form.phone,
-      businessName: form.businessName,
-      businessType: form.businessType,
-      website: form.website,
-      customerCount: form.customerCount,
-      interests: form.interests,
-      additionalNotes: form.notes,
+      phone: form.phone || null,
+      business_name: form.businessName,
+      business_type: form.businessType,
+      website: form.website || null,
+      customer_count: form.customerCount || null,
+      interests: form.interests.length > 0 ? form.interests : null,
+      additional_notes: form.notes || null,
       newsletter: form.newsletter,
+      terms: form.terms,
+      status: "new",
     });
+    console.log("Signup lead insert:", leadErr ? leadErr.message : "success");
 
-    if (!success) {
+    if (leadErr?.message?.includes("duplicate")) {
       setLoading(false);
       setDuplicate(true);
       return;
     }
 
     if (form.newsletter) {
-      addLead({ type: "newsletter", email: form.email });
+      const { error: nlErr } = await supabase.from("leads").insert({
+        type: "newsletter",
+        email: form.email,
+        status: "new",
+      });
+      console.log("Newsletter lead insert:", nlErr ? nlErr.message : "success");
     }
 
     // Sign up with Supabase Auth

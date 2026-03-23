@@ -17,9 +17,15 @@ const EmailCapture = () => {
       return;
     }
 
-    const success = addLead({ type: "newsletter", email });
+    // Save lead directly to Supabase
+    const { error: leadErr } = await supabase.from("leads").insert({
+      type: "newsletter",
+      email,
+      status: "new",
+    });
+    console.log("Newsletter lead insert:", leadErr ? leadErr.message : "success");
 
-    if (!success) {
+    if (leadErr?.message?.includes("duplicate") || leadErr?.code === "23505") {
       toast("You're already subscribed!");
       setEmail("");
       return;
