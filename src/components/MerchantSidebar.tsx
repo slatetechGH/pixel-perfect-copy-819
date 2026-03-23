@@ -26,6 +26,7 @@ const navItems = [
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
   { title: "Demo Launcher", url: "/demo-setup", icon: Wand2, adminOnly: true },
+  { title: "Producers", url: "/admin/producers", icon: Building2, adminOnly: true },
 ];
 
 export function MerchantSidebar() {
