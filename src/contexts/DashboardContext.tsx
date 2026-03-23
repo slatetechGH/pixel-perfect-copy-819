@@ -187,10 +187,13 @@ const defaultSettings: BusinessSettings = {
 };
 
 const emptyKPI: KPIData = {
-  mrr: "£0", mrrChange: "0%",
-  totalSubs: "0", subsChange: "0%",
-  churn: "0%", churnChange: "0%",
-  arpu: "£0", arpuChange: "0%",
+  mrr: "£0", mrrChange: "+0%",
+  totalSubs: "0", subsChange: "+0%",
+  churn: "0%", churnChange: "+0%",
+  arpu: "£0", arpuChange: "+0%",
+  ltv: "£0", ltvChange: "+0%",
+  dropConversion: "0%", dropConversionChange: "+0%",
+  contentEngagement: "0", contentEngagementChange: "+0%",
 };
 
 // ===== MOCK DATA (for demo mode only) =====
