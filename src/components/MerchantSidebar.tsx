@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Users, CreditCard, FileText, Zap, MessageSquare, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck,
@@ -7,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import SlateLogo from "@/components/SlateLogo";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu,
@@ -31,9 +33,18 @@ export function MerchantSidebar() {
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
   const { conversations, settings } = useDashboard();
-  const { leads, signOut, demoActive, accentColor, session } = useApp();
+  const { signOut, demoActive, accentColor, session } = useApp();
   const unreadMessages = conversations.filter(c => c.unread).length;
-  const newLeadCount = leads.filter(l => l.status === "new").length;
+  const [newLeadCount, setNewLeadCount] = useState(0);
+
+  useEffect(() => {
+    if (session.role !== "admin") return;
+    supabase
+      .from("leads")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "new")
+      .then(({ count }) => setNewLeadCount(count || 0));
+  }, [session.role]);
 
   const profileBusinessName = session.profile?.business_name || "";
   const fallbackProfileSlug =
