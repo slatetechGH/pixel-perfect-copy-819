@@ -112,7 +112,9 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-[17px] md:text-[19px] text-slate-mid leading-relaxed mb-8 max-w-lg"
             >
-              Slate gives butchers, bakers, fishmongers and artisan producers a beautiful storefront to sell subscriptions, drop exclusive products, and build recurring revenue — completely free.
+              Slate gives independent producers a platform to sell subscriptions, drop exclusive products, and monetise loyalty.
+              <br /><br />
+              Reward your loyal customers and build predictable revenue.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
