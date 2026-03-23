@@ -549,6 +549,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
         // Count subscribers per plan
         const subs = (subsRes.data || []).map(rowToSubscriber);
+        const fetchedDrops = (dropsRes.data || []).map(rowToDrop);
+        const fetchedContent = (contentRes.data || []).map(rowToContent);
         const planSubCounts: Record<string, number> = {};
         subs.filter(s => s.status === "active").forEach(s => {
           planSubCounts[s.plan] = (planSubCounts[s.plan] || 0) + 1;
@@ -560,8 +562,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         }));
 
         setPlans(fetchedPlans);
-        setDrops((dropsRes.data || []).map(rowToDrop));
-        setContent((contentRes.data || []).map(rowToContent));
+        setDrops(fetchedDrops);
+        setContent(fetchedContent);
         setSubscribers(subs);
         setConversations((convosRes.data || []).map(rowToConversation));
 
@@ -573,23 +575,55 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           }));
         }
 
-        // Compute basic KPIs from real data
-        if (subs.length > 0 || fetchedPlans.length > 0) {
-          const activeSubs = subs.filter(s => s.status === "active");
-          const mrr = activeSubs.reduce((sum, s) => {
-            const plan = fetchedPlans.find(p => p.name === s.plan);
-            return sum + (plan?.priceNum || 0);
-          }, 0);
-          setKpiData({
-            mrr: `£${mrr.toLocaleString()}`,
-            mrrChange: "+0%",
-            totalSubs: String(activeSubs.length),
-            subsChange: "+0%",
-            churn: "0%",
-            churnChange: "0%",
-            arpu: activeSubs.length > 0 ? `£${(mrr / activeSubs.length).toFixed(2)}` : "£0",
-            arpuChange: "+0%",
-          });
+        // Compute KPIs from real data
+        const activeSubs = subs.filter(s => s.status === "active");
+        const mrr = activeSubs.reduce((sum, s) => {
+          const plan = fetchedPlans.find(p => p.name === s.plan);
+          return sum + (plan?.priceNum || 0);
+        }, 0);
+
+        // LTV: sum of all subscriber revenue
+        const totalRevenue = subs.reduce((sum, s) => {
+          const num = parseFloat(s.revenue.replace(/[^0-9.]/g, '')) || 0;
+          return sum + num;
+        }, 0);
+        const ltv = activeSubs.length > 0 ? totalRevenue / activeSubs.length : 0;
+
+        // Drop conversion: sold / total across all non-draft drops
+        const nonDraftDrops = fetchedDrops.filter(d => d.status !== "draft");
+        const totalDropQty = nonDraftDrops.reduce((s, d) => s + d.total, 0);
+        const soldDropQty = nonDraftDrops.reduce((s, d) => s + (d.total - d.remaining), 0);
+        const dropConversion = totalDropQty > 0 ? Math.round((soldDropQty / totalDropQty) * 100) : 0;
+
+        // Content engagement: sum of views
+        const totalViews = fetchedContent.reduce((s, c) => s + (c.views || 0), 0);
+        const engagementStr = totalViews >= 1000 ? `${(totalViews / 1000).toFixed(1)}k` : String(totalViews);
+
+        setKpiData({
+          mrr: `£${mrr.toLocaleString()}`,
+          mrrChange: "+0%",
+          totalSubs: String(activeSubs.length),
+          subsChange: "+0%",
+          churn: "0%",
+          churnChange: "+0%",
+          arpu: activeSubs.length > 0 ? `£${(mrr / activeSubs.length).toFixed(2)}` : "£0",
+          arpuChange: "+0%",
+          ltv: `£${Math.round(ltv).toLocaleString()}`,
+          ltvChange: "+0%",
+          dropConversion: `${dropConversion}%`,
+          dropConversionChange: "+0%",
+          contentEngagement: engagementStr,
+          contentEngagementChange: "+0%",
+        });
+
+        // Compute tier breakdown from real plans
+        const pieColors = ["hsl(213, 27%, 62%)", "hsl(217, 33%, 17%)", "hsl(38, 92%, 50%)", "hsl(280, 60%, 50%)", "hsl(160, 60%, 40%)"];
+        if (fetchedPlans.length > 0) {
+          setTierBreakdown(fetchedPlans.map((p, i) => ({
+            name: p.name,
+            value: p.subscribers,
+            color: pieColors[i % pieColors.length],
+          })));
         }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
