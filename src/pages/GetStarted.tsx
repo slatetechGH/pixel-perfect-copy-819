@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/marketing/Navbar";
 import Footer from "@/components/marketing/Footer";
 import SlateLogo from "@/components/SlateLogo";
-import { useApp } from "@/contexts/AppContext";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
