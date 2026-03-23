@@ -25,13 +25,23 @@ function computeBreakdown(grossRevenue: number) {
   return { grossRevenue, stripeFees, slateCommission, netRevenue };
 }
 
+const EmptyChartMessage = ({ message }: { message: string }) => (
+  <div className="flex items-center justify-center h-[260px] text-muted-foreground text-[14px]">
+    {message}
+  </div>
+);
+
 const Analytics = () => {
   const { revenueDataSets, kpiData, subscriberGrowthData, tierBreakdown } = useDashboard();
   const [range, setRange] = useState("6m");
-  const data = revenueDataSets[range] || revenueDataSets["all"];
+  const data = revenueDataSets[range] || revenueDataSets["all"] || [];
 
   const mrrNum = parseFloat(kpiData.mrr.replace(/[^0-9.]/g, '')) || 0;
   const breakdown = computeBreakdown(mrrNum);
+
+  const hasRevenueData = data.length > 0 && data.some(d => d.revenue > 0);
+  const hasSubscriberGrowth = subscriberGrowthData.length > 0 && subscriberGrowthData.some(d => d.new > 0 || d.churned > 0);
+  const hasTierData = tierBreakdown.length > 0 && tierBreakdown.some(t => t.value > 0);
 
   return (
     <DashboardLayout title="Analytics" subtitle="Performance insights">
@@ -46,9 +56,9 @@ const Analytics = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
         <MetricCard title="MRR" value={kpiData.mrr} change={kpiData.mrrChange} trend="up" />
-        <MetricCard title="Lifetime Value" value="£186" change="+8.2%" trend="up" delay={80} />
-        <MetricCard title="Drop Conversion" value="72%" change="+5.1%" trend="up" delay={160} />
-        <MetricCard title="Content Engagement" value="3.2k" change="+22%" trend="up" delay={240} />
+        <MetricCard title="Lifetime Value" value={kpiData.ltv} change={kpiData.ltvChange} trend="up" delay={80} />
+        <MetricCard title="Drop Conversion" value={kpiData.dropConversion} change={kpiData.dropConversionChange} trend="up" delay={160} />
+        <MetricCard title="Content Engagement" value={kpiData.contentEngagement} change={kpiData.contentEngagementChange} trend="up" delay={240} />
       </div>
 
       {/* Revenue Breakdown Table */}
@@ -84,21 +94,25 @@ const Analytics = () => {
             <CardTitle className="text-[15px] font-medium text-foreground">Revenue</CardTitle>
           </CardHeader>
           <CardContent className="px-7 pb-7">
-            <ResponsiveContainer width="100%" height={260}>
-              <AreaChart data={data}>
-                <defs>
-                  <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(217, 33%, 17%)" stopOpacity={0.08} />
-                    <stop offset="100%" stopColor="hsl(217, 33%, 17%)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
-                <YAxis tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" tickFormatter={(v) => `£${v}`} />
-                <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} formatter={(v: number) => [`£${v}`, "Revenue"]} />
-                <Area type="monotone" dataKey="revenue" stroke="hsl(217, 33%, 17%)" strokeWidth={2} fill="url(#mrrGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {hasRevenueData ? (
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={data}>
+                  <defs>
+                    <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(217, 33%, 17%)" stopOpacity={0.08} />
+                      <stop offset="100%" stopColor="hsl(217, 33%, 17%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
+                  <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
+                  <YAxis tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" tickFormatter={(v) => `£${v}`} />
+                  <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} formatter={(v: number) => [`£${v}`, "Revenue"]} />
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(217, 33%, 17%)" strokeWidth={2} fill="url(#mrrGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyChartMessage message="Revenue data will appear here once you have active subscribers" />
+            )}
           </CardContent>
         </Card>
 
@@ -107,15 +121,19 @@ const Analytics = () => {
             <CardTitle className="text-[15px] font-medium text-foreground">Tier Breakdown</CardTitle>
           </CardHeader>
           <CardContent className="px-7 pb-7">
-            <ResponsiveContainer width="100%" height={260}>
-              <PieChart>
-                <Pie data={tierBreakdown} cx="50%" cy="45%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={3}>
-                  {tierBreakdown.map(e => <Cell key={e.name} fill={e.color} />)}
-                </Pie>
-                <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {hasTierData ? (
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie data={tierBreakdown} cx="50%" cy="45%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={3}>
+                    {tierBreakdown.map(e => <Cell key={e.name} fill={e.color} />)}
+                  </Pie>
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                  <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyChartMessage message="Tier data will appear here once you have subscribers" />
+            )}
           </CardContent>
         </Card>
       </div>
@@ -130,16 +148,20 @@ const Analytics = () => {
           <CardTitle className="text-[15px] font-medium text-foreground">Subscriber Growth</CardTitle>
         </CardHeader>
         <CardContent className="px-7 pb-7">
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={subscriberGrowthData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
-              <YAxis tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
-              <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} />
-              <Bar dataKey="new" fill="hsl(217, 33%, 17%)" fillOpacity={0.7} radius={[4, 4, 0, 0]} name="New" />
-              <Bar dataKey="churned" fill="hsl(38, 92%, 50%)" fillOpacity={0.5} radius={[4, 4, 0, 0]} name="Churned" />
-            </BarChart>
-          </ResponsiveContainer>
+          {hasSubscriberGrowth ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={subscriberGrowthData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
+                <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
+                <YAxis tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
+                <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} />
+                <Bar dataKey="new" fill="hsl(217, 33%, 17%)" fillOpacity={0.7} radius={[4, 4, 0, 0]} name="New" />
+                <Bar dataKey="churned" fill="hsl(38, 92%, 50%)" fillOpacity={0.5} radius={[4, 4, 0, 0]} name="Churned" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartMessage message="Subscriber growth data will appear here as your audience grows" />
+          )}
         </CardContent>
       </Card>
     </DashboardLayout>

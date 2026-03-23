@@ -519,6 +519,12 @@ const DemoSetup = () => {
         churnChange: `-${(Math.random() * 1.5).toFixed(1)}%`,
         arpu: `£${arpu}`,
         arpuChange: `+${(Math.random() * 4 + 1).toFixed(1)}%`,
+        ltv: `£${Math.round(parseFloat(arpu) * 7.2)}`,
+        ltvChange: `+${(Math.random() * 10 + 2).toFixed(1)}%`,
+        dropConversion: `${Math.round(60 + Math.random() * 25)}%`,
+        dropConversionChange: `+${(Math.random() * 8 + 1).toFixed(1)}%`,
+        contentEngagement: `${(Math.random() * 4 + 1).toFixed(1)}k`,
+        contentEngagementChange: `+${Math.round(10 + Math.random() * 20)}%`,
       };
 
       // Activity feed
