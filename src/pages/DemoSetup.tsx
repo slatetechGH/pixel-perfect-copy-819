@@ -6,9 +6,10 @@ import { useApp, DemoPlan, DemoDrop, DemoContent, DemoProfile } from "@/contexts
 import { useDashboard, type Conversation, type Message } from "@/contexts/DashboardContext";
 import { toast } from "sonner";
 import {
-  Beef, CakeSlice, Fish, Milk, Tractor, Beer, X, Plus, Loader2, Save, RotateCcw, Rocket,
+  Beef, CakeSlice, Fish, Milk, Tractor, Beer, X, Plus, Loader2, Save, RotateCcw, Rocket, UserPlus,
 } from "lucide-react";
 import SlateLogo from "@/components/SlateLogo";
+import { AssignToProducerModal } from "@/components/AssignToProducerModal";
 
 const DEFAULT_ACCENT = "#F59E0B";
 
@@ -197,6 +198,7 @@ const DemoSetup = () => {
   const dashboard = useDashboard();
   const [launching, setLaunching] = useState(false);
   const [launchProgress, setLaunchProgress] = useState(0);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
 
   // Form state
   const [businessName, setBusinessName] = useState("");
@@ -894,6 +896,15 @@ const DemoSetup = () => {
                       View Customer Storefront ↗
                     </a>
                   )}
+                  <button
+                    onClick={() => {
+                      if (!businessName) { toast.error("Business name is required"); return; }
+                      setAssignModalOpen(true);
+                    }}
+                    className="w-full py-3 px-8 border-2 border-foreground/20 text-foreground/70 hover:border-foreground hover:text-foreground text-[16px] font-semibold rounded-[10px] transition-colors cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <UserPlus size={18} /> Assign to Producer
+                  </button>
                 </>
               )}
             </div>
@@ -958,6 +969,20 @@ const DemoSetup = () => {
           </div>
         </div>
       </div>
+      <AssignToProducerModal
+        open={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        businessName={businessName}
+        businessType={businessType}
+        tagline={tagline}
+        accentColor={selectedColor}
+        logoUrl={logoUrl}
+        coverUrl={coverUrl}
+        description={tagline}
+        plans={plans}
+        drops={drops}
+        content={content}
+      />
     </div>
   );
 };
