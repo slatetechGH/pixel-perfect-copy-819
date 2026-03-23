@@ -1,13 +1,13 @@
 import AnimatedSection from "./AnimatedSection";
-import { Store, Beef, Fish, CakeSlice, Cherry, Wheat } from "lucide-react";
+import { Beef, Fish, CakeSlice, Cherry, Wheat, Beer } from "lucide-react";
 
 const producers = [
-  { icon: Beef, label: "Butchers" },
-  { icon: Store, label: "Bakers" },
   { icon: Fish, label: "Fishmongers" },
-  { icon: CakeSlice, label: "Patisseries" },
+  { icon: Beef, label: "Butchers" },
+  { icon: CakeSlice, label: "Bakers" },
   { icon: Cherry, label: "Jam Makers" },
   { icon: Wheat, label: "Grain Mills" },
+  { icon: Beer, label: "Breweries" },
 ];
 
 const LogoBar = () => (
@@ -15,7 +15,7 @@ const LogoBar = () => (
     <AnimatedSection>
       <div className="max-w-[1200px] mx-auto px-6 md:px-8">
         <p className="text-[14px] text-slate-light text-center mb-6">
-          Powering local producers across the UK
+          Trusted by independent producers across the UK
         </p>
         <div className="flex items-center justify-center gap-8 md:gap-14 flex-wrap">
           {producers.map(({ icon: Icon, label }) => (
