@@ -5,7 +5,7 @@ import { Mail, Instagram, Twitter, Linkedin, Check, Loader2 } from "lucide-react
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/marketing/Navbar";
 import Footer from "@/components/marketing/Footer";
-import { useApp } from "@/contexts/AppContext";
+import { toast } from "sonner";
 import { toast } from "sonner";
 
 const businessTypes = [
