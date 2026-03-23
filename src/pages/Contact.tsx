@@ -20,7 +20,6 @@ const hearAbout = [
 
 const Contact = () => {
   const navigate = useNavigate();
-  const { addLead } = useApp();
   const [submitted, setSubmitted] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [loading, setLoading] = useState(false);

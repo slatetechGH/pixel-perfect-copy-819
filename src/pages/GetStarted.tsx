@@ -23,8 +23,6 @@ const interests = [
 
 const GetStarted = () => {
   const navigate = useNavigate();
-  // planFromUrl removed — no more tier selection
-  const { addLead } = useApp();
   const [submitted, setSubmitted] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
   const [firstName, setFirstName] = useState("");
