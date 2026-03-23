@@ -393,6 +393,9 @@ const mockKPI: KPIData = {
   totalSubs: "187", subsChange: "+12.3%",
   churn: "3.2%", churnChange: "-0.8%",
   arpu: "£25.90", arpuChange: "+2.1%",
+  ltv: "£186", ltvChange: "+8.2%",
+  dropConversion: "72%", dropConversionChange: "+5.1%",
+  contentEngagement: "3.2k", contentEngagementChange: "+22%",
 };
 
 const mockRevenueChart: RevenueData[] = [
