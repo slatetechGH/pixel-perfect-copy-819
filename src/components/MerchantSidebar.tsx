@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Users, CreditCard, FileText, Zap, MessageSquare, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck,
+  LayoutDashboard, Users, CreditCard, FileText, Zap, MessageSquare, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +26,7 @@ const navItems = [
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
   { title: "Demo Launcher", url: "/demo-setup", icon: Wand2, adminOnly: true },
+  { title: "Producers", url: "/admin/producers", icon: Building2, adminOnly: true },
 ];
 
 export function MerchantSidebar() {
