@@ -589,10 +589,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     fetchAll();
   }, [producerId, demoActive]);
 
-  // Reset fetch ref when user changes
+  // Reset fetch ref when user changes or demo deactivates
   useEffect(() => {
     fetchedRef.current = false;
-  }, [producerId]);
+  }, [producerId, demoActive]);
 
   // ===== CRUD MUTATIONS =====
   const savePlan = useCallback(async (plan: Plan) => {

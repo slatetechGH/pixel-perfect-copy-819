@@ -577,9 +577,8 @@ const DemoSetup = () => {
       };
       setDemoConfig(config);
 
-      // Activate demo mode
+      // Activate demo mode — purely local state, never touches Supabase
       activateDemo(businessName, selectedColor);
-      setSession(prev => ({ ...prev, isLoggedIn: true, currentUser: businessName }));
 
       setTimeout(() => {
         setLaunching(false);

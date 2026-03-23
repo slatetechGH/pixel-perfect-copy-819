@@ -292,11 +292,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAccentColorState(accent);
   };
 
-  const deactivateDemo = () => {
+  const deactivateDemo = async () => {
     setDemoActive(false);
     setDemoBusinessName("");
     setDemoConfig(null);
     setAccentColorState(DEFAULT_ACCENT);
+    // Reload the admin's real profile from Supabase
+    const user = session.supabaseUser;
+    const supaSession = session.supabaseSession;
+    if (user && supaSession) {
+      await loadProfileAndRole(user, supaSession);
+    }
   };
 
   const addLead = (lead: Omit<Lead, "id" | "timestamp" | "status" | "notes">): boolean => {

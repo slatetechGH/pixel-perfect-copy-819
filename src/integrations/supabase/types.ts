@@ -818,6 +818,15 @@ export type Database = {
       }
     }
     Functions: {
+      get_all_producers: {
+        Args: never
+        Returns: {
+          business_name: string
+          created_at: string
+          email: string
+          id: string
+        }[]
+      }
       get_user_role: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {

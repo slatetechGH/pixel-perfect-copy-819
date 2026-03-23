@@ -68,21 +68,13 @@ export function AssignToProducerModal({
     setSuccess(null);
 
     (async () => {
-      // Get all producer user IDs
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "producer");
-      const producerIds = (roles || []).map(r => r.user_id);
-      if (producerIds.length === 0) { setLoading(false); return; }
-
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, email, business_name, created_at")
-        .in("id", producerIds)
-        .order("created_at", { ascending: false });
-
-      setProducers((profiles || []) as Producer[]);
+      const { data, error } = await supabase.rpc("get_all_producers");
+      if (error) {
+        console.error("Failed to fetch producers:", error);
+        setLoading(false);
+        return;
+      }
+      setProducers((data || []) as Producer[]);
       setLoading(false);
     })();
   }, [open]);
@@ -122,12 +114,8 @@ export function AssignToProducerModal({
 
       if (profErr) throw new Error(`Profile update failed: ${profErr.message}`);
 
-      // 3. Delete existing plans/content/drops for this producer (clean slate)
-      await Promise.all([
-        supabase.from("plans").delete().eq("producer_id", pid),
-        supabase.from("content").delete().eq("producer_id", pid),
-        supabase.from("drops").delete().eq("producer_id", pid),
-      ]);
+      // 3. Delete existing plans for this producer (clean slate for plans only)
+      await supabase.from("plans").delete().eq("producer_id", pid);
 
       // 4. Insert plans
       const validPlans = plans.filter(p => p.name);
@@ -147,38 +135,8 @@ export function AssignToProducerModal({
         if (planErr) console.error("Plans insert error:", planErr);
       }
 
-      // 5. Insert content
-      const validContent = content.filter(c => c.title);
-      if (validContent.length > 0) {
-        const contentRows = validContent.map(c => ({
-          producer_id: pid,
-          title: c.title,
-          type: c.type,
-          status: c.status === "published" ? "published" : "draft",
-          body: "",
-          prep_time: c.prepTime || null,
-          cook_time: c.cookTime || null,
-          serves: c.serves || null,
-        }));
-        const { error: contErr } = await supabase.from("content").insert(contentRows);
-        if (contErr) console.error("Content insert error:", contErr);
-      }
-
-      // 6. Insert drops
-      const validDrops = drops.filter(d => d.name);
-      if (validDrops.length > 0) {
-        const dropRows = validDrops.map(d => ({
-          producer_id: pid,
-          title: d.name,
-          description: "",
-          status: d.status,
-          total: d.quantity,
-          remaining: d.quantity - d.sold,
-          price_num: d.price,
-        }));
-        const { error: dropErr } = await supabase.from("drops").insert(dropRows);
-        if (dropErr) console.error("Drops insert error:", dropErr);
-      }
+      // NOTE: Content and drops are NOT written to producer accounts.
+      // Producers start with a clean slate — only branding + plans are assigned.
 
       setSuccess({ email: producer.email, slug });
       toast.success(`${businessName} has been assigned to ${producer.email}`);
