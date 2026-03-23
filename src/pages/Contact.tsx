@@ -5,7 +5,6 @@ import { Mail, Instagram, Twitter, Linkedin, Check, Loader2 } from "lucide-react
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/marketing/Navbar";
 import Footer from "@/components/marketing/Footer";
-import { useApp } from "@/contexts/AppContext";
 import { toast } from "sonner";
 
 const businessTypes = [
@@ -20,7 +19,6 @@ const hearAbout = [
 
 const Contact = () => {
   const navigate = useNavigate();
-  const { addLead } = useApp();
   const [submitted, setSubmitted] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,20 +44,28 @@ const Contact = () => {
 
     setLoading(true);
     
-    addLead({
+    // Save lead directly to Supabase
+    const { error: leadErr } = await supabase.from("leads").insert({
       type: "contact",
       email: form.email,
       name: form.fullName,
-      phone: form.phone,
-      businessName: form.business,
-      businessType: form.businessType,
-      hearAbout: form.hearAbout,
+      phone: form.phone || null,
+      business_name: form.business,
+      business_type: form.businessType,
+      hear_about: form.hearAbout || null,
       message: form.message,
       newsletter: form.newsletter,
+      status: "new",
     });
+    console.log("Contact lead insert:", leadErr ? leadErr.message : "success");
 
     if (form.newsletter) {
-      addLead({ type: "newsletter", email: form.email });
+      const { error: nlErr } = await supabase.from("leads").insert({
+        type: "newsletter",
+        email: form.email,
+        status: "new",
+      });
+      console.log("Newsletter lead insert:", nlErr ? nlErr.message : "success");
     }
 
     // Send notification email

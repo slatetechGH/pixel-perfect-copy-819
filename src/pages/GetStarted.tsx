@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/marketing/Navbar";
 import Footer from "@/components/marketing/Footer";
 import SlateLogo from "@/components/SlateLogo";
-import { useApp } from "@/contexts/AppContext";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const businessTypes = [
   "Butcher", "Baker", "Fishmonger", "Cheesemaker", "Farm Shop",
@@ -23,8 +22,6 @@ const interests = [
 
 const GetStarted = () => {
   const navigate = useNavigate();
-  // planFromUrl removed — no more tier selection
-  const { addLead } = useApp();
   const [submitted, setSubmitted] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -77,29 +74,37 @@ const GetStarted = () => {
 
     setLoading(true);
 
-    // Save lead to AppContext (will wire to Supabase in Phase 2)
-    const success = addLead({
+    // Save lead directly to Supabase
+    const { error: leadErr } = await supabase.from("leads").insert({
       type: "signup",
       email: form.email,
       name: form.name,
-      phone: form.phone,
-      businessName: form.businessName,
-      businessType: form.businessType,
-      website: form.website,
-      customerCount: form.customerCount,
-      interests: form.interests,
-      additionalNotes: form.notes,
+      phone: form.phone || null,
+      business_name: form.businessName,
+      business_type: form.businessType,
+      website: form.website || null,
+      customer_count: form.customerCount || null,
+      interests: form.interests.length > 0 ? form.interests : null,
+      additional_notes: form.notes || null,
       newsletter: form.newsletter,
+      terms: form.terms,
+      status: "new",
     });
+    console.log("Signup lead insert:", leadErr ? leadErr.message : "success");
 
-    if (!success) {
+    if (leadErr?.message?.includes("duplicate")) {
       setLoading(false);
       setDuplicate(true);
       return;
     }
 
     if (form.newsletter) {
-      addLead({ type: "newsletter", email: form.email });
+      const { error: nlErr } = await supabase.from("leads").insert({
+        type: "newsletter",
+        email: form.email,
+        status: "new",
+      });
+      console.log("Newsletter lead insert:", nlErr ? nlErr.message : "success");
     }
 
     // Sign up with Supabase Auth

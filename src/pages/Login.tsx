@@ -1,27 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import SlateLogo from "@/components/SlateLogo";
-import { useApp } from "@/contexts/AppContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { session } = useApp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // If already logged in, redirect based on role
-  if (session.isLoggedIn) {
-    const dest = session.role === "admin" ? "/admin" : session.role === "customer" ? "/" : "/dashboard";
-    navigate(dest, { replace: true });
-    return null;
-  }
+  // Check if already logged in — as a side effect, not a render blocker
+  useEffect(() => {
+    const timeout = setTimeout(() => setCheckingSession(false), 3000);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(timeout);
+      if (session) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        setCheckingSession(false);
+      }
+    }).catch(() => {
+      clearTimeout(timeout);
+      setCheckingSession(false);
+    });
+    return () => clearTimeout(timeout);
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +55,6 @@ const Login = () => {
     }
 
     toast.success("Welcome back!");
-    // Redirect immediately — profile/role loading happens in AppContext
     navigate("/dashboard", { replace: true });
   };
 
@@ -60,6 +68,15 @@ const Login = () => {
     });
     setForgotSent(true);
   };
+
+  // Show a minimal loading state while checking session (max 3s)
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-secondary flex items-center justify-center px-6">
