@@ -6,9 +6,10 @@ import { useApp, DemoPlan, DemoDrop, DemoContent, DemoProfile } from "@/contexts
 import { useDashboard, type Conversation, type Message } from "@/contexts/DashboardContext";
 import { toast } from "sonner";
 import {
-  Beef, CakeSlice, Fish, Milk, Tractor, Beer, X, Plus, Loader2, Save, RotateCcw, Rocket,
+  Beef, CakeSlice, Fish, Milk, Tractor, Beer, X, Plus, Loader2, Save, RotateCcw, Rocket, UserPlus,
 } from "lucide-react";
 import SlateLogo from "@/components/SlateLogo";
+import { AssignToProducerModal } from "@/components/AssignToProducerModal";
 
 const DEFAULT_ACCENT = "#F59E0B";
 
