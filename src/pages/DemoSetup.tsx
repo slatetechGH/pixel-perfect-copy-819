@@ -198,6 +198,7 @@ const DemoSetup = () => {
   const dashboard = useDashboard();
   const [launching, setLaunching] = useState(false);
   const [launchProgress, setLaunchProgress] = useState(0);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
 
   // Form state
   const [businessName, setBusinessName] = useState("");
