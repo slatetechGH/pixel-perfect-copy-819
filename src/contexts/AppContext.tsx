@@ -171,7 +171,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [demoConfig, setDemoConfig] = useState<DemoProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Fetch profile and role helpers
+  // Fetch profile and role helpers with timeout
+  const fetchWithTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T | null> =>
+    Promise.race([promise, new Promise<null>((resolve) => setTimeout(() => resolve(null), ms))]);
+
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
     return data;
@@ -182,49 +185,81 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return (data as UserRole) || null;
   };
 
+  // Load profile/role in background — doesn't block auth state
+  const loadProfileAndRole = async (user: User, supaSession: Session) => {
+    try {
+      const [profile, role] = await Promise.all([
+        fetchWithTimeout(fetchProfile(user.id), 5000),
+        fetchWithTimeout(fetchRole(user.id), 5000),
+      ]);
+      setSession({
+        isLoggedIn: true,
+        currentUser: profile?.business_name || user.email || "",
+        supabaseUser: user,
+        supabaseSession: supaSession,
+        profile,
+        role,
+      });
+    } catch {
+      // Profile/role fetch failed — keep session alive with minimal data
+      console.warn("Failed to load profile/role, using fallback");
+    }
+  };
+
   // Supabase auth state listener
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supaSession) => {
+    // Auth loading timeout — if not resolved in 3s, assume not logged in
+    const authTimeout = setTimeout(() => {
+      setAuthLoading((current) => {
+        if (current) console.warn("Auth loading timed out");
+        return false;
+      });
+    }, 3000);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, supaSession) => {
+      clearTimeout(authTimeout);
       if (supaSession?.user) {
-        const [profile, role] = await Promise.all([
-          fetchProfile(supaSession.user.id),
-          fetchRole(supaSession.user.id),
-        ]);
-        setSession({
+        // Set session immediately with minimal data — don't block on profile/role
+        setSession((prev) => ({
+          ...prev,
           isLoggedIn: true,
-          currentUser: profile?.business_name || supaSession.user.email || "",
+          currentUser: supaSession.user.email || "",
           supabaseUser: supaSession.user,
           supabaseSession: supaSession,
-          profile,
-          role,
-        });
+        }));
+        setAuthLoading(false);
+        // Load profile and role in background
+        loadProfileAndRole(supaSession.user, supaSession);
       } else {
         setSession({
           isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null, role: null,
         });
+        setAuthLoading(false);
       }
-      setAuthLoading(false);
     });
 
-    supabase.auth.getSession().then(async ({ data: { session: existing } }) => {
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session: existing } }) => {
+      clearTimeout(authTimeout);
       if (existing?.user) {
-        const [profile, role] = await Promise.all([
-          fetchProfile(existing.user.id),
-          fetchRole(existing.user.id),
-        ]);
-        setSession({
+        setSession((prev) => ({
+          ...prev,
           isLoggedIn: true,
-          currentUser: profile?.business_name || existing.user.email || "",
+          currentUser: existing.user.email || "",
           supabaseUser: existing.user,
           supabaseSession: existing,
-          profile,
-          role,
-        });
+        }));
+        setAuthLoading(false);
+        loadProfileAndRole(existing.user, existing);
+      } else {
+        setAuthLoading(false);
       }
-      setAuthLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(authTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Fetch leads from Supabase when authenticated
