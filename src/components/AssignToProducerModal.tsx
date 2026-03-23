@@ -68,21 +68,13 @@ export function AssignToProducerModal({
     setSuccess(null);
 
     (async () => {
-      // Get all producer user IDs
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "producer");
-      const producerIds = (roles || []).map(r => r.user_id);
-      if (producerIds.length === 0) { setLoading(false); return; }
-
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, email, business_name, created_at")
-        .in("id", producerIds)
-        .order("created_at", { ascending: false });
-
-      setProducers((profiles || []) as Producer[]);
+      const { data, error } = await supabase.rpc("get_all_producers");
+      if (error) {
+        console.error("Failed to fetch producers:", error);
+        setLoading(false);
+        return;
+      }
+      setProducers((data || []) as Producer[]);
       setLoading(false);
     })();
   }, [open]);
