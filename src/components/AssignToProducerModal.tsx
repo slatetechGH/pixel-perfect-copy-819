@@ -114,12 +114,8 @@ export function AssignToProducerModal({
 
       if (profErr) throw new Error(`Profile update failed: ${profErr.message}`);
 
-      // 3. Delete existing plans/content/drops for this producer (clean slate)
-      await Promise.all([
-        supabase.from("plans").delete().eq("producer_id", pid),
-        supabase.from("content").delete().eq("producer_id", pid),
-        supabase.from("drops").delete().eq("producer_id", pid),
-      ]);
+      // 3. Delete existing plans for this producer (clean slate for plans only)
+      await supabase.from("plans").delete().eq("producer_id", pid);
 
       // 4. Insert plans
       const validPlans = plans.filter(p => p.name);
