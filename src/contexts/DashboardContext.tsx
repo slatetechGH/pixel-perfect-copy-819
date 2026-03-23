@@ -134,6 +134,12 @@ export interface KPIData {
   churnChange: string;
   arpu: string;
   arpuChange: string;
+  ltv: string;
+  ltvChange: string;
+  dropConversion: string;
+  dropConversionChange: string;
+  contentEngagement: string;
+  contentEngagementChange: string;
 }
 
 export interface ActivityItem {
