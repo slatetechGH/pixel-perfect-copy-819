@@ -896,6 +896,15 @@ const DemoSetup = () => {
                       View Customer Storefront ↗
                     </a>
                   )}
+                  <button
+                    onClick={() => {
+                      if (!businessName) { toast.error("Business name is required"); return; }
+                      setAssignModalOpen(true);
+                    }}
+                    className="w-full py-3 px-8 border-2 border-foreground/20 text-foreground/70 hover:border-foreground hover:text-foreground text-[16px] font-semibold rounded-[10px] transition-colors cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <UserPlus size={18} /> Assign to Producer
+                  </button>
                 </>
               )}
             </div>
