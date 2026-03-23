@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { useApp } from "@/contexts/AppContext";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
