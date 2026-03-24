@@ -118,6 +118,9 @@ export interface BusinessSettings {
   currentPlanPrice: string;
   cardLast4: string;
   billingHistory: { date: string; amount: string; status: string; invoice: string }[];
+  producerId: string;
+  stripeConnectId: string | null;
+  stripeConnectStatus: string;
 }
 
 export interface RevenueData {
