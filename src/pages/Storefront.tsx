@@ -71,7 +71,6 @@ const Storefront = () => {
         body: {
           plan_id: plan.id,
           producer_id: settings.producerId,
-          customer_email: session.supabaseUser?.email || "",
           success_url: `${window.location.origin}/store/${businessSlug}/welcome?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${window.location.origin}/store/${businessSlug}`,
         },
