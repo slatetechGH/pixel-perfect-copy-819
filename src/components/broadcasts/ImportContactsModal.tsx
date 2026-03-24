@@ -31,7 +31,10 @@ export function ImportContactsModal({ open, onClose, producerId, onImported }: P
   const parseCSV = (text: string) => {
     const lines = text.split(/\r?\n/).filter(l => l.trim());
     if (lines.length < 2) { toast.error("CSV must have a header row and at least one data row"); return; }
-    const hdrs = lines[0].split(",").map(h => h.trim().replace(/^"(.*)"$/, "$1"));
+    // Strip BOM and normalise headers to lowercase
+    const rawFirst = lines[0].replace(/^\uFEFF/, "");
+    const hdrs = rawFirst.split(",").map(h => h.trim().replace(/^"(.*)"$/, "$1"));
+    const hdrsLower = hdrs.map(h => h.toLowerCase());
     setHeaders(hdrs);
     const rows = lines.slice(1).map(l => l.split(",").map(c => c.trim().replace(/^"(.*)"$/, "$1")));
     setAllRows(rows);
