@@ -31,15 +31,19 @@ export function ImportContactsModal({ open, onClose, producerId, onImported }: P
   const parseCSV = (text: string) => {
     const lines = text.split(/\r?\n/).filter(l => l.trim());
     if (lines.length < 2) { toast.error("CSV must have a header row and at least one data row"); return; }
-    const hdrs = lines[0].split(",").map(h => h.trim().replace(/^"(.*)"$/, "$1"));
+    // Strip BOM and normalise headers to lowercase
+    const rawFirst = lines[0].replace(/^\uFEFF/, "");
+    const hdrs = rawFirst.split(",").map(h => h.trim().replace(/^"(.*)"$/, "$1"));
+    const hdrsLower = hdrs.map(h => h.toLowerCase());
     setHeaders(hdrs);
     const rows = lines.slice(1).map(l => l.split(",").map(c => c.trim().replace(/^"(.*)"$/, "$1")));
     setAllRows(rows);
 
-    // Auto-detect columns
-    const emailIdx = hdrs.findIndex(h => /email/i.test(h));
-    const nameIdx = hdrs.findIndex(h => /name/i.test(h));
-    const phoneIdx = hdrs.findIndex(h => /phone|mobile|tel/i.test(h));
+    // Auto-detect columns using lowercased headers
+    const emailIdx = hdrsLower.findIndex(h => /email/.test(h));
+    const nameIdx = hdrsLower.findIndex(h => /name/.test(h));
+    const phoneIdx = hdrsLower.findIndex(h => /phone|mobile|tel/.test(h));
+    console.log("CSV headers:", hdrs, "Mapped:", { emailIdx, nameIdx, phoneIdx });
     setColumnMap({ email: emailIdx, name: nameIdx, phone: phoneIdx });
   };
 
@@ -67,28 +71,50 @@ export function ImportContactsModal({ open, onClose, producerId, onImported }: P
     if (mappedRows.length === 0) { toast.error("No valid email addresses found"); return; }
     setImporting(true);
     try {
-      const rows = mappedRows.map(r => ({
-        producer_id: producerId,
-        email: r.email.toLowerCase(),
-        name: r.name || null,
-        phone: r.phone || null,
-        source: "imported",
-        status: "imported",
-      }));
+      let importedCount = 0;
+      let duplicateCount = 0;
+      let errorCount = 0;
 
-      // Batch insert, ignoring duplicates via onConflict
-      const { data, error } = await supabase
-        .from("contacts")
-        .upsert(rows as any[], { onConflict: "producer_id,email", ignoreDuplicates: true })
-        .select();
+      console.log("Starting CSV import:", mappedRows.length, "rows for producer:", producerId);
+      console.log("Sample rows:", mappedRows.slice(0, 3));
 
-      const inserted = data?.length || 0;
-      const skipped = mappedRows.length - inserted;
-      toast.success(`Imported ${inserted} contacts.${skipped > 0 ? ` ${skipped} duplicates skipped.` : ""}`);
+      for (const r of mappedRows) {
+        const email = r.email.trim().toLowerCase();
+        const { error } = await supabase.from("contacts").insert({
+          producer_id: producerId,
+          email,
+          name: r.name?.trim() || null,
+          phone: r.phone?.trim() || null,
+          source: "imported" as string,
+          status: "imported" as string,
+        } as any);
+
+        if (error) {
+          if (error.code === "23505") {
+            duplicateCount++;
+            console.log("Duplicate skipped:", email);
+          } else {
+            errorCount++;
+            console.error("Failed to insert contact:", email, error);
+          }
+        } else {
+          importedCount++;
+        }
+      }
+
+      console.log("Import complete:", { imported: importedCount, duplicates: duplicateCount, errors: errorCount });
+
+      const parts: string[] = [];
+      if (importedCount > 0) parts.push(`Imported ${importedCount} contacts`);
+      if (duplicateCount > 0) parts.push(`${duplicateCount} duplicates skipped`);
+      if (errorCount > 0) parts.push(`${errorCount} errors`);
+      toast.success(parts.join(". ") + ".");
+
       onImported();
       handleReset();
       onClose();
     } catch (err: any) {
+      console.error("Import failed:", err);
       toast.error(err.message || "Import failed");
     } finally {
       setImporting(false);
