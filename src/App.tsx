@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DashboardProvider } from "@/contexts/DashboardContext";
 import { AppProvider, useApp } from "@/contexts/AppContext";
 import Index from "./pages/Index";
+import AdminCommandCentre from "./pages/AdminCommandCentre";
 import Subscribers from "./pages/Subscribers";
 import Plans from "./pages/Plans";
 import Content from "./pages/Content";
@@ -29,6 +30,9 @@ import StorefrontJoin from "./pages/StorefrontJoin";
 import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
 import AdminProducers from "./pages/AdminProducers";
+import AdminRevenue from "./pages/AdminRevenue";
+import AdminMeetings from "./pages/AdminMeetings";
+import AdminHealth from "./pages/AdminHealth";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +49,12 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
   }
   
   return <>{children}</>;
+}
+
+function RoleBasedDashboard() {
+  const { session } = useApp();
+  if (session.role === "admin") return <AdminCommandCentre />;
+  return <Index />;
 }
 
 const AppRoutes = () => (
@@ -67,7 +77,7 @@ const AppRoutes = () => (
       <Route path="/store/:businessSlug/account" element={<StorefrontAccount />} />
 
       {/* Dashboard — protected, admin + producer only */}
-      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Index /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><RoleBasedDashboard /></ProtectedRoute>} />
       <Route path="/dashboard/subscribers" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Subscribers /></ProtectedRoute>} />
       <Route path="/dashboard/plans" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Plans /></ProtectedRoute>} />
       <Route path="/dashboard/content" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Content /></ProtectedRoute>} />
@@ -80,6 +90,9 @@ const AppRoutes = () => (
       {/* Admin — admin only */}
       <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><Admin /></ProtectedRoute>} />
       <Route path="/admin/producers" element={<ProtectedRoute allowedRoles={["admin"]}><AdminProducers /></ProtectedRoute>} />
+      <Route path="/admin/revenue" element={<ProtectedRoute allowedRoles={["admin"]}><AdminRevenue /></ProtectedRoute>} />
+      <Route path="/admin/meetings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminMeetings /></ProtectedRoute>} />
+      <Route path="/admin/health" element={<ProtectedRoute allowedRoles={["admin"]}><AdminHealth /></ProtectedRoute>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

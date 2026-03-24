@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Users, CreditCard, FileText, Zap, MessageSquare, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2,
+  LayoutDashboard, Users, CreditCard, FileText, Zap, MessageSquare, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -15,18 +15,26 @@ import {
   SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
 
-const navItems = [
+const producerNavItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Subscribers", url: "/dashboard/subscribers", icon: Users },
   { title: "Plans", url: "/dashboard/plans", icon: CreditCard },
   { title: "Content", url: "/dashboard/content", icon: FileText },
   { title: "Product Drops", url: "/dashboard/drops", icon: Zap },
   { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
-  { title: "Leads", url: "/dashboard/leads", icon: UserPlus, adminOnly: true },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
-  { title: "Demo Launcher", url: "/demo-setup", icon: Wand2, adminOnly: true },
-  { title: "Producers", url: "/admin/producers", icon: Building2, adminOnly: true },
+];
+
+const adminNavItems = [
+  { title: "Command Centre", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Leads", url: "/dashboard/leads", icon: UserPlus },
+  { title: "Producers", url: "/admin/producers", icon: Building2 },
+  { title: "Demo Launcher", url: "/demo-setup", icon: Wand2 },
+  { title: "Revenue", url: "/admin/revenue", icon: PoundSterling },
+  { title: "Meetings", url: "/admin/meetings", icon: Calendar },
+  { title: "Platform Health", url: "/admin/health", icon: Shield },
+  { title: "Settings", url: "/dashboard/settings", icon: Settings },
 ];
 
 export function MerchantSidebar() {
@@ -141,9 +149,7 @@ export function MerchantSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems
-                .filter(item => !('adminOnly' in item && item.adminOnly) || session.role === "admin")
-                .map((item) => {
+              {(session.role === "admin" ? adminNavItems : producerNavItems).map((item) => {
                 const badgeCount = item.title === "Messages" ? unreadMessages : item.title === "Leads" ? newLeadCount : 0;
                 return (
                   <SidebarMenuItem key={item.title}>
