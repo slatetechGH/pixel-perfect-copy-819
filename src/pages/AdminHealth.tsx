@@ -46,8 +46,8 @@ const AdminHealth = () => {
     const results: DiagResult[] = [];
 
     // Test table queries
-    const tables = ["profiles", "leads", "subscribers", "plans"];
-    for (const t of tables) {
+    const diagTables = ["profiles", "leads", "subscribers", "plans"] as const;
+    for (const t of diagTables) {
       try {
         const { error } = await supabase.from(t).select("id").limit(1);
         results.push({ label: `Query ${t}`, status: error ? "error" : "ok", detail: error?.message });
