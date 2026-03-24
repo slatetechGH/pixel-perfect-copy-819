@@ -51,7 +51,6 @@ const Storefront = () => {
     document.getElementById("storefront-plans")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const [subscribingPlan, setSubscribingPlan] = useState<string | null>(null);
 
   const handleSubscribe = async (plan: typeof activePlans[0]) => {
     if (plan.isFree) {
