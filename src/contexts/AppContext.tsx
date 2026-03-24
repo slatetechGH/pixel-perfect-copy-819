@@ -208,18 +208,70 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Supabase auth state listener
   useEffect(() => {
-    // Auth loading timeout — if not resolved in 3s, assume not logged in
-    const authTimeout = setTimeout(() => {
-      setAuthLoading((current) => {
-        if (current) console.warn("Auth loading timed out");
-        return false;
-      });
-    }, 3000);
+    let isMounted = true;
 
+    // Auth loading timeout — if not resolved in 5s, assume not logged in
+    const authTimeout = setTimeout(() => {
+      if (isMounted) {
+        setAuthLoading((current) => {
+          if (current) console.warn("Auth loading timed out");
+          return false;
+        });
+      }
+    }, 5000);
+
+    // Helper: set session fully (including profile/role) before clearing authLoading
+    const initSession = async (supaSession: Session) => {
+      const user = supaSession.user;
+      // Set minimal session immediately
+      setSession((prev) => ({
+        ...prev,
+        isLoggedIn: true,
+        currentUser: user.email || "",
+        supabaseUser: user,
+        supabaseSession: supaSession,
+      }));
+      // Load profile + role BEFORE clearing authLoading so ProtectedRoute doesn't redirect
+      try {
+        const [profile, role] = await Promise.all([
+          fetchWithTimeout(fetchProfile(user.id), 4000),
+          fetchWithTimeout(fetchRole(user.id), 4000),
+        ]);
+        if (isMounted) {
+          setSession({
+            isLoggedIn: true,
+            currentUser: profile?.business_name || user.email || "",
+            supabaseUser: user,
+            supabaseSession: supaSession,
+            profile,
+            role,
+          });
+        }
+      } catch {
+        console.warn("Failed to load profile/role during init");
+      }
+      if (isMounted) {
+        clearTimeout(authTimeout);
+        setAuthLoading(false);
+      }
+    };
+
+    // Initial session check — runs first
+    supabase.auth.getSession().then(({ data: { session: existing } }) => {
+      if (existing?.user) {
+        initSession(existing);
+      } else {
+        if (isMounted) {
+          clearTimeout(authTimeout);
+          setAuthLoading(false);
+        }
+      }
+    });
+
+    // Listen for subsequent auth changes (login/logout after initial load)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, supaSession) => {
-      clearTimeout(authTimeout);
       if (supaSession?.user) {
-        // Set session immediately with minimal data — don't block on profile/role
+        // For subsequent changes, load profile/role in background (authLoading already false)
         setSession((prev) => ({
           ...prev,
           isLoggedIn: true,
@@ -227,36 +279,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
           supabaseUser: supaSession.user,
           supabaseSession: supaSession,
         }));
-        setAuthLoading(false);
-        // Load profile and role in background
         loadProfileAndRole(supaSession.user, supaSession);
       } else {
         setSession({
           isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null, role: null,
         });
-        setAuthLoading(false);
-      }
-    });
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session: existing } }) => {
-      clearTimeout(authTimeout);
-      if (existing?.user) {
-        setSession((prev) => ({
-          ...prev,
-          isLoggedIn: true,
-          currentUser: existing.user.email || "",
-          supabaseUser: existing.user,
-          supabaseSession: existing,
-        }));
-        setAuthLoading(false);
-        loadProfileAndRole(existing.user, existing);
-      } else {
-        setAuthLoading(false);
       }
     });
 
     return () => {
+      isMounted = false;
       clearTimeout(authTimeout);
       subscription.unsubscribe();
     };

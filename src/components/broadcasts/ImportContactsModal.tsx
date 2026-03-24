@@ -39,10 +39,11 @@ export function ImportContactsModal({ open, onClose, producerId, onImported }: P
     const rows = lines.slice(1).map(l => l.split(",").map(c => c.trim().replace(/^"(.*)"$/, "$1")));
     setAllRows(rows);
 
-    // Auto-detect columns
-    const emailIdx = hdrs.findIndex(h => /email/i.test(h));
-    const nameIdx = hdrs.findIndex(h => /name/i.test(h));
-    const phoneIdx = hdrs.findIndex(h => /phone|mobile|tel/i.test(h));
+    // Auto-detect columns using lowercased headers
+    const emailIdx = hdrsLower.findIndex(h => /email/.test(h));
+    const nameIdx = hdrsLower.findIndex(h => /name/.test(h));
+    const phoneIdx = hdrsLower.findIndex(h => /phone|mobile|tel/.test(h));
+    console.log("CSV headers:", hdrs, "Mapped:", { emailIdx, nameIdx, phoneIdx });
     setColumnMap({ email: emailIdx, name: nameIdx, phone: phoneIdx });
   };
 
