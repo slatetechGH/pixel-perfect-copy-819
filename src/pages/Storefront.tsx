@@ -291,9 +291,12 @@ const Storefront = () => {
                           ? { backgroundColor: accentColor, color: "#fff" }
                           : { backgroundColor: "transparent", border: `1.5px solid ${accentColor}`, color: accentColor }
                       }
-                      onClick={() => handleSubscribe(plan.name)}
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={subscribingPlan === plan.id}
                     >
-                      {plan.isFree ? "Join Free" : "Subscribe"}
+                      {subscribingPlan === plan.id ? (
+                        <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Processing...</>
+                      ) : plan.isFree ? "Join Free" : "Subscribe"}
                     </Button>
                   </motion.div>
                 );
