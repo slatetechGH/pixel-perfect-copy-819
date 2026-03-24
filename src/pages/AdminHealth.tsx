@@ -26,10 +26,11 @@ const AdminHealth = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const tables = ["profiles", "subscribers", "plans", "content", "drops", "leads", "subscriptions", "user_roles"];
+      const tableNames = ["profiles", "subscribers", "plans", "content", "drops", "leads", "subscriptions", "user_roles"] as const;
+      type TableName = typeof tableNames[number];
       const results: Record<string, number> = {};
       await Promise.all(
-        tables.map(async (t) => {
+        tableNames.map(async (t: TableName) => {
           const { count } = await supabase.from(t).select("id", { count: "exact", head: true });
           results[t] = count || 0;
         })
