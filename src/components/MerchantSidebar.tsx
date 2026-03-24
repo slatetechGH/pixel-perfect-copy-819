@@ -21,7 +21,7 @@ const producerNavItems = [
   { title: "Plans", url: "/dashboard/plans", icon: CreditCard },
   { title: "Content", url: "/dashboard/content", icon: FileText },
   { title: "Product Drops", url: "/dashboard/drops", icon: Zap },
-  { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
+  { title: "Broadcasts", url: "/dashboard/broadcasts", icon: Megaphone },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
 ];
