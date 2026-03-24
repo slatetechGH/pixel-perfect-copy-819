@@ -7,6 +7,8 @@ import { MapPin, Check, Clock, Users, Calendar, ChevronRight, ExternalLink } fro
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
