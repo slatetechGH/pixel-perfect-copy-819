@@ -11,7 +11,7 @@ import Subscribers from "./pages/Subscribers";
 import Plans from "./pages/Plans";
 import Content from "./pages/Content";
 import Drops from "./pages/Drops";
-import Messages from "./pages/Messages";
+import Broadcasts from "./pages/Broadcasts";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Leads from "./pages/Leads";
@@ -92,7 +92,7 @@ const AppRoutes = () => (
       <Route path="/dashboard/plans" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Plans /></ProtectedRoute>} />
       <Route path="/dashboard/content" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Content /></ProtectedRoute>} />
       <Route path="/dashboard/drops" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Drops /></ProtectedRoute>} />
-      <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Messages /></ProtectedRoute>} />
+      <Route path="/dashboard/broadcasts" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Broadcasts /></ProtectedRoute>} />
       <Route path="/dashboard/analytics" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Analytics /></ProtectedRoute>} />
       <Route path="/dashboard/leads" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Leads /></ProtectedRoute>} />
       <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Settings /></ProtectedRoute>} />

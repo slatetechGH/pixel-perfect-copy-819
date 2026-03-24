@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Users, CreditCard, FileText, Zap, MessageSquare, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield,
+  LayoutDashboard, Users, CreditCard, FileText, Zap, Megaphone, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +21,7 @@ const producerNavItems = [
   { title: "Plans", url: "/dashboard/plans", icon: CreditCard },
   { title: "Content", url: "/dashboard/content", icon: FileText },
   { title: "Product Drops", url: "/dashboard/drops", icon: Zap },
-  { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
+  { title: "Broadcasts", url: "/dashboard/broadcasts", icon: Megaphone },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
 ];
@@ -43,7 +43,7 @@ export function MerchantSidebar() {
   const navigate = useNavigate();
   const { conversations, settings } = useDashboard();
   const { signOut, demoActive, accentColor, session } = useApp();
-  const unreadMessages = conversations.filter(c => c.unread).length;
+  const unreadMessages = 0; // Legacy — kept for compatibility
   const [newLeadCount, setNewLeadCount] = useState(0);
 
   useEffect(() => {
@@ -150,7 +150,7 @@ export function MerchantSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {(session.role === "admin" ? adminNavItems : producerNavItems).map((item) => {
-                const badgeCount = item.title === "Messages" ? unreadMessages : item.title === "Leads" ? newLeadCount : 0;
+                const badgeCount = item.title === "Leads" ? newLeadCount : 0;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild className="h-9">
