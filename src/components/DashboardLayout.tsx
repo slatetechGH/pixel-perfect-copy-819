@@ -65,6 +65,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
         <MerchantSidebar />
         <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden max-w-[100vw]">
           <OnboardingBanner />
+          {/* Demo mode strip */}
           {demoActive && (
             <div
               className="flex items-center justify-between px-4 md:px-8 shrink-0 overflow-hidden"
