@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DashboardProvider } from "@/contexts/DashboardContext";
 import { AppProvider, useApp } from "@/contexts/AppContext";
 import Index from "./pages/Index";
+import AdminCommandCentre from "./pages/AdminCommandCentre";
 import Subscribers from "./pages/Subscribers";
 import Plans from "./pages/Plans";
 import Content from "./pages/Content";
@@ -29,6 +30,9 @@ import StorefrontJoin from "./pages/StorefrontJoin";
 import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
 import AdminProducers from "./pages/AdminProducers";
+import AdminRevenue from "./pages/AdminRevenue";
+import AdminMeetings from "./pages/AdminMeetings";
+import AdminHealth from "./pages/AdminHealth";
 
 const queryClient = new QueryClient();
 
