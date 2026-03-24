@@ -11,7 +11,7 @@ import Subscribers from "./pages/Subscribers";
 import Plans from "./pages/Plans";
 import Content from "./pages/Content";
 import Drops from "./pages/Drops";
-import Messages from "./pages/Messages";
+import Broadcasts from "./pages/Broadcasts";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Leads from "./pages/Leads";
