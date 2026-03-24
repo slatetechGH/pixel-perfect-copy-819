@@ -51,6 +51,12 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
   return <>{children}</>;
 }
 
+function RoleBasedDashboard() {
+  const { session } = useApp();
+  if (session.role === "admin") return <AdminCommandCentre />;
+  return <Index />;
+}
+
 const AppRoutes = () => (
   <DashboardProvider>
     <Routes>
