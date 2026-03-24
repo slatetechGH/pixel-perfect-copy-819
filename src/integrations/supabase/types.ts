@@ -534,6 +534,7 @@ export type Database = {
         Row: {
           accent_color: string | null
           address: string | null
+          bio: string | null
           business_name: string | null
           business_type: string | null
           commission_percentage: number
@@ -547,6 +548,8 @@ export type Database = {
           instagram: string | null
           logo_url: string | null
           notification_prefs: Json | null
+          onboarding_completed: boolean
+          onboarding_step: number
           phone: string | null
           plan: string
           public_visible: boolean | null
@@ -562,6 +565,7 @@ export type Database = {
         Insert: {
           accent_color?: string | null
           address?: string | null
+          bio?: string | null
           business_name?: string | null
           business_type?: string | null
           commission_percentage?: number
@@ -575,6 +579,8 @@ export type Database = {
           instagram?: string | null
           logo_url?: string | null
           notification_prefs?: Json | null
+          onboarding_completed?: boolean
+          onboarding_step?: number
           phone?: string | null
           plan?: string
           public_visible?: boolean | null
@@ -590,6 +596,7 @@ export type Database = {
         Update: {
           accent_color?: string | null
           address?: string | null
+          bio?: string | null
           business_name?: string | null
           business_type?: string | null
           commission_percentage?: number
@@ -603,6 +610,8 @@ export type Database = {
           instagram?: string | null
           logo_url?: string | null
           notification_prefs?: Json | null
+          onboarding_completed?: boolean
+          onboarding_step?: number
           phone?: string | null
           plan?: string
           public_visible?: boolean | null

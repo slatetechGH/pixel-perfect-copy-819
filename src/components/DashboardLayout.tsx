@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import SlateLogo from "@/components/SlateLogo";
+import { OnboardingBanner } from "@/components/OnboardingBanner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -63,6 +64,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
       <div className="min-h-screen flex w-full">
         <MerchantSidebar />
         <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden max-w-[100vw]">
+          <OnboardingBanner />
           {/* Demo mode strip */}
           {demoActive && (
             <div

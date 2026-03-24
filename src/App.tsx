@@ -35,6 +35,7 @@ import AdminMeetings from "./pages/AdminMeetings";
 import AdminHealth from "./pages/AdminHealth";
 import Cookies from "./pages/Cookies";
 import StorefrontWelcome from "./pages/StorefrontWelcome";
+import Onboarding from "./pages/Onboarding";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,10 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
 function RoleBasedDashboard() {
   const { session } = useApp();
   if (session.role === "admin") return <AdminCommandCentre />;
+  // Redirect producers who haven't completed onboarding
+  if (session.role === "producer" && session.profile && !(session.profile as any).onboarding_completed) {
+    return <Navigate to="/onboarding" replace />;
+  }
   return <Index />;
 }
 
@@ -72,6 +77,7 @@ const AppRoutes = () => (
       <Route path="/cookies" element={<Cookies />} />
       <Route path="/demo-setup" element={<ProtectedRoute allowedRoles={["admin"]}><DemoSetup /></ProtectedRoute>} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/onboarding" element={<ProtectedRoute allowedRoles={["producer"]}><Onboarding /></ProtectedRoute>} />
 
       {/* Customer-facing storefront — public, no auth */}
       <Route path="/store/:businessSlug" element={<Storefront />} />
