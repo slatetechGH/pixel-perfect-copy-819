@@ -77,7 +77,7 @@ const AppRoutes = () => (
       <Route path="/store/:businessSlug/account" element={<StorefrontAccount />} />
 
       {/* Dashboard — protected, admin + producer only */}
-      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Index /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><RoleBasedDashboard /></ProtectedRoute>} />
       <Route path="/dashboard/subscribers" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Subscribers /></ProtectedRoute>} />
       <Route path="/dashboard/plans" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Plans /></ProtectedRoute>} />
       <Route path="/dashboard/content" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Content /></ProtectedRoute>} />
