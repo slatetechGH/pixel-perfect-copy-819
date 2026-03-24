@@ -43,7 +43,7 @@ export function MerchantSidebar() {
   const navigate = useNavigate();
   const { conversations, settings } = useDashboard();
   const { signOut, demoActive, accentColor, session } = useApp();
-  const unreadMessages = conversations.filter(c => c.unread).length;
+  const unreadMessages = 0; // Legacy — kept for compatibility
   const [newLeadCount, setNewLeadCount] = useState(0);
 
   useEffect(() => {
