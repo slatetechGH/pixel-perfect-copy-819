@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import SlateLogo from "@/components/SlateLogo";
+import { OnboardingBanner } from "@/components/OnboardingBanner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
