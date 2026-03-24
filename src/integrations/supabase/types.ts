@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_meetings: {
+        Row: {
+          admin_id: string
+          completed: boolean
+          created_at: string
+          date: string
+          id: string
+          meeting_type: string
+          notes: string | null
+          producer_id: string | null
+          title: string
+        }
+        Insert: {
+          admin_id: string
+          completed?: boolean
+          created_at?: string
+          date: string
+          id?: string
+          meeting_type?: string
+          notes?: string | null
+          producer_id?: string | null
+          title: string
+        }
+        Update: {
+          admin_id?: string
+          completed?: boolean
+          created_at?: string
+          date?: string
+          id?: string
+          meeting_type?: string
+          notes?: string | null
+          producer_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_meetings_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_meetings_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content: {
         Row: {
           ai: boolean | null
