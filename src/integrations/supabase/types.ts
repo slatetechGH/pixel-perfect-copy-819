@@ -65,6 +65,159 @@ export type Database = {
           },
         ]
       }
+      broadcast_recipients: {
+        Row: {
+          broadcast_id: string
+          created_at: string
+          email: string
+          id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          broadcast_id: string
+          created_at?: string
+          email: string
+          id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          broadcast_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcast_recipients_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      broadcasts: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          producer_id: string
+          recipient_count: number
+          sent_at: string | null
+          status: string
+          subject: string
+          target_segments: Json
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          producer_id: string
+          recipient_count?: number
+          sent_at?: string | null
+          status?: string
+          subject: string
+          target_segments?: Json
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          producer_id?: string
+          recipient_count?: number
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          target_segments?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcasts_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "broadcasts_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          invited_at: string | null
+          name: string | null
+          phone: string | null
+          plan_id: string | null
+          producer_id: string
+          source: string
+          status: string
+          subscribed_at: string | null
+          unsubscribed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          invited_at?: string | null
+          name?: string | null
+          phone?: string | null
+          plan_id?: string | null
+          producer_id: string
+          source?: string
+          status?: string
+          subscribed_at?: string | null
+          unsubscribed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          invited_at?: string | null
+          name?: string | null
+          phone?: string | null
+          plan_id?: string | null
+          producer_id?: string
+          source?: string
+          status?: string
+          subscribed_at?: string | null
+          unsubscribed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content: {
         Row: {
           ai: boolean | null
