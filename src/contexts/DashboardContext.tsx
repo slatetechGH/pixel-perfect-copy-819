@@ -187,6 +187,9 @@ const defaultSettings: BusinessSettings = {
   currentPlanPrice: "Free",
   cardLast4: "0000",
   billingHistory: [],
+  producerId: "",
+  stripeConnectId: null,
+  stripeConnectStatus: "not_connected",
 };
 
 const emptyKPI: KPIData = {
