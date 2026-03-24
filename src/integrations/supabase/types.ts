@@ -872,6 +872,7 @@ export type Database = {
       }
     }
     Functions: {
+      assign_customer_role: { Args: never; Returns: undefined }
       get_all_producers: {
         Args: never
         Returns: {

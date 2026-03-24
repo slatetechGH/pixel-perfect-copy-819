@@ -7,6 +7,15 @@ const corsHeaders = {
 
 const ADMIN_EMAIL = "sales@slatetech.co.uk";
 
+function esc(s: string | undefined): string {
+  return (s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -30,41 +39,41 @@ serve(async (req) => {
 
     if (type === "contact") {
       const { name, email, company, phone, message } = data;
-      subject = `New Enquiry from ${name} — ${company}`;
+      subject = `New Enquiry from ${esc(name)} — ${esc(company)}`;
       replyTo = email;
       htmlBody = `
         <h2>You have a new enquiry from the Slate website</h2>
         <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;">
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Name</td><td style="padding:6px 0;">${name}</td></tr>
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Email</td><td style="padding:6px 0;"><a href="mailto:${email}">${email}</a></td></tr>
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Company</td><td style="padding:6px 0;">${company}</td></tr>
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Phone</td><td style="padding:6px 0;">${phone || "—"}</td></tr>
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Message</td><td style="padding:6px 0;">${message}</td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Name</td><td style="padding:6px 0;">${esc(name)}</td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Email</td><td style="padding:6px 0;">${esc(email)}</td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Company</td><td style="padding:6px 0;">${esc(company)}</td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Phone</td><td style="padding:6px 0;">${esc(phone) || "—"}</td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Message</td><td style="padding:6px 0;">${esc(message)}</td></tr>
           <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Submitted at</td><td style="padding:6px 0;">${new Date().toISOString()}</td></tr>
         </table>
       `;
     } else if (type === "signup") {
       const { name, email, company, interests, plan } = data;
-      subject = `New Producer Signup — ${company}`;
+      subject = `New Producer Signup — ${esc(company)}`;
       replyTo = email;
       htmlBody = `
         <h2>New producer signup on Slate</h2>
         <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;">
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Name</td><td style="padding:6px 0;">${name}</td></tr>
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Email</td><td style="padding:6px 0;"><a href="mailto:${email}">${email}</a></td></tr>
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Company</td><td style="padding:6px 0;">${company}</td></tr>
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Interests</td><td style="padding:6px 0;">${(interests || []).join(", ") || "—"}</td></tr>
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Selected Plan</td><td style="padding:6px 0;">${plan || "—"}</td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Name</td><td style="padding:6px 0;">${esc(name)}</td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Email</td><td style="padding:6px 0;">${esc(email)}</td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Company</td><td style="padding:6px 0;">${esc(company)}</td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Interests</td><td style="padding:6px 0;">${esc((interests || []).join(", ")) || "—"}</td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Selected Plan</td><td style="padding:6px 0;">${esc(plan) || "—"}</td></tr>
           <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Signed up at</td><td style="padding:6px 0;">${new Date().toISOString()}</td></tr>
         </table>
       `;
     } else if (type === "newsletter") {
       const { email } = data;
-      subject = `New Newsletter Subscriber — ${email}`;
+      subject = `New Newsletter Subscriber — ${esc(email)}`;
       htmlBody = `
         <h2>New newsletter subscriber on Slate</h2>
         <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;">
-          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Email</td><td style="padding:6px 0;"><a href="mailto:${email}">${email}</a></td></tr>
+          <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Email</td><td style="padding:6px 0;">${esc(email)}</td></tr>
           <tr><td style="padding:6px 12px 6px 0;font-weight:600;">Subscribed at</td><td style="padding:6px 0;">${new Date().toISOString()}</td></tr>
         </table>
       `;
@@ -107,8 +116,7 @@ serve(async (req) => {
     });
   } catch (error: unknown) {
     console.error("send-enquiry-email error:", error);
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: msg }), {
+    return new Response(JSON.stringify({ error: "Something went wrong" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
