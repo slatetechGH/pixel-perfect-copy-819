@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Instagram, Globe, Twitter, Facebook, Upload, Eye, Loader2, CreditCard, X, Copy } from "lucide-react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
-const tabs = ["Business Profile", "Public Page", "Notifications", "Billing & Plan"] as const;
+const tabs = ["Business Profile", "Public Page", "Notifications", "Billing & Payments"] as const;
 const accentSwatches = ["#1E293B", "#475569", "#0F172A", "#0EA5E9", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#14B8A6"];
 
 const Settings = () => {
