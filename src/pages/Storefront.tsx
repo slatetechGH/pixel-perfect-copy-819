@@ -51,10 +51,46 @@ const Storefront = () => {
     document.getElementById("storefront-plans")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSubscribe = (planName: string) => {
-    toast("Checkout coming soon", {
-      description: `Subscribing to ${planName} will be available when payments are enabled.`,
-    });
+  const [subscribingPlan, setSubscribingPlan] = useState<string | null>(null);
+
+  const handleSubscribe = async (plan: typeof activePlans[0]) => {
+    if (plan.isFree) {
+      // For free plans, redirect to join page
+      navigate(`/store/${businessSlug}/join`);
+      return;
+    }
+
+    // Check if producer has Stripe Connect
+    if (!settings.stripeConnectId || settings.stripeConnectStatus !== "active") {
+      toast.info("This producer hasn't set up payments yet. Check back soon!");
+      return;
+    }
+
+    setSubscribingPlan(plan.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("checkout-session", {
+        body: {
+          plan_id: plan.id,
+          producer_id: settings.producerId,
+          customer_email: session.supabaseUser?.email || "",
+          success_url: `${window.location.origin}/store/${businessSlug}/welcome?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${window.location.origin}/store/${businessSlug}`,
+        },
+      });
+
+      if (error || data?.error) {
+        toast.error(data?.error || "Something went wrong. Please try again.");
+        return;
+      }
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      toast.error("Failed to start checkout. Please try again.");
+    } finally {
+      setSubscribingPlan(null);
+    }
   };
 
   // Find "most popular" plan (middle tier by default)
