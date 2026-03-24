@@ -389,6 +389,9 @@ const mockSettings: BusinessSettings = {
     { date: "1 Nov 2025", amount: "£79.00", status: "Paid", invoice: "INV-002" },
     { date: "1 Oct 2025", amount: "£29.00", status: "Paid", invoice: "INV-001" },
   ],
+  producerId: "",
+  stripeConnectId: null,
+  stripeConnectStatus: "not_connected",
 };
 
 const mockKPI: KPIData = {
