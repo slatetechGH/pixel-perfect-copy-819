@@ -33,6 +33,8 @@ import AdminProducers from "./pages/AdminProducers";
 import AdminRevenue from "./pages/AdminRevenue";
 import AdminMeetings from "./pages/AdminMeetings";
 import AdminHealth from "./pages/AdminHealth";
+import Cookies from "./pages/Cookies";
+import StorefrontWelcome from "./pages/StorefrontWelcome";
 
 const queryClient = new QueryClient();
 
