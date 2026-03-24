@@ -150,7 +150,7 @@ export function MerchantSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {(session.role === "admin" ? adminNavItems : producerNavItems).map((item) => {
-                const badgeCount = item.title === "Messages" ? unreadMessages : item.title === "Leads" ? newLeadCount : 0;
+                const badgeCount = item.title === "Leads" ? newLeadCount : 0;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild className="h-9">
