@@ -33,6 +33,8 @@ import AdminProducers from "./pages/AdminProducers";
 import AdminRevenue from "./pages/AdminRevenue";
 import AdminMeetings from "./pages/AdminMeetings";
 import AdminHealth from "./pages/AdminHealth";
+import Cookies from "./pages/Cookies";
+import StorefrontWelcome from "./pages/StorefrontWelcome";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +69,7 @@ const AppRoutes = () => (
       <Route path="/login" element={<Login />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
+      <Route path="/cookies" element={<Cookies />} />
       <Route path="/demo-setup" element={<ProtectedRoute allowedRoles={["admin"]}><DemoSetup /></ProtectedRoute>} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -75,6 +78,7 @@ const AppRoutes = () => (
       <Route path="/store/:businessSlug/content/:contentId" element={<StorefrontContent />} />
       <Route path="/store/:businessSlug/join" element={<StorefrontJoin />} />
       <Route path="/store/:businessSlug/account" element={<StorefrontAccount />} />
+      <Route path="/store/:businessSlug/welcome" element={<StorefrontWelcome />} />
 
       {/* Dashboard — protected, admin + producer only */}
       <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><RoleBasedDashboard /></ProtectedRoute>} />

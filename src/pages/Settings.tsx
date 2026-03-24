@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Instagram, Globe, Twitter, Facebook, Upload, Eye, Loader2, CreditCard, X, Copy } from "lucide-react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
-const tabs = ["Business Profile", "Public Page", "Notifications", "Billing & Plan"] as const;
+const tabs = ["Business Profile", "Public Page", "Notifications", "Billing & Payments"] as const;
 const accentSwatches = ["#1E293B", "#475569", "#0F172A", "#0EA5E9", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#14B8A6"];
 
 const Settings = () => {
@@ -199,8 +199,44 @@ const Settings = () => {
           </Card>
         )}
 
-        {activeTab === "Billing & Plan" && (
+        {activeTab === "Billing & Payments" && (
           <div className="space-y-5">
+            {/* Stripe Connect */}
+            <Card className="border-0 shadow-card">
+              <CardHeader className="px-6 pt-6 pb-3"><CardTitle className="text-[15px] font-medium">Accept Payments</CardTitle></CardHeader>
+              <CardContent className="px-6 pb-6">
+                {settings.stripeConnectStatus === "active" ? (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-success/10 text-success">Stripe connected ✓</span>
+                    <p className="text-[13px] text-muted-foreground">You can accept payments from subscribers.</p>
+                  </div>
+                ) : settings.stripeConnectStatus === "connecting" ? (
+                  <div>
+                    <p className="text-[14px] text-foreground mb-2">Stripe setup in progress</p>
+                    <p className="text-[13px] text-muted-foreground mb-3">Complete your Stripe onboarding to start accepting payments.</p>
+                    <Button variant="slate" onClick={async () => {
+                      const { data, error } = await (await import("@/integrations/supabase/client")).supabase.functions.invoke("stripe-connect-onboarding", { body: { action: "create_account" } });
+                      if (data?.url) window.location.href = data.url;
+                      else toast.error("Failed to resume Stripe setup");
+                    }}>
+                      Resume Setup
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-[14px] text-foreground mb-2">Connect your Stripe account to start accepting payments</p>
+                    <p className="text-[13px] text-muted-foreground mb-3">Stripe handles all payment processing securely. Slate takes a 6% commission on subscription revenue.</p>
+                    <Button variant="slate" onClick={async () => {
+                      const { data, error } = await (await import("@/integrations/supabase/client")).supabase.functions.invoke("stripe-connect-onboarding", { body: { action: "create_account" } });
+                      if (data?.url) window.location.href = data.url;
+                      else toast.error(data?.error || "Failed to start Stripe setup");
+                    }}>
+                      <CreditCard size={16} className="mr-1.5" /> Connect Stripe
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
             <Card className="border-0 shadow-card">
               <CardHeader className="px-6 pt-6 pb-3"><CardTitle className="text-[15px] font-medium">Current Plan</CardTitle></CardHeader>
               <CardContent className="px-6 pb-6">

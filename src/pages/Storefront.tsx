@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import { motion } from "framer-motion";
@@ -6,6 +7,8 @@ import { MapPin, Check, Clock, Users, Calendar, ChevronRight, ExternalLink } fro
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -20,7 +23,7 @@ const Storefront = () => {
   const navigate = useNavigate();
   const { settings, plans, drops, content, subscribers } = useDashboard();
   const { accentColor, demoActive, session } = useApp();
-
+  const [subscribingPlan, setSubscribingPlan] = useState<string | null>(null);
   // Check if the slug matches the current settings
   const currentSlug = settings.urlSlug || settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
@@ -48,10 +51,45 @@ const Storefront = () => {
     document.getElementById("storefront-plans")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSubscribe = (planName: string) => {
-    toast("Checkout coming soon", {
-      description: `Subscribing to ${planName} will be available when payments are enabled.`,
-    });
+
+  const handleSubscribe = async (plan: typeof activePlans[0]) => {
+    if (plan.isFree) {
+      // For free plans, redirect to join page
+      navigate(`/store/${businessSlug}/join`);
+      return;
+    }
+
+    // Check if producer has Stripe Connect
+    if (!settings.stripeConnectId || settings.stripeConnectStatus !== "active") {
+      toast.info("This producer hasn't set up payments yet. Check back soon!");
+      return;
+    }
+
+    setSubscribingPlan(plan.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("checkout-session", {
+        body: {
+          plan_id: plan.id,
+          producer_id: settings.producerId,
+          customer_email: session.supabaseUser?.email || "",
+          success_url: `${window.location.origin}/store/${businessSlug}/welcome?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${window.location.origin}/store/${businessSlug}`,
+        },
+      });
+
+      if (error || data?.error) {
+        toast.error(data?.error || "Something went wrong. Please try again.");
+        return;
+      }
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      toast.error("Failed to start checkout. Please try again.");
+    } finally {
+      setSubscribingPlan(null);
+    }
   };
 
   // Find "most popular" plan (middle tier by default)
@@ -252,9 +290,12 @@ const Storefront = () => {
                           ? { backgroundColor: accentColor, color: "#fff" }
                           : { backgroundColor: "transparent", border: `1.5px solid ${accentColor}`, color: accentColor }
                       }
-                      onClick={() => handleSubscribe(plan.name)}
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={subscribingPlan === plan.id}
                     >
-                      {plan.isFree ? "Join Free" : "Subscribe"}
+                      {subscribingPlan === plan.id ? (
+                        <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Processing...</>
+                      ) : plan.isFree ? "Join Free" : "Subscribe"}
                     </Button>
                   </motion.div>
                 );

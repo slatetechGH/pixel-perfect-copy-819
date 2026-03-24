@@ -118,6 +118,9 @@ export interface BusinessSettings {
   currentPlanPrice: string;
   cardLast4: string;
   billingHistory: { date: string; amount: string; status: string; invoice: string }[];
+  producerId: string;
+  stripeConnectId: string | null;
+  stripeConnectStatus: string;
 }
 
 export interface RevenueData {
@@ -184,6 +187,9 @@ const defaultSettings: BusinessSettings = {
   currentPlanPrice: "Free",
   cardLast4: "0000",
   billingHistory: [],
+  producerId: "",
+  stripeConnectId: null,
+  stripeConnectStatus: "not_connected",
 };
 
 const emptyKPI: KPIData = {
@@ -386,6 +392,9 @@ const mockSettings: BusinessSettings = {
     { date: "1 Nov 2025", amount: "£79.00", status: "Paid", invoice: "INV-002" },
     { date: "1 Oct 2025", amount: "£29.00", status: "Paid", invoice: "INV-001" },
   ],
+  producerId: "",
+  stripeConnectId: null,
+  stripeConnectStatus: "not_connected",
 };
 
 const mockKPI: KPIData = {

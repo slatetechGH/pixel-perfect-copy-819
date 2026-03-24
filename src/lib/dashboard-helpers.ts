@@ -225,6 +225,9 @@ export function profileToSettings(profile: any, currentSettings: BusinessSetting
     notifications: profile.notification_prefs
       ? { ...currentSettings.notifications, ...profile.notification_prefs }
       : currentSettings.notifications,
+    producerId: profile.id || currentSettings.producerId,
+    stripeConnectId: profile.stripe_connect_id ?? currentSettings.stripeConnectId,
+    stripeConnectStatus: profile.stripe_connect_status || currentSettings.stripeConnectStatus,
   };
 }
 

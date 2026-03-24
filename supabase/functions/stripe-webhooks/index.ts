@@ -53,6 +53,41 @@ serve(async (req) => {
     console.log(`Processing Stripe event: ${event.type}`);
 
     switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const connectAccountId = event.account;
+        const customerEmail = session.customer_email || "";
+        const planId = session.metadata?.plan_id;
+        const producerId = session.metadata?.producer_id;
+
+        if (producerId && customerEmail) {
+          // Look up plan name
+          let planName = "Unknown Plan";
+          if (planId) {
+            const { data: plan } = await supabase
+              .from("plans")
+              .select("name")
+              .eq("id", planId)
+              .single();
+            if (plan) planName = plan.name;
+          }
+
+          // Create subscriber record
+          await supabase.from("subscribers").insert({
+            producer_id: producerId,
+            name: customerEmail.split("@")[0],
+            email: customerEmail,
+            plan: planName,
+            status: "active",
+            joined_at: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+            revenue: "£0",
+          });
+
+          console.log(`Created subscriber: ${customerEmail} for producer ${producerId}`);
+        }
+        break;
+      }
+
       case "customer.subscription.created": {
         const subscription = event.data.object as Stripe.Subscription;
         const customer = await stripe.customers.retrieve(subscription.customer as string);
@@ -105,6 +140,18 @@ serve(async (req) => {
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_subscription_id", subscription.id);
+
+        // Also update subscriber status
+        if (status === "canceled") {
+          const customer = await stripe.customers.retrieve(subscription.customer as string);
+          const email = (customer as Stripe.Customer).email;
+          if (email) {
+            await supabase
+              .from("subscribers")
+              .update({ status: "cancelled" })
+              .eq("email", email);
+          }
+        }
         break;
       }
 
@@ -117,6 +164,56 @@ serve(async (req) => {
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_subscription_id", subscription.id);
+
+        // Mark subscriber as cancelled
+        const customer = await stripe.customers.retrieve(subscription.customer as string);
+        const email = (customer as Stripe.Customer).email;
+        if (email) {
+          await supabase
+            .from("subscribers")
+            .update({ status: "cancelled" })
+            .eq("email", email);
+        }
+        break;
+      }
+
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const connectAccountId = event.account;
+
+        if (connectAccountId && invoice.customer_email) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("id, commission_percentage")
+            .eq("stripe_connect_id", connectAccountId)
+            .single();
+
+          if (profile) {
+            const amount = invoice.amount_paid || 0;
+            const commission = Math.round(amount * (profile.commission_percentage / 100));
+
+            // Create transaction records
+            await supabase.from("transactions").insert({
+              producer_id: profile.id,
+              transaction_type: "payment_received",
+              amount,
+              stripe_event_id: event.id,
+            });
+
+            await supabase.from("transactions").insert({
+              producer_id: profile.id,
+              transaction_type: "commission_deducted",
+              amount: commission,
+              stripe_event_id: event.id,
+            });
+
+            // Update subscriber revenue
+            const revenuePence = amount;
+            const revenuePounds = (revenuePence / 100).toFixed(0);
+            // Note: this is a simplistic update - in production you'd accumulate
+            console.log(`Invoice paid: £${revenuePounds} from ${invoice.customer_email}`);
+          }
+        }
         break;
       }
 

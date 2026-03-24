@@ -3,8 +3,8 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  UserPlus, Building2, Wand2, PoundSterling, Calendar, Bell, Shield, ExternalLink,
-  Download, Plus, Loader2,
+  UserPlus, Building2, Wand2, PoundSterling, Calendar, Shield, ExternalLink,
+  Download, Plus, Loader2, Users, TrendingUp, Bell, Zap,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -56,6 +56,23 @@ const getGreeting = () => {
   return "Good evening";
 };
 
+const tileAccents: Record<string, string> = {
+  "Leads & Enquiries": "hsl(38, 92%, 50%)",
+  "Producers": "hsl(217, 91%, 60%)",
+  "Demo Launcher": "hsl(270, 60%, 60%)",
+  "Revenue & Commission": "hsl(160, 84%, 39%)",
+  "Meetings & Follow-ups": "hsl(180, 60%, 45%)",
+  "Platform Health": "hsl(215, 16%, 65%)",
+};
+
+const statConfig = [
+  { label: "Total Producers", icon: Building2, bg: "hsl(217, 91%, 95%)", iconColor: "hsl(217, 91%, 60%)" },
+  { label: "Total Subscribers", icon: Users, bg: "hsl(160, 84%, 93%)", iconColor: "hsl(160, 84%, 39%)" },
+  { label: "Platform MRR", icon: PoundSterling, bg: "hsl(38, 92%, 93%)", iconColor: "hsl(38, 92%, 50%)" },
+  { label: "Commission (6%)", icon: TrendingUp, bg: "hsl(270, 60%, 93%)", iconColor: "hsl(270, 60%, 60%)" },
+  { label: "New Leads (7d)", icon: Bell, bg: "hsl(25, 95%, 93%)", iconColor: "hsl(25, 95%, 53%)" },
+];
+
 const AdminCommandCentre = () => {
   const navigate = useNavigate();
   const { session } = useApp();
@@ -95,17 +112,15 @@ const AdminCommandCentre = () => {
 
       setRecentLeads((leadsRecentRes.data || []) as RecentLead[]);
 
-      // Filter producers from profiles that have producer role
       const allProfiles = (producersRes.data || []) as RecentProducer[];
       setRecentProducers(allProfiles.filter(p => producerIds.includes(p.id)).slice(0, 3));
 
-      // Enrich meetings with producer names
       const meetings = (meetingsRes.data || []) as any[];
       const enriched: UpcomingMeeting[] = meetings.map(m => ({
         id: m.id,
         title: m.title,
         date: m.date,
-        producer_name: null, // Could enrich with profile lookup
+        producer_name: null,
       }));
       setUpcomingMeetings(enriched);
 
@@ -129,7 +144,9 @@ const AdminCommandCentre = () => {
     toast.success("Leads exported!");
   };
 
-  const adminName = session.profile?.business_name || session.supabaseUser?.email?.split("@")[0] || "Admin";
+  // Use display_name from profile, fallback to no name
+  const adminName = session.profile?.display_name || session.profile?.business_name || "";
+  const displayGreeting = adminName ? `${getGreeting()}, ${adminName.split(" ")[0]}` : getGreeting();
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   if (loading) {
@@ -141,6 +158,14 @@ const AdminCommandCentre = () => {
       </DashboardLayout>
     );
   }
+
+  const statValues = [
+    stats.totalProducers,
+    stats.totalSubscribers,
+    `£${stats.platformMRR.toFixed(0)}`,
+    `£${stats.platformCommission.toFixed(2)}`,
+    stats.newLeadsThisWeek,
+  ];
 
   const tiles = [
     {
@@ -176,8 +201,8 @@ const AdminCommandCentre = () => {
       badgeLabel: "this month",
       route: "/admin/revenue",
       preview: stats.platformMRR > 0
-        ? [{ label: `Platform MRR: £${stats.platformMRR.toFixed(0)}`, sub: `Commission (6%): £${stats.platformCommission.toFixed(2)}` }]
-        : [{ label: "£0 revenue", sub: "Revenue appears once producers have paying subscribers" }],
+        ? [{ label: `Platform MRR: £${stats.platformMRR.toFixed(0)}`, sub: `Commission: £${stats.platformCommission.toFixed(2)}` }]
+        : [{ label: "£0 revenue", sub: "Revenue appears once producers have subscribers" }],
     },
     {
       title: "Meetings & Follow-ups",
@@ -202,86 +227,91 @@ const AdminCommandCentre = () => {
     <DashboardLayout title="Command Centre" subtitle="">
       {/* Greeting */}
       <div className="mb-8">
-        <h2 className="text-[28px] font-bold text-foreground">{getGreeting()}, {adminName.split(" ")[0] || adminName}</h2>
+        <h2 className="text-[28px] font-bold text-foreground">{displayGreeting}</h2>
         <p className="text-[14px] text-muted-foreground mt-1">{today}</p>
       </div>
 
       {/* Quick stats bar */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        {[
-          { label: "Total Producers", value: stats.totalProducers },
-          { label: "Total Subscribers", value: stats.totalSubscribers },
-          { label: "Platform MRR", value: `£${stats.platformMRR.toFixed(0)}` },
-          { label: "Commission (6%)", value: `£${stats.platformCommission.toFixed(2)}` },
-          { label: "New Leads (7d)", value: stats.newLeadsThisWeek },
-        ].map((s, i) => (
-          <motion.div
-            key={s.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.06, duration: 0.35 }}
-            className="rounded-xl border border-border bg-card p-4"
-          >
-            <p className="text-[12px] text-muted-foreground font-medium">{s.label}</p>
-            <p className="text-[22px] font-semibold text-foreground mt-1">{s.value}</p>
-          </motion.div>
-        ))}
+        {statConfig.map((s, i) => {
+          const Icon = s.icon;
+          return (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06, duration: 0.35 }}
+              className="rounded-xl border border-border p-4"
+              style={{ backgroundColor: s.bg }}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-[12px] text-muted-foreground font-medium">{s.label}</p>
+                <Icon className="h-4 w-4" style={{ color: s.iconColor }} strokeWidth={1.5} />
+              </div>
+              <p className="text-[22px] font-semibold text-foreground">{statValues[i]}</p>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Tiles grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-        {tiles.map((tile, i) => (
-          <motion.div
-            key={tile.title}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 + i * 0.07, duration: 0.4 }}
-          >
-            <Card
-              className="border border-border bg-card hover:shadow-md hover:border-foreground/15 transition-all duration-200 cursor-pointer group"
-              onClick={() => navigate(tile.route)}
+        {tiles.map((tile, i) => {
+          const accent = tileAccents[tile.title] || "hsl(215, 16%, 65%)";
+          return (
+            <motion.div
+              key={tile.title}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 + i * 0.07, duration: 0.4 }}
             >
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-2.5">
-                    <tile.icon className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
-                    <h3 className="text-[15px] font-semibold text-foreground">{tile.title}</h3>
-                  </div>
-                  {tile.badge && (
-                    <span className="inline-flex items-center rounded-full bg-amber/15 text-amber px-2 py-0.5 text-[12px] font-semibold">
-                      {tile.badge}
-                    </span>
-                  )}
-                  {tile.healthDot && (
-                    <span className="flex items-center gap-1.5 text-[12px] text-success font-medium">
-                      <span className="h-2 w-2 rounded-full bg-success" />
-                      Healthy
-                    </span>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  {tile.preview.map((p, j) => (
-                    <div key={j} className="flex items-center justify-between">
-                      <span className="text-[13px] text-foreground truncate">{p.label}</span>
-                      <span className="text-[12px] text-muted-foreground shrink-0 ml-2">{p.sub}</span>
+              <Card
+                className="border border-border bg-card hover:shadow-lg hover:border-foreground/15 transition-all duration-200 cursor-pointer group overflow-hidden"
+                style={{ borderLeftWidth: 3, borderLeftColor: accent, minHeight: 160 }}
+                onClick={() => navigate(tile.route)}
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-2.5">
+                      <tile.icon className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
+                      <h3 className="text-[15px] font-semibold text-foreground">{tile.title}</h3>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+                    {tile.badge && (
+                      <span className="inline-flex items-center rounded-full bg-amber/15 text-amber px-2 py-0.5 text-[12px] font-semibold">
+                        {tile.badge}
+                      </span>
+                    )}
+                    {tile.healthDot && (
+                      <span className="flex items-center gap-1.5 text-[12px] text-success font-medium">
+                        <span className="h-2 w-2 rounded-full bg-success" />
+                        Healthy
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {tile.preview.map((p, j) => (
+                      <div key={j} className="flex items-center justify-between gap-2">
+                        <span className="text-[13px] text-foreground truncate min-w-0">{p.label}</span>
+                        <span className="text-[12px] text-muted-foreground shrink-0 ml-2 line-clamp-1">{p.sub}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Quick actions */}
       <div className="flex flex-wrap gap-3">
-        <Button variant="outline" size="sm" onClick={() => navigate("/admin/meetings")}>
+        <Button size="sm" onClick={() => navigate("/admin/meetings")} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10">
           <Plus className="h-4 w-4 mr-1.5" />New Meeting
         </Button>
-        <Button variant="outline" size="sm" onClick={exportLeadsCSV}>
+        <Button size="sm" onClick={exportLeadsCSV} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10">
           <Download className="h-4 w-4 mr-1.5" />Export Leads CSV
         </Button>
-        <Button variant="outline" size="sm" onClick={() => window.open("https://slatetech.co.uk", "_blank")}>
+        <Button size="sm" onClick={() => window.open("https://slatetech.co.uk", "_blank")} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10">
           <ExternalLink className="h-4 w-4 mr-1.5" />View Live Site
         </Button>
       </div>
