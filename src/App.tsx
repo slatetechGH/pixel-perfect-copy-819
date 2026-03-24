@@ -35,6 +35,7 @@ import AdminMeetings from "./pages/AdminMeetings";
 import AdminHealth from "./pages/AdminHealth";
 import Cookies from "./pages/Cookies";
 import StorefrontWelcome from "./pages/StorefrontWelcome";
+import Onboarding from "./pages/Onboarding";
 
 const queryClient = new QueryClient();
 

@@ -67,8 +67,8 @@ export default function OnboardingPayments({ profile, userId, onContinue, onSkip
       </div>
 
       {isConnected ? (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <p className="text-[15px] text-green-700 font-medium">✓ Stripe connected — you're ready to accept payments!</p>
+        <div className="bg-amber/5 border border-amber/20 rounded-lg p-4 mb-6">
+          <p className="text-[15px] text-foreground font-medium">✓ Stripe connected — you're ready to accept payments!</p>
         </div>
       ) : null}
 
