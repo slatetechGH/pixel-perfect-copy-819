@@ -14,24 +14,69 @@ serve(async (req) => {
 
   const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
   if (!STRIPE_SECRET_KEY) {
-    return new Response(JSON.stringify({ error: "STRIPE_SECRET_KEY not configured" }), {
+    return new Response(JSON.stringify({ error: "Payment service not configured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  try {
-    const { plan_id, producer_id, customer_email, success_url, cancel_url } = await req.json();
+  // ── Auth: require a valid JWT ──
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
-    if (!plan_id || !producer_id || !customer_email) {
-      return new Response(JSON.stringify({ error: "Missing required fields: plan_id, producer_id, customer_email" }), {
+  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const token = authHeader.replace("Bearer ", "");
+  const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+  if (claimsError || !claimsData?.claims) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = claimsData.claims.sub;
+  const userEmail = claimsData.claims.email as string;
+
+  try {
+    const { plan_id, producer_id, success_url, cancel_url } = await req.json();
+
+    if (!plan_id || !producer_id) {
+      return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // ── Validate redirect URLs: must be same origin ──
+    const origin = req.headers.get("origin") || "";
+    const safeFallback = origin || "https://pixel-perfect-copy-819.lovable.app";
+
+    function isAllowedUrl(url: string | undefined): string {
+      if (!url) return safeFallback + "/";
+      try {
+        const parsed = new URL(url);
+        // Allow same origin or known production domains
+        if (origin && parsed.origin === origin) return url;
+        if (parsed.hostname.endsWith(".lovable.app")) return url;
+        return safeFallback + "/";
+      } catch {
+        return safeFallback + "/";
+      }
+    }
+
+    const safeSuccessUrl = isAllowedUrl(success_url);
+    const safeCancelUrl = isAllowedUrl(cancel_url);
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
@@ -65,14 +110,14 @@ serve(async (req) => {
       .single();
 
     if (profileError || !profile?.stripe_connect_id) {
-      return new Response(JSON.stringify({ error: "Producer has not connected Stripe" }), {
+      return new Response(JSON.stringify({ error: "Payments not available for this producer" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (profile.stripe_connect_status !== "active") {
-      return new Response(JSON.stringify({ error: "Producer's Stripe account is not fully set up" }), {
+      return new Response(JSON.stringify({ error: "Payments not available for this producer" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -84,7 +129,6 @@ serve(async (req) => {
     let priceId = plan.stripe_price_id;
 
     if (!priceId) {
-      // Create a product and price on the connected account
       const product = await stripe.products.create(
         { name: plan.name },
         { stripeAccount: profile.stripe_connect_id }
@@ -92,7 +136,7 @@ serve(async (req) => {
       const price = await stripe.prices.create(
         {
           product: product.id,
-          unit_amount: Math.round(plan.price_num * 100), // price_num is in pounds
+          unit_amount: Math.round(plan.price_num * 100),
           currency: "gbp",
           recurring: { interval: "month" },
         },
@@ -100,27 +144,27 @@ serve(async (req) => {
       );
       priceId = price.id;
 
-      // Save back to plans table
       await supabase
         .from("plans")
         .update({ stripe_price_id: priceId })
         .eq("id", plan_id);
     }
 
-    // Create checkout session
+    // Create checkout session using authenticated user's email
     const session = await stripe.checkout.sessions.create(
       {
         mode: "subscription",
         line_items: [{ price: priceId, quantity: 1 }],
-        customer_email: customer_email,
-        success_url: success_url || `${req.headers.get("origin")}/`,
-        cancel_url: cancel_url || `${req.headers.get("origin")}/`,
+        customer_email: userEmail,
+        success_url: safeSuccessUrl,
+        cancel_url: safeCancelUrl,
         subscription_data: {
           application_fee_percent: commission,
         },
         metadata: {
           plan_id,
           producer_id,
+          user_id: userId,
         },
       },
       { stripeAccount: profile.stripe_connect_id }
@@ -131,8 +175,7 @@ serve(async (req) => {
     });
   } catch (error: unknown) {
     console.error("Checkout session error:", error);
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: msg }), {
+    return new Response(JSON.stringify({ error: "Something went wrong" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

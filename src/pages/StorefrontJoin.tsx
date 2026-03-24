@@ -58,9 +58,8 @@ const StorefrontJoin = () => {
       }
 
       if (data.user) {
-        // Assign customer role (the trigger creates a 'producer' role by default,
-        // so we update it to 'customer')
-        await supabase.from("user_roles").update({ role: "customer" } as any).eq("user_id", data.user.id);
+        // Assign customer role via secure RPC (the trigger creates 'producer' by default)
+        await supabase.rpc("assign_customer_role" as any);
 
         // Create customer_profiles link to this producer
         const producerSlug = settings.urlSlug || settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
