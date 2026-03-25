@@ -194,8 +194,7 @@ const emptyContent = (): DemoContent => ({ title: "", type: "Recipe", status: "d
 
 const DemoSetup = () => {
   const navigate = useNavigate();
-  const { activateDemo, setSession, demoConfig, setDemoConfig, demoActive } = useApp();
-  const dashboard = useDashboard();
+  const { demoConfig, setDemoConfig, demoActive } = useApp();
   const [launching, setLaunching] = useState(false);
   const [launchProgress, setLaunchProgress] = useState(0);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
