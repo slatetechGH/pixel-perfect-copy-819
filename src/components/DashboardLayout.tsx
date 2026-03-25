@@ -78,25 +78,33 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
                 Demo Mode — {demoBusinessName}
               </span>
               <div className="flex items-center gap-1 text-[11px] font-medium shrink-0" style={{ color: "hsl(215, 16%, 47%)" }}>
+                {storefrontSlug && (
+                  <>
+                    <button
+                      onClick={() => window.open(`/store/${storefrontSlug}`, "_blank")}
+                      className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
+                    >
+                      Preview Storefront
+                    </button>
+                    <span className="opacity-40">·</span>
+                  </>
+                )}
                 <button
-                  onClick={() => storefrontSlug && navigate(`/store/${storefrontSlug}`)}
+                  onClick={() => {
+                    // Navigate back to demo setup in the admin's original tab won't work
+                    // since this is a new tab. Instead, close and re-open from admin.
+                    window.open("/demo-setup", "_blank");
+                  }}
                   className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
                 >
-                  Preview Storefront
-                </button>
-                <span className="opacity-40">·</span>
-                <button
-                  onClick={() => navigate("/demo-setup")}
-                  className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
-                >
-                  Edit demo
+                  Edit Demo
                 </button>
                 <span className="opacity-40">·</span>
                 <button
                   onClick={() => setResetConfirm(true)}
                   className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
                 >
-                  Reset
+                  Close Demo
                 </button>
               </div>
             </div>

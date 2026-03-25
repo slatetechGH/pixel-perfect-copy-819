@@ -62,10 +62,11 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
 }
 
 function RoleBasedDashboard() {
-  const { session } = useApp();
-  if (session.role === "admin") return <AdminCommandCentre />;
+  const { session, demoActive } = useApp();
+  // In demo mode, always show the producer dashboard (even for admins)
+  if (session.role === "admin" && !demoActive) return <AdminCommandCentre />;
   // Redirect producers who haven't completed onboarding
-  if (session.role === "producer" && session.profile && !(session.profile as any).onboarding_completed) {
+  if (session.role === "producer" && !demoActive && session.profile && !(session.profile as any).onboarding_completed) {
     return <Navigate to="/onboarding" replace />;
   }
   return <Index />;

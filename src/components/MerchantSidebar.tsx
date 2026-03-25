@@ -141,7 +141,7 @@ export function MerchantSidebar() {
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                {(session.role === "admin" ? adminNavItems : producerNavItems).map((item) => {
+                {((session.role === "admin" && !demoActive) ? adminNavItems : producerNavItems).map((item) => {
                   const badgeCount = item.title === "Leads" ? newLeadCount : 0;
                   return (
                     <SidebarMenuItem key={item.title}>
