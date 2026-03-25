@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApp, DemoPlan, DemoDrop, DemoContent, DemoProfile } from "@/contexts/AppContext";
-import { useDashboard, type Conversation, type Message } from "@/contexts/DashboardContext";
+import { type Conversation, type Message } from "@/contexts/DashboardContext";
 import { toast } from "sonner";
 import {
   Beef, CakeSlice, Fish, Milk, Tractor, Beer, X, Plus, Loader2, Save, RotateCcw, Rocket, UserPlus,
