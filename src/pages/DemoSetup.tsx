@@ -545,34 +545,34 @@ const DemoSetup = () => {
         color: pieColors[i % pieColors.length],
       }));
 
-      // WRITE ALL DATA TO DASHBOARD CONTEXT
-      dashboard.setPlans(dashPlans);
-      dashboard.setDrops(dashDrops);
-      dashboard.setContent(dashContent);
-      dashboard.setSubscribers(generatedSubscribers);
-      dashboard.setConversations(conversations);
-      dashboard.setKpiData(kpi);
-      dashboard.setRevenueChartData(revData);
-      dashboard.setSubscriberGrowthData(subGrowth);
-      dashboard.setRevenueDataSets(revDataSets);
-      dashboard.setActivityFeed(activity);
-      dashboard.setTierBreakdown(tierData);
+      // Save demo config to localStorage for the preview tab
+      const demoPreviewData = {
+        settings: {
+          businessName,
+          businessType,
+          description: tagline,
+          email,
+          phone,
+          website,
+          urlSlug: businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+          accentColor: selectedColor,
+          logoUrl,
+          coverUrl,
+        },
+        plans: dashPlans,
+        drops: dashDrops,
+        content: dashContent,
+        subscribers: generatedSubscribers,
+        conversations,
+        kpi,
+        revenueChartData: revData,
+        subscriberGrowthData: subGrowth,
+        revenueDataSets: revDataSets,
+        activityFeed: activity,
+        tierBreakdown: tierData,
+      };
 
-      // Update settings
-      const slug = businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      dashboard.setSettings(prev => ({
-        ...prev,
-        businessName,
-        businessType,
-        description: tagline,
-        email: email || prev.email,
-        phone: phone || prev.phone,
-        website: website || prev.website,
-        urlSlug: slug,
-        accentColor: selectedColor,
-        logoUrl,
-        coverUrl,
-      }));
+      localStorage.setItem("slate_demo_preview", JSON.stringify(demoPreviewData));
 
       // Save demo config for "Edit demo" pre-fill
       const config: DemoProfile = {
@@ -583,12 +583,13 @@ const DemoSetup = () => {
       };
       setDemoConfig(config);
 
-      // Activate demo mode — purely local state, never touches Supabase
-      activateDemo(businessName, selectedColor);
+      // Open demo in a NEW TAB — admin's current tab stays untouched
+      const slug = businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
       setTimeout(() => {
         setLaunching(false);
-        navigate("/dashboard");
+        window.open(`/demo-preview/${slug}`, "_blank");
+        toast.success("Demo launched in a new tab!");
       }, 300);
     }, 2000);
   };
