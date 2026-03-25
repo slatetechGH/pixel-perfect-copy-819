@@ -4,33 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import SlateLogo from "@/components/SlateLogo";
 import { supabase } from "@/integrations/supabase/client";
+import { useApp } from "@/contexts/AppContext";
 import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { session, authLoading } = useApp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [checkingSession, setCheckingSession] = useState(true);
+  const [loginTriggered, setLoginTriggered] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Check if already logged in — as a side effect, not a render blocker
+  // Redirect to dashboard once session is established (covers initial load + post-login)
   useEffect(() => {
-    const timeout = setTimeout(() => setCheckingSession(false), 3000);
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      clearTimeout(timeout);
-      if (session) {
-        navigate("/dashboard", { replace: true });
-      } else {
-        setCheckingSession(false);
-      }
-    }).catch(() => {
-      clearTimeout(timeout);
-      setCheckingSession(false);
-    });
-    return () => clearTimeout(timeout);
-  }, [navigate]);
+    if (!authLoading && session.isLoggedIn) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [authLoading, session.isLoggedIn, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,9 +33,9 @@ const Login = () => {
 
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
 
     if (error) {
+      setLoading(false);
       if (error.message.includes("Invalid login")) {
         setErrors({ password: "Invalid email or password" });
       } else if (error.message.includes("Email not confirmed")) {
@@ -54,8 +46,10 @@ const Login = () => {
       return;
     }
 
+    // Don't navigate here — the onAuthStateChange in AppContext will update session,
+    // and the useEffect above will redirect once session.isLoggedIn becomes true.
+    setLoginTriggered(true);
     toast.success("Welcome back!");
-    navigate("/dashboard", { replace: true });
   };
 
   const handleForgotPassword = async () => {
@@ -69,8 +63,8 @@ const Login = () => {
     setForgotSent(true);
   };
 
-  // Show a minimal loading state while checking session (max 3s)
-  if (checkingSession) {
+  // Show loading while checking session or after login triggered
+  if (authLoading || (loginTriggered && loading)) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
