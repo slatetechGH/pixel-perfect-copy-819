@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -41,14 +41,20 @@ const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { session, authLoading } = useApp();
+  const location = useLocation();
   if (authLoading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" /></div>;
   if (!session.isLoggedIn) return <Navigate to="/login" replace />;
   
+  // While role is hydrating, keep authenticated users in dashboard flow instead of bouncing to landing
+  if (allowedRoles && !session.role) {
+    if (location.pathname.startsWith("/dashboard")) return <>{children}</>;
+    return <Navigate to="/dashboard" replace />;
+  }
+
   // Role-based access: if allowedRoles specified, check the user's role
-  if (allowedRoles && (!session.role || !allowedRoles.includes(session.role))) {
-    // Redirect to appropriate home based on whatever role they do have
+  if (allowedRoles && !allowedRoles.includes(session.role)) {
     if (session.role === "customer") return <Navigate to="/" replace />;
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   
   return <>{children}</>;
