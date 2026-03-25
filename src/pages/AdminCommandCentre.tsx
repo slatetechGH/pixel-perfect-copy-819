@@ -69,7 +69,7 @@ const statConfig = [
   { label: "Total Producers", icon: Building2, bg: "hsl(217, 91%, 95%)", iconColor: "hsl(217, 91%, 60%)" },
   { label: "Total Subscribers", icon: Users, bg: "hsl(160, 84%, 93%)", iconColor: "hsl(160, 84%, 39%)" },
   { label: "Platform MRR", icon: PoundSterling, bg: "hsl(38, 92%, 93%)", iconColor: "hsl(38, 92%, 50%)" },
-  { label: "Commission (6%)", icon: TrendingUp, bg: "hsl(270, 60%, 93%)", iconColor: "hsl(270, 60%, 60%)" },
+  { label: "Commission (8%)", icon: TrendingUp, bg: "hsl(270, 60%, 93%)", iconColor: "hsl(270, 60%, 60%)" },
   { label: "New Leads (7d)", icon: Bell, bg: "hsl(25, 95%, 93%)", iconColor: "hsl(25, 95%, 53%)" },
 ];
 
