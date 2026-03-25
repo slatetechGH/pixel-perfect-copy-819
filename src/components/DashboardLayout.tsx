@@ -24,7 +24,13 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
   const handleReset = () => {
     resetToDefaults();
     deactivateDemo();
-    navigate("/dashboard");
+    localStorage.removeItem("slate_demo_preview");
+    // If this is a demo tab, close it; otherwise navigate home
+    if (window.opener || window.history.length <= 2) {
+      window.close();
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   const now = new Date();
