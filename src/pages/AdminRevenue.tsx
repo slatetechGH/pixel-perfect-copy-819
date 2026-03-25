@@ -52,7 +52,7 @@ const AdminRevenue = () => {
 
       const mrr = Object.values(revenueMap).reduce((s, v) => s + v, 0) / 100;
       setTotalMRR(mrr);
-      setTotalCommission(mrr * 0.06);
+      setTotalCommission(mrr * 0.08);
       setProducerBreakdown(breakdown);
       setLoading(false);
     };
