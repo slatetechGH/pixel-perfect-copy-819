@@ -22,7 +22,7 @@ const ranges = [
 
 function computeBreakdown(grossRevenue: number) {
   const stripeFees = grossRevenue * 0.022 + 0.30;
-  const slateCommission = grossRevenue * 0.06;
+  const slateCommission = grossRevenue * 0.08;
   const netRevenue = grossRevenue - stripeFees - slateCommission;
   return { grossRevenue, stripeFees, slateCommission, netRevenue };
 }
