@@ -144,11 +144,13 @@ const Plans = () => {
                 <input
                   type="text"
                   inputMode="decimal"
-                  value={editing.priceNum === 0 ? "" : String(editing.priceNum)}
+                  value={priceInput}
                   onChange={e => {
                     const val = e.target.value;
-                    if (val === "" || val === ".") { updateField("priceNum", 0); return; }
-                    if (/^\d*\.?\d{0,2}$/.test(val)) { updateField("priceNum", parseFloat(val) || 0); }
+                    if (val === "" || /^\d*\.?\d{0,2}$/.test(val)) {
+                      setPriceInput(val);
+                      updateField("priceNum", parseFloat(val) || 0);
+                    }
                   }}
                   placeholder="e.g. 25.00"
                   className="w-full h-11 px-4 rounded-lg border border-border bg-white text-[15px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
