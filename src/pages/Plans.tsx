@@ -21,10 +21,18 @@ const Plans = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<Plan | null>(null);
   const [toggleConfirm, setToggleConfirm] = useState<Plan | null>(null);
   const [saving, setSaving] = useState(false);
+  const [priceInput, setPriceInput] = useState("");
 
   const openEditor = (plan?: Plan) => {
-    if (plan) { setEditing({ ...plan, benefits: [...plan.benefits] }); setIsNew(false); }
-    else { setEditing({ ...emptyPlan, id: crypto.randomUUID(), benefits: [""] } as Plan); setIsNew(true); }
+    if (plan) {
+      setEditing({ ...plan, benefits: [...plan.benefits] });
+      setPriceInput(plan.priceNum > 0 ? String(plan.priceNum) : "");
+      setIsNew(false);
+    } else {
+      setEditing({ ...emptyPlan, id: crypto.randomUUID(), benefits: [""] } as Plan);
+      setPriceInput("");
+      setIsNew(true);
+    }
   };
 
   const updateField = (field: keyof Plan, value: any) => {
