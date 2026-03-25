@@ -16,11 +16,28 @@ const ResetPassword = () => {
   const [hasRecovery, setHasRecovery] = useState(false);
 
   useEffect(() => {
-    // Check for recovery token in URL hash
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setHasRecovery(true);
-    }
+    const init = async () => {
+      // Check for PKCE code in query params (newer Supabase flow)
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (!error) {
+          setHasRecovery(true);
+        } else {
+          console.error("Code exchange failed:", error.message);
+        }
+        return;
+      }
+
+      // Check for recovery token in URL hash (legacy implicit flow)
+      const hash = window.location.hash;
+      if (hash.includes("type=recovery")) {
+        setHasRecovery(true);
+      }
+    };
+
+    init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
