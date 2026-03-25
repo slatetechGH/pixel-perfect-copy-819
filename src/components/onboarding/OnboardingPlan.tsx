@@ -20,7 +20,7 @@ export default function OnboardingPlan({ userId, onContinue, onSkip }: Props) {
 
   const priceNum = parseFloat(price) || 0;
   const stripeFee = priceNum > 0 ? priceNum * 0.022 + 0.3 : 0;
-  const slateFee = priceNum * 0.06;
+  const slateFee = priceNum * 0.08;
   const earnings = Math.max(0, priceNum - stripeFee - slateFee);
 
   const addBenefit = () => setBenefits(prev => [...prev, ""]);

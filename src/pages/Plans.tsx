@@ -21,10 +21,18 @@ const Plans = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<Plan | null>(null);
   const [toggleConfirm, setToggleConfirm] = useState<Plan | null>(null);
   const [saving, setSaving] = useState(false);
+  const [priceInput, setPriceInput] = useState("");
 
   const openEditor = (plan?: Plan) => {
-    if (plan) { setEditing({ ...plan, benefits: [...plan.benefits] }); setIsNew(false); }
-    else { setEditing({ ...emptyPlan, id: crypto.randomUUID(), benefits: [""] } as Plan); setIsNew(true); }
+    if (plan) {
+      setEditing({ ...plan, benefits: [...plan.benefits] });
+      setPriceInput(plan.priceNum > 0 ? String(plan.priceNum) : "");
+      setIsNew(false);
+    } else {
+      setEditing({ ...emptyPlan, id: crypto.randomUUID(), benefits: [""] } as Plan);
+      setPriceInput("");
+      setIsNew(true);
+    }
   };
 
   const updateField = (field: keyof Plan, value: any) => {
@@ -133,7 +141,20 @@ const Plans = () => {
               <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Monthly Price (£) <span className="text-amber">*</span></label>
               <div className="flex items-center gap-2">
                 <span className="text-[15px] text-muted-foreground">£</span>
-                <input type="number" min="0" step="0.50" value={editing.priceNum} onChange={e => updateField("priceNum", parseFloat(e.target.value) || 0)} className="w-full h-11 px-4 rounded-lg border border-border bg-white text-[15px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all" />
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={priceInput}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val === "" || /^\d*\.?\d{0,2}$/.test(val)) {
+                      setPriceInput(val);
+                      updateField("priceNum", parseFloat(val) || 0);
+                    }
+                  }}
+                  placeholder="e.g. 25.00"
+                  className="w-full h-11 px-4 rounded-lg border border-border bg-white text-[15px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
+                />
               </div>
               <PriceCalculator priceNum={editing.priceNum} />
             </div>

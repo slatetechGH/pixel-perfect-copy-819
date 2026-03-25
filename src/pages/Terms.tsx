@@ -58,7 +58,7 @@ const Terms = () => {
 
           <section>
             <h2 className="text-[20px] font-semibold text-foreground mb-3">5. Commission & Fees</h2>
-            <p>Slate charges a 6% commission on all subscription revenue processed through the platform. This commission is automatically deducted from each payment before funds are transferred to the producer. Stripe's standard processing fees (approximately 2.2% + 30p per transaction) also apply and are deducted separately.</p>
+            <p>Slate charges an 8% commission on all subscription revenue processed through the platform. This commission is automatically deducted from each payment before funds are transferred to the producer. Stripe's standard processing fees (approximately 2.2% + 30p per transaction) also apply and are deducted separately.</p>
           </section>
 
           <section>

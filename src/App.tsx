@@ -36,6 +36,7 @@ import AdminHealth from "./pages/AdminHealth";
 import Cookies from "./pages/Cookies";
 import StorefrontWelcome from "./pages/StorefrontWelcome";
 import Onboarding from "./pages/Onboarding";
+import DemoPreview from "./pages/DemoPreview";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +84,7 @@ const AppRoutes = () => (
       <Route path="/cookies" element={<Cookies />} />
       <Route path="/demo-setup" element={<ProtectedRoute allowedRoles={["admin"]}><DemoSetup /></ProtectedRoute>} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/demo-preview/:businessSlug" element={<DemoPreview />} />
       <Route path="/onboarding" element={<ProtectedRoute allowedRoles={["producer"]}><Onboarding /></ProtectedRoute>} />
 
       {/* Customer-facing storefront — public, no auth */}

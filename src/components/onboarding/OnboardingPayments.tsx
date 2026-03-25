@@ -55,7 +55,7 @@ export default function OnboardingPayments({ profile, userId, onContinue, onSkip
         {[
           { icon: Shield, label: "Bank-level security" },
           { icon: Landmark, label: "Payments go directly to your account" },
-          { icon: PieChart, label: "Slate takes 6% commission, you keep the rest" },
+          { icon: PieChart, label: "Slate takes 8% commission, you keep the rest" },
         ].map(({ icon: Icon, label }) => (
           <div key={label} className="flex items-center gap-3 text-[15px] text-foreground">
             <div className="w-9 h-9 rounded-full bg-amber/10 flex items-center justify-center shrink-0">
