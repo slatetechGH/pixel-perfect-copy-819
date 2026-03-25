@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const businessTypes = [
   "Butcher", "Baker", "Fishmonger", "Cheesemaker", "Farm Shop",
-  "Brewery / Distillery", "Market Stall", "Café / Restaurant", "Other Artisan Producer",
+  "Brewery / Distillery", "Café / Restaurant", "Deli / Food Shop", "Other Artisan Producer",
 ];
 
 const customerCounts = ["Just getting started", "Under 50", "50–200", "200–500", "500+"];

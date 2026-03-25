@@ -5,17 +5,17 @@ const pains = [
   {
     icon: TrendingDown,
     title: "Inconsistent revenue",
-    desc: "One great market day followed by three quiet ones. Your income shouldn't feel like a lottery.",
+    desc: "One great week followed by three quiet ones. Your income shouldn't feel like a lottery.",
   },
   {
     icon: MapPin,
-    title: "Relying on footfall",
-    desc: "When customers can't make it to you, you lose the sale — and maybe the customer forever.",
+    title: "Relying on walk-ins",
+    desc: "When customers can't come to you, you lose the sale — and maybe the customer forever.",
   },
   {
     icon: CalendarOff,
     title: "Gaps between purchases",
-    desc: "Weeks pass between market days. No way to stay in touch or keep customers buying regularly.",
+    desc: "Weeks pass between orders. No way to stay in touch or keep customers buying regularly.",
   },
 ];
 

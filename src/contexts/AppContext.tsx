@@ -269,17 +269,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for subsequent auth changes (login/logout after initial load)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, supaSession) => {
+    let initialSessionHandled = false;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, supaSession) => {
       if (supaSession?.user) {
-        // For subsequent changes, load profile/role in background (authLoading already false)
-        setSession((prev) => ({
-          ...prev,
-          isLoggedIn: true,
-          currentUser: supaSession.user.email || "",
-          supabaseUser: supaSession.user,
-          supabaseSession: supaSession,
-        }));
-        loadProfileAndRole(supaSession.user, supaSession);
+        if (event === "SIGNED_IN" && !initialSessionHandled) {
+          // First SIGNED_IN after login — use full init so ProtectedRoute waits
+          initialSessionHandled = true;
+          setAuthLoading(true);
+          await initSession(supaSession);
+        } else if (event === "SIGNED_IN") {
+          // Subsequent SIGNED_IN (e.g. after token refresh triggered re-auth)
+          setSession((prev) => ({
+            ...prev,
+            isLoggedIn: true,
+            currentUser: supaSession.user.email || "",
+            supabaseUser: supaSession.user,
+            supabaseSession: supaSession,
+          }));
+          loadProfileAndRole(supaSession.user, supaSession);
+        } else {
+          // TOKEN_REFRESHED etc — just update session quietly
+          setSession((prev) => ({
+            ...prev,
+            isLoggedIn: true,
+            currentUser: supaSession.user.email || "",
+            supabaseUser: supaSession.user,
+            supabaseSession: supaSession,
+          }));
+          loadProfileAndRole(supaSession.user, supaSession);
+        }
       } else {
         setSession({
           isLoggedIn: false, currentUser: "", supabaseUser: null, supabaseSession: null, profile: null, role: null,

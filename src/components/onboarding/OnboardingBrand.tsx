@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 const businessTypes = [
   "Butcher", "Baker", "Fishmonger", "Cheesemonger", "Farm Shop",
-  "Brewery", "Market Stall", "Other",
+  "Brewery", "Café / Restaurant", "Other",
 ];
 
 const presetColors = [

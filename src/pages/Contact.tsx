@@ -9,12 +9,12 @@ import { toast } from "sonner";
 
 const businessTypes = [
   "Butcher", "Baker", "Fishmonger", "Cheesemaker", "Farm Shop",
-  "Brewery / Distillery", "Market Stall", "Café / Restaurant",
+  "Brewery / Distillery", "Café / Restaurant", "Deli / Food Shop",
   "Other Artisan Producer", "I'm a Customer",
 ];
 
 const hearAbout = [
-  "Google Search", "Social Media", "Word of Mouth", "Blog / Article", "Event / Market", "Other",
+  "Google Search", "Social Media", "Word of Mouth", "Blog / Article", "Event / Conference", "Other",
 ];
 
 const Contact = () => {
