@@ -19,7 +19,7 @@ const steps = [
   {
     num: "4",
     title: "Get paid",
-    desc: "Money goes straight to your bank account. We take 6% — you keep the rest.",
+    desc: "Money goes straight to your bank account. We take 8% — you keep the rest.",
   },
 ];
 

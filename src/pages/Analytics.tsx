@@ -84,7 +84,7 @@ const Analytics = () => {
               <p className="text-[20px] font-bold text-muted-foreground">−£{breakdown.stripeFees.toFixed(2)}</p>
             </div>
             <div className="bg-secondary rounded-xl p-4">
-              <p className="text-[12px] font-medium text-muted-foreground mb-1">Slate Commission (6%)</p>
+              <p className="text-[12px] font-medium text-muted-foreground mb-1">Slate Commission (8%)</p>
               <p className="text-[20px] font-bold text-muted-foreground">−£{breakdown.slateCommission.toFixed(2)}</p>
             </div>
             <div className="bg-secondary rounded-xl p-4">

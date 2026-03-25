@@ -123,7 +123,7 @@ serve(async (req) => {
       });
     }
 
-    const commission = profile.commission_percentage || 6;
+    const commission = profile.commission_percentage || 8;
 
     // If plan has a stripe_price_id, use it; otherwise create an ad-hoc price
     let priceId = plan.stripe_price_id;

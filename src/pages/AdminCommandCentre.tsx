@@ -106,7 +106,7 @@ const AdminCommandCentre = () => {
         totalProducers: producerIds.length,
         totalSubscribers: activeSubs,
         platformMRR: mrr,
-        platformCommission: mrr * 0.06,
+        platformCommission: mrr * 0.08,
         newLeadsThisWeek: leadsRes.count || 0,
       });
 

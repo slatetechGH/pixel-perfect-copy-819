@@ -22,7 +22,7 @@ export function PriceCalculator({ priceNum }: PriceCalculatorProps) {
           <span className="text-muted-foreground">−£{stripeFee.toFixed(2)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Slate commission (6%)</span>
+          <span className="text-muted-foreground">Slate commission (8%)</span>
           <span className="text-muted-foreground">−£{slateCommission.toFixed(2)}</span>
         </div>
         <div className="border-t border-border pt-1.5 flex justify-between">

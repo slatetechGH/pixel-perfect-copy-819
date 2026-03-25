@@ -38,7 +38,7 @@ const PricingSection = () => {
               <span className="text-[56px] font-bold text-foreground leading-none">£0</span>
               <span className="text-[18px] text-slate-mid ml-2">/month</span>
               <p className="text-[15px] text-slate-mid mt-3">
-                Just 6% commission on subscriber revenue
+                Just 8% commission on subscriber revenue
               </p>
             </div>
 

@@ -18,7 +18,7 @@ export function CommissionCard({ mrr }: CommissionCardProps) {
       </CardHeader>
       <CardContent className="px-7 pb-7">
         <p className="text-[13px] text-muted-foreground mb-3">
-          6% of your subscriber revenue
+          8% of your subscriber revenue
         </p>
         <div className="bg-secondary rounded-xl p-4">
           <p className="text-[13px] text-muted-foreground mb-1">

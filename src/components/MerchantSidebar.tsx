@@ -203,7 +203,7 @@ export function MerchantSidebar() {
                 </button>
                 <div>
                   <p className="text-caption text-sidebar-foreground/50">Commission</p>
-                  <p className="text-[13px] font-medium text-sidebar-foreground">6% on revenue</p>
+                  <p className="text-[13px] font-medium text-sidebar-foreground">8% on revenue</p>
                 </div>
                 {storefrontSlug && (
                   <button

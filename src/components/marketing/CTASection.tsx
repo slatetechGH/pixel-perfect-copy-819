@@ -24,7 +24,7 @@ const CTASection = () => {
             Get started
           </Button>
           <p className="text-[14px] text-slate-light mt-6">
-            Free forever · 6% commission on what you earn · No hidden fees
+            Free forever · 8% commission on what you earn · No hidden fees
           </p>
         </AnimatedSection>
       </div>

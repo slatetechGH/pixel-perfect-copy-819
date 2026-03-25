@@ -225,7 +225,7 @@ const Settings = () => {
                 ) : (
                   <div>
                     <p className="text-[14px] text-foreground mb-2">Connect your Stripe account to start accepting payments</p>
-                    <p className="text-[13px] text-muted-foreground mb-3">Stripe handles all payment processing securely. Slate takes a 6% commission on subscription revenue.</p>
+                    <p className="text-[13px] text-muted-foreground mb-3">Stripe handles all payment processing securely. Slate takes an 8% commission on subscription revenue.</p>
                     <Button variant="slate" onClick={async () => {
                       const { data, error } = await (await import("@/integrations/supabase/client")).supabase.functions.invoke("stripe-connect-onboarding", { body: { action: "create_account" } });
                       if (data?.url) window.location.href = data.url;

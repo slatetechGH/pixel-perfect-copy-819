@@ -74,7 +74,7 @@ const AdminRevenue = () => {
     <DashboardLayout title="Revenue & Commission" subtitle="Platform-wide financial overview">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-7">
         <MetricCard title="Platform MRR" value={`£${totalMRR.toFixed(0)}`} change="+0%" trend="up" />
-        <MetricCard title="Slate Commission (6%)" value={`£${totalCommission.toFixed(2)}`} change="+0%" trend="up" delay={80} />
+        <MetricCard title="Slate Commission (8%)" value={`£${totalCommission.toFixed(2)}`} change="+0%" trend="up" delay={80} />
         <MetricCard title="Active Producers w/ Revenue" value={String(producerBreakdown.length)} change="+0%" trend="up" delay={160} />
       </div>
 
