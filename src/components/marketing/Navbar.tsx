@@ -69,7 +69,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-3">
             <button
               type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate("/login"); }}
+              onClick={() => { window.location.href = "/login"; }}
               className="text-[15px] font-medium text-slate-mid hover:text-foreground transition-colors cursor-pointer"
             >
               Log In
