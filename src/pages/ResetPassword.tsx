@@ -103,7 +103,7 @@ const ResetPassword = () => {
               </div>
               <h1 className="text-xl font-bold text-foreground mb-2">Password updated</h1>
               <p className="text-sm text-muted-foreground mb-6">You can now log in with your new password.</p>
-              <Button variant="slate" onClick={() => navigate("/login")}>Go to login</Button>
+              <Button variant="slate" onClick={() => navigate("/dashboard")}>Go to dashboard</Button>
             </div>
           ) : (
             <>
