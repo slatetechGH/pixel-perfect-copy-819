@@ -6,7 +6,7 @@ interface CommissionCardProps {
 }
 
 export function CommissionCard({ mrr }: CommissionCardProps) {
-  const commission = mrr * 0.06;
+  const commission = mrr * 0.08;
 
   return (
     <Card className="border-0 shadow-card">
