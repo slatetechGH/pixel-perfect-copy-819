@@ -16,11 +16,28 @@ const ResetPassword = () => {
   const [hasRecovery, setHasRecovery] = useState(false);
 
   useEffect(() => {
-    // Check for recovery token in URL hash
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setHasRecovery(true);
-    }
+    const init = async () => {
+      // Check for PKCE code in query params (newer Supabase flow)
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (!error) {
+          setHasRecovery(true);
+        } else {
+          console.error("Code exchange failed:", error.message);
+        }
+        return;
+      }
+
+      // Check for recovery token in URL hash (legacy implicit flow)
+      const hash = window.location.hash;
+      if (hash.includes("type=recovery")) {
+        setHasRecovery(true);
+      }
+    };
+
+    init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
@@ -86,7 +103,7 @@ const ResetPassword = () => {
               </div>
               <h1 className="text-xl font-bold text-foreground mb-2">Password updated</h1>
               <p className="text-sm text-muted-foreground mb-6">You can now log in with your new password.</p>
-              <Button variant="slate" onClick={() => navigate("/login")}>Go to login</Button>
+              <Button variant="slate" onClick={() => navigate("/dashboard")}>Go to dashboard</Button>
             </div>
           ) : (
             <>
