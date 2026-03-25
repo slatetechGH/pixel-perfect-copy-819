@@ -6,6 +6,8 @@ import { Zap, FileText, TrendingUp, Copy, ExternalLink } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
+import { useProducerLabels } from "@/hooks/useProducerLabels";
+import { LabelWithTooltip } from "@/components/LabelWithTooltip";
 import { CommissionCard } from "@/components/commission/CommissionCard";
 import { toast } from "sonner";
 import {
@@ -15,6 +17,7 @@ import {
 const DashboardHome = () => {
   const { subscribers, settings, kpiData, revenueChartData, subscriberGrowthData, activityFeed } = useDashboard();
   const { demoActive, accentColor } = useApp();
+  const { getLabel } = useProducerLabels();
   const navigate = useNavigate();
 
   const storefrontSlug =
@@ -34,7 +37,6 @@ const DashboardHome = () => {
     recipe: "bg-success",
   };
 
-  // Chart colours — use accent in demo mode
   const chartStroke = demoActive ? accentColor : "hsl(217, 33%, 17%)";
   const chartFill = demoActive ? accentColor : "hsl(217, 33%, 17%)";
   const barSecondary = demoActive ? accentColor : "hsl(38, 92%, 50%)";
@@ -91,7 +93,8 @@ const DashboardHome = () => {
         <Card className="opacity-0 animate-fade-in border-0 shadow-card" style={{ animationDelay: "300ms" }}>
           <CardHeader className="pb-2 px-7 pt-7">
             <CardTitle className="text-[15px] font-medium text-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />Revenue
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <LabelWithTooltip term="Revenue" />
             </CardTitle>
           </CardHeader>
           <CardContent className="px-7 pb-7">
@@ -106,7 +109,7 @@ const DashboardHome = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fontWeight: 400 }} stroke="hsl(213, 27%, 62%)" />
                 <YAxis tick={{ fontSize: 11, fontWeight: 400 }} stroke="hsl(213, 27%, 62%)" tickFormatter={(v) => `£${v}`} />
-                <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} formatter={(value: number) => [`£${value}`, "Revenue"]} />
+                <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} formatter={(value: number) => [`£${value}`, getLabel("Revenue")]} />
                 <Area type="monotone" dataKey="revenue" stroke={chartStroke} strokeWidth={2} fill="url(#revenueGradient)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -115,7 +118,9 @@ const DashboardHome = () => {
 
         <Card className="opacity-0 animate-fade-in border-0 shadow-card" style={{ animationDelay: "380ms" }}>
           <CardHeader className="pb-2 px-7 pt-7">
-            <CardTitle className="text-[15px] font-medium text-foreground">Subscriber Growth</CardTitle>
+            <CardTitle className="text-[15px] font-medium text-foreground">
+              <LabelWithTooltip term="Subscriber Growth" />
+            </CardTitle>
           </CardHeader>
           <CardContent className="px-7 pb-7">
             <ResponsiveContainer width="100%" height={220}>

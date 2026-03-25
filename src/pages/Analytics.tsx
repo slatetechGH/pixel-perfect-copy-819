@@ -3,6 +3,8 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
 import { useDashboard } from "@/contexts/DashboardContext";
+import { useProducerLabels } from "@/hooks/useProducerLabels";
+import { LabelWithTooltip } from "@/components/LabelWithTooltip";
 import { CommissionCard } from "@/components/commission/CommissionCard";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -33,6 +35,7 @@ const EmptyChartMessage = ({ message }: { message: string }) => (
 
 const Analytics = () => {
   const { revenueDataSets, kpiData, subscriberGrowthData, tierBreakdown } = useDashboard();
+  const { getLabel } = useProducerLabels();
   const [range, setRange] = useState("6m");
   const data = revenueDataSets[range] || revenueDataSets["all"] || [];
 
@@ -64,12 +67,16 @@ const Analytics = () => {
       {/* Revenue Breakdown Table */}
       <Card className="border-0 shadow-card mb-7">
         <CardHeader className="pb-2 px-7 pt-7">
-          <CardTitle className="text-[15px] font-medium text-foreground">Revenue Breakdown (Current Month)</CardTitle>
+          <CardTitle className="text-[15px] font-medium text-foreground">
+            <LabelWithTooltip term="Revenue Breakdown (Current Month)" />
+          </CardTitle>
         </CardHeader>
         <CardContent className="px-7 pb-7">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-secondary rounded-xl p-4">
-              <p className="text-[12px] font-medium text-muted-foreground mb-1">Gross Revenue</p>
+              <p className="text-[12px] font-medium text-muted-foreground mb-1">
+                <LabelWithTooltip term="Gross Revenue" />
+              </p>
               <p className="text-[20px] font-bold text-foreground">£{breakdown.grossRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
             </div>
             <div className="bg-secondary rounded-xl p-4">
@@ -81,7 +88,9 @@ const Analytics = () => {
               <p className="text-[20px] font-bold text-muted-foreground">−£{breakdown.slateCommission.toFixed(2)}</p>
             </div>
             <div className="bg-secondary rounded-xl p-4">
-              <p className="text-[12px] font-medium text-muted-foreground mb-1">Net Revenue</p>
+              <p className="text-[12px] font-medium text-muted-foreground mb-1">
+                <LabelWithTooltip term="Net Revenue" />
+              </p>
               <p className="text-[20px] font-bold text-foreground">£{breakdown.netRevenue.toFixed(2)}</p>
             </div>
           </div>
@@ -91,7 +100,9 @@ const Analytics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-7">
         <Card className="lg:col-span-2 border-0 shadow-card">
           <CardHeader className="pb-2 px-7 pt-7">
-            <CardTitle className="text-[15px] font-medium text-foreground">Revenue</CardTitle>
+            <CardTitle className="text-[15px] font-medium text-foreground">
+              <LabelWithTooltip term="Revenue" />
+            </CardTitle>
           </CardHeader>
           <CardContent className="px-7 pb-7">
             {hasRevenueData ? (
@@ -106,7 +117,7 @@ const Analytics = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
                   <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />
                   <YAxis tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" tickFormatter={(v) => `£${v}`} />
-                  <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} formatter={(v: number) => [`£${v}`, "Revenue"]} />
+                  <Tooltip contentStyle={{ background: "hsl(217, 33%, 17%)", border: "none", borderRadius: "8px", fontSize: "13px", color: "white" }} itemStyle={{ color: "white" }} labelStyle={{ color: "hsl(213, 27%, 70%)" }} formatter={(v: number) => [`£${v}`, getLabel("Revenue")]} />
                   <Area type="monotone" dataKey="revenue" stroke="hsl(217, 33%, 17%)" strokeWidth={2} fill="url(#mrrGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -145,7 +156,9 @@ const Analytics = () => {
 
       <Card className="border-0 shadow-card">
         <CardHeader className="pb-2 px-7 pt-7">
-          <CardTitle className="text-[15px] font-medium text-foreground">Subscriber Growth</CardTitle>
+          <CardTitle className="text-[15px] font-medium text-foreground">
+            <LabelWithTooltip term="Subscriber Growth" />
+          </CardTitle>
         </CardHeader>
         <CardContent className="px-7 pb-7">
           {hasSubscriberGrowth ? (
