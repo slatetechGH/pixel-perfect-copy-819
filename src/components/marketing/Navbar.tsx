@@ -68,12 +68,13 @@ const Navbar = () => {
 
           <div className="hidden md:flex items-center gap-3">
             <button
-              onClick={() => navigate("/login")}
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate("/login"); }}
               className="text-[15px] font-medium text-slate-mid hover:text-foreground transition-colors cursor-pointer"
             >
               Log In
             </button>
-            <Button variant="slate" size="sm" className="rounded-lg px-5" onClick={() => navigate("/get-started")}>
+            <Button type="button" variant="slate" size="sm" className="rounded-lg px-5" onClick={() => navigate("/get-started")}>
               Get Started
             </Button>
           </div>
@@ -155,6 +156,7 @@ const Navbar = () => {
                   Get Started
                 </Button>
                 <button
+                  type="button"
                   onClick={() => { setMobileOpen(false); navigate("/login"); }}
                   className="text-[15px] font-medium text-white/50 hover:text-white/80 transition-colors cursor-pointer"
                 >
