@@ -46,7 +46,7 @@ const AdminRevenue = () => {
           id: pid,
           business_name: profile?.business_name || "Not set up",
           mrr,
-          commission: mrr * 0.06,
+          commission: mrr * 0.08,
         };
       }).filter(p => p.mrr > 0).sort((a, b) => b.mrr - a.mrr);
 
