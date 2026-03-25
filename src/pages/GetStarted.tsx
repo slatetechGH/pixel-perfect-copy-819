@@ -112,7 +112,7 @@ const GetStarted = () => {
       email: form.email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
         data: {
           full_name: form.name,
           business_name: form.businessName,
@@ -184,13 +184,25 @@ const GetStarted = () => {
           </div>
         ) : submitted ? (
           <div className="bg-white rounded-2xl shadow-card p-10 text-center">
-            <div className="w-12 h-12 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
-              <Check size={24} className="text-amber" />
+            <div className="w-16 h-16 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
             </div>
-            <h2 className="text-[28px] font-bold text-foreground mb-2">You're in, {firstName}!</h2>
-            <p className="text-[16px] text-slate-mid mb-3">We've sent a confirmation link to <strong>{form.email}</strong>. Click it to activate your account.</p>
-            <p className="text-[15px] text-slate-mid mb-6">Your Slate storefront is free. Set up your first subscription plan to start accepting customers. We take 6% commission on what you earn.</p>
-            <Button variant="slate-outline" onClick={() => navigate("/")}>Back to homepage</Button>
+            <h2 className="text-[28px] font-bold text-foreground mb-2">Check your inbox, {firstName}</h2>
+            <p className="text-[16px] text-slate-mid mb-2">
+              We've sent a confirmation link to <strong className="text-foreground">{form.email}</strong>.
+            </p>
+            <p className="text-[15px] text-slate-mid mb-6">
+              Click the link in the email to verify your account, then you'll be taken straight to your dashboard to set up your storefront.
+            </p>
+            <div className="bg-secondary rounded-xl p-4 mb-6 text-left">
+              <p className="text-[13px] font-medium text-foreground mb-1.5">Didn't get the email?</p>
+              <ul className="space-y-1 text-[14px] text-muted-foreground">
+                <li>• Check your spam or junk folder</li>
+                <li>• Make sure <strong>no-reply@slatetech.co.uk</strong> isn't blocked</li>
+                <li>• Wait a minute — it can sometimes take a moment</li>
+              </ul>
+            </div>
+            <Button variant="slate-outline" onClick={() => navigate("/login")}>Go to login</Button>
           </div>
         ) : (
           <>
