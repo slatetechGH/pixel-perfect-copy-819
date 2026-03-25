@@ -6,6 +6,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useApp } from "@/contexts/AppContext";
 
 interface Props {
   profile: Record<string, any>;
@@ -14,8 +15,10 @@ interface Props {
 
 export default function OnboardingShare({ profile, userId }: Props) {
   const navigate = useNavigate();
+  const { setSession } = useApp();
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [finishing, setFinishing] = useState(false);
 
   const slug = profile?.url_slug ||
     (profile?.business_name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -29,12 +32,49 @@ export default function OnboardingShare({ profile, userId }: Props) {
   };
 
   const handleFinish = async () => {
-    await supabase.from("profiles").update({
-      onboarding_completed: true,
-      onboarding_step: 5,
-    } as any).eq("id", userId);
-    toast.success("You're all set! Your storefront is live.");
-    navigate("/dashboard");
+    setFinishing(true);
+    try {
+      // Update DB with timeout
+      const dbUpdate = supabase.from("profiles").update({
+        onboarding_completed: true,
+        onboarding_step: 5,
+      } as any).eq("id", userId);
+
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timed out")), 5000)
+      );
+
+      await Promise.race([dbUpdate, timeout]).catch((err) => {
+        console.warn("Onboarding DB update issue:", err);
+        // Continue anyway — don't block the user
+      });
+
+      // CRITICAL: Update AppContext profile so RoleBasedDashboard doesn't redirect back
+      setSession((prev) => ({
+        ...prev,
+        profile: {
+          ...prev.profile,
+          onboarding_completed: true,
+          onboarding_step: 5,
+        },
+      }));
+
+      toast.success("You're all set! Your storefront is live.");
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      console.error("Onboarding finish error:", err);
+      toast.error("Something went wrong, but we're taking you to your dashboard.");
+      // Still update context and navigate
+      setSession((prev) => ({
+        ...prev,
+        profile: {
+          ...prev.profile,
+          onboarding_completed: true,
+          onboarding_step: 5,
+        },
+      }));
+      navigate("/dashboard", { replace: true });
+    }
   };
 
   return (
@@ -89,8 +129,8 @@ export default function OnboardingShare({ profile, userId }: Props) {
         </ul>
       </div>
 
-      <Button variant="slate" className="w-full h-11 text-[15px]" onClick={handleFinish}>
-        Go to my dashboard →
+      <Button variant="slate" className="w-full h-11 text-[15px]" onClick={handleFinish} disabled={finishing}>
+        {finishing ? "Setting up..." : "Go to my dashboard →"}
       </Button>
     </motion.div>
   );
