@@ -107,41 +107,31 @@ const GetStarted = () => {
       console.log("Newsletter lead insert:", nlErr ? nlErr.message : "success");
     }
 
-    // Sign up with Supabase Auth
-    const { data: signUpData, error } = await supabase.auth.signUp({
-      email: form.email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-        data: {
-          full_name: form.name,
-          business_name: form.businessName,
-          business_type: form.businessType,
-        },
+    // Sign up via edge function (creates user + sends branded Resend email)
+    const { data: signUpResult, error } = await supabase.functions.invoke("signup-with-confirmation", {
+      body: {
+        email: form.email,
+        password,
+        name: form.name,
+        businessName: form.businessName,
+        businessType: form.businessType,
+        phone: form.phone || null,
+        website: form.website || null,
       },
     });
 
-    if (error) {
+    if (error || signUpResult?.error) {
       setLoading(false);
-      if (error.message.includes("already registered")) {
+      const errMsg = signUpResult?.error || error?.message || "Signup failed";
+      if (errMsg.includes("already registered") || errMsg.includes("already been registered")) {
         setDuplicate(true);
       } else {
-        setErrors({ password: error.message });
+        setErrors({ password: errMsg });
       }
       return;
     }
 
-    // Save business details to the profile row created by the trigger
-    if (signUpData.user) {
-      await supabase.from("profiles").update({
-        business_name: form.businessName,
-        business_type: form.businessType,
-        phone: form.phone || null,
-        website: form.website || null,
-      }).eq("id", signUpData.user.id);
-    }
-
-    // Send notification email
+    // Send internal notification email (best-effort)
     try {
       await supabase.functions.invoke("send-enquiry-email", {
         body: {
