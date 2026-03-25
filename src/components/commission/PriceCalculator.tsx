@@ -6,7 +6,7 @@ export function PriceCalculator({ priceNum }: PriceCalculatorProps) {
   if (priceNum <= 0) return null;
 
   const stripeFee = priceNum * 0.022 + 0.30;
-  const slateCommission = priceNum * 0.06;
+  const slateCommission = priceNum * 0.08;
   const net = priceNum - stripeFee - slateCommission;
 
   return (
