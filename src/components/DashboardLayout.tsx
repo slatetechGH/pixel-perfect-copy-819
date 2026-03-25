@@ -196,9 +196,9 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
       <ConfirmDialog
         open={resetConfirm}
         onClose={() => setResetConfirm(false)}
-        title="Reset Demo?"
-        description="This will restore the default Harbour Fish Co. data and remove all demo customisations."
-        confirmText="Reset"
+        title="Close Demo?"
+        description="This will close the demo preview and clear the demo data."
+        confirmText="Close Demo"
         onConfirm={handleReset}
         destructive
       />
