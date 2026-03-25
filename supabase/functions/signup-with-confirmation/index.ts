@@ -64,7 +64,9 @@ Deno.serve(async (req) => {
 
     // Build the confirmation URL that the user will click
     // The hashed_token from generateLink needs to go through the Supabase verify endpoint
-    const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${linkData.properties.hashed_token}&type=signup&redirect_to=${encodeURIComponent("https://pixel-perfect-copy-819.lovable.app/dashboard")}`;
+    // Redirect to /login after confirmation — Login page auto-redirects to dashboard if session exists
+    const siteUrl = "https://pixel-perfect-copy-819.lovable.app";
+    const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${linkData.properties.hashed_token}&type=signup&redirect_to=${encodeURIComponent(`${siteUrl}/login`)}`;
 
     // Update profile with business details
     if (userId) {
