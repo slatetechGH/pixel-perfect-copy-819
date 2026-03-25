@@ -1,14 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { useDashboard } from "@/contexts/DashboardContext";
-import { useApp } from "@/contexts/AppContext";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Check, Clock, Users, Calendar, ChevronRight, ExternalLink } from "lucide-react";
+import { MapPin, Check, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -18,20 +15,158 @@ const fadeUp = {
   }),
 };
 
+interface StorefrontProfile {
+  id: string;
+  business_name: string;
+  description: string | null;
+  accent_color: string;
+  logo_url: string | null;
+  cover_url: string | null;
+  website: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  twitter: string | null;
+  url_slug: string | null;
+  business_type: string | null;
+  stripe_connect_id: string | null;
+  stripe_connect_status: string;
+}
+
+interface StorefrontPlan {
+  id: string;
+  name: string;
+  price_num: number;
+  is_free: boolean;
+  benefits: string[];
+  description: string | null;
+  active: boolean;
+  show_on_public_page: boolean;
+  sort_order: number | null;
+}
+
+interface StorefrontDrop {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  total: number;
+  remaining: number;
+  price_num: number;
+  drop_date: string | null;
+  eligible_plans: string[];
+}
+
+interface StorefrontContent {
+  id: string;
+  title: string;
+  type: string;
+  body: string | null;
+  status: string;
+  tier: string | null;
+}
+
 const Storefront = () => {
   const { businessSlug } = useParams<{ businessSlug: string }>();
   const navigate = useNavigate();
-  const { settings, plans, drops, content, subscribers } = useDashboard();
-  const { accentColor, demoActive, session } = useApp();
+
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [profile, setProfile] = useState<StorefrontProfile | null>(null);
+  const [plans, setPlans] = useState<StorefrontPlan[]>([]);
+  const [drops, setDrops] = useState<StorefrontDrop[]>([]);
+  const [content, setContent] = useState<StorefrontContent[]>([]);
   const [subscribingPlan, setSubscribingPlan] = useState<string | null>(null);
-  // Check if the slug matches the current settings
-  const currentSlug = settings.urlSlug || settings.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-  // Allow access if: demo mode is on, user is logged in (viewing own store), or slug matches
-  const isOwnStore = !!session.isLoggedIn;
-  const slugMatches = currentSlug && currentSlug === businessSlug;
+  // Fetch all storefront data by slug — no auth required
+  useEffect(() => {
+    if (!businessSlug) { setNotFound(true); setLoading(false); return; }
 
-  if (!demoActive && !isOwnStore && !slugMatches) {
+    const fetchStorefront = async () => {
+      try {
+        // 1. Resolve slug to producer profile via public_profiles view
+        const { data: pubProfile, error: profileErr } = await supabase
+          .from("public_profiles")
+          .select("*")
+          .eq("url_slug", businessSlug)
+          .eq("public_visible", true)
+          .single();
+
+        if (profileErr || !pubProfile?.id) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
+
+        const producerId = pubProfile.id;
+
+        // Build profile object from public_profiles (no PII exposed)
+        // We need stripe info for checkout — fetch via profiles if user is the producer,
+        // otherwise we pass producerId to the edge function which handles it server-side
+        setProfile({
+          id: producerId,
+          business_name: pubProfile.business_name || "Untitled",
+          description: pubProfile.description,
+          accent_color: pubProfile.accent_color || "#1E293B",
+          logo_url: pubProfile.logo_url,
+          cover_url: pubProfile.cover_url,
+          website: pubProfile.website,
+          instagram: pubProfile.instagram,
+          facebook: pubProfile.facebook,
+          twitter: pubProfile.twitter,
+          url_slug: pubProfile.url_slug,
+          business_type: null,
+          stripe_connect_id: null, // handled server-side in checkout
+          stripe_connect_status: "unknown",
+        });
+
+        // 2. Fetch public plans, drops, content in parallel
+        const [plansRes, dropsRes, contentRes] = await Promise.all([
+          supabase
+            .from("plans")
+            .select("id, name, price_num, is_free, benefits, description, active, show_on_public_page, sort_order")
+            .eq("producer_id", producerId)
+            .eq("active", true)
+            .eq("show_on_public_page", true)
+            .order("sort_order", { ascending: true }),
+          supabase
+            .from("drops")
+            .select("id, title, description, status, total, remaining, price_num, drop_date, eligible_plans")
+            .eq("producer_id", producerId)
+            .in("status", ["scheduled", "live"]),
+          supabase
+            .from("content")
+            .select("id, title, type, body, status, tier")
+            .eq("producer_id", producerId)
+            .eq("status", "published")
+            .order("created_at", { ascending: false })
+            .limit(3),
+        ]);
+
+        setPlans((plansRes.data || []) as StorefrontPlan[]);
+        setDrops((dropsRes.data || []).slice(0, 3) as StorefrontDrop[]);
+        setContent((contentRes.data || []) as StorefrontContent[]);
+      } catch (err) {
+        console.error("Storefront fetch error:", err);
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStorefront();
+  }, [businessSlug]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Not found
+  if (notFound || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -42,26 +177,17 @@ const Storefront = () => {
     );
   }
 
-  const activePlans = plans.filter(p => p.active && p.showOnPublicPage);
-  const upcomingDrops = drops.filter(d => d.status === "live" || d.status === "scheduled").slice(0, 3);
-  const publishedContent = content.filter(c => c.status === "published").slice(0, 3);
-  const activeSubscriberCount = subscribers.filter(s => s.status === "active").length;
+  const accentColor = profile.accent_color;
 
   const scrollToPlans = () => {
     document.getElementById("storefront-plans")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const formatPrice = (priceNum: number) => `£${priceNum}/mo`;
 
-  const handleSubscribe = async (plan: typeof activePlans[0]) => {
-    if (plan.isFree) {
-      // For free plans, redirect to join page
+  const handleSubscribe = async (plan: StorefrontPlan) => {
+    if (plan.is_free) {
       navigate(`/store/${businessSlug}/join`);
-      return;
-    }
-
-    // Check if producer has Stripe Connect
-    if (!settings.stripeConnectId || settings.stripeConnectStatus !== "active") {
-      toast.info("This producer hasn't set up payments yet. Check back soon!");
       return;
     }
 
@@ -70,7 +196,7 @@ const Storefront = () => {
       const { data, error } = await supabase.functions.invoke("checkout-session", {
         body: {
           plan_id: plan.id,
-          producer_id: settings.producerId,
+          producer_id: profile.id,
           success_url: `${window.location.origin}/store/${businessSlug}/welcome?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${window.location.origin}/store/${businessSlug}`,
         },
@@ -84,22 +210,22 @@ const Storefront = () => {
       if (data?.url) {
         window.location.href = data.url;
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to start checkout. Please try again.");
     } finally {
       setSubscribingPlan(null);
     }
   };
 
-  // Find "most popular" plan (middle tier by default)
-  const paidPlans = activePlans.filter(p => !p.isFree);
+  // Find "most popular" plan (middle tier)
+  const paidPlans = plans.filter(p => !p.is_free);
   const mostPopularIndex = Math.floor(paidPlans.length / 2);
   const mostPopularName = paidPlans[mostPopularIndex]?.name;
 
   // Countdown helper
-  const getCountdown = (drop: typeof drops[0]) => {
-    if (drop.status === "scheduled" && drop.dropDate) {
-      const diff = new Date(drop.dropDate).getTime() - Date.now();
+  const getCountdown = (drop: StorefrontDrop) => {
+    if (drop.status === "scheduled" && drop.drop_date) {
+      const diff = new Date(drop.drop_date).getTime() - Date.now();
       if (diff > 0) {
         const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
         return `Starts in ${days} day${days !== 1 ? "s" : ""}`;
@@ -110,29 +236,26 @@ const Storefront = () => {
 
   // Social links
   const socialLinks = [
-    settings.instagram && { label: "Instagram", url: `https://instagram.com/${settings.instagram.replace("@", "")}` },
-    settings.facebook && { label: "Facebook", url: `https://facebook.com/${settings.facebook}` },
-    settings.twitter && { label: "Twitter", url: `https://twitter.com/${settings.twitter.replace("@", "")}` },
+    profile.instagram && { label: "Instagram", url: `https://instagram.com/${profile.instagram.replace("@", "")}` },
+    profile.facebook && { label: "Facebook", url: `https://facebook.com/${profile.facebook}` },
+    profile.twitter && { label: "Twitter", url: `https://twitter.com/${profile.twitter.replace("@", "")}` },
   ].filter(Boolean) as { label: string; url: string }[];
 
   return (
     <div className="min-h-screen bg-white" style={{ "--store-accent": accentColor } as React.CSSProperties}>
       {/* ===== SECTION A: Hero ===== */}
       <section className="relative w-full overflow-hidden" style={{ minHeight: 420 }}>
-        {/* Cover photo */}
-        {settings.coverUrl ? (
-          <img src={settings.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        {profile.cover_url ? (
+          <img src={profile.cover_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}44)` }} />
         )}
-        {/* Dark gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
         <div className="relative z-10 flex flex-col items-center justify-end h-full px-6 pb-12 pt-32 text-center">
-          {/* Logo */}
-          {settings.logoUrl ? (
+          {profile.logo_url ? (
             <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white/20 shadow-lg mb-5 bg-white">
-              <img src={settings.logoUrl} alt="" className="w-full h-full object-cover" />
+              <img src={profile.logo_url} alt="" className="w-full h-full object-cover" />
             </div>
           ) : (
             <div
@@ -140,7 +263,7 @@ const Storefront = () => {
               style={{ backgroundColor: accentColor }}
             >
               <span className="text-white font-bold text-3xl" style={{ fontFamily: "'Satoshi', sans-serif" }}>
-                {settings.businessName.charAt(0).toUpperCase()}
+                {profile.business_name.charAt(0).toUpperCase()}
               </span>
             </div>
           )}
@@ -152,17 +275,17 @@ const Storefront = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {settings.businessName}
+            {profile.business_name}
           </motion.h1>
 
-          {settings.description && (
+          {profile.description && (
             <motion.p
               className="text-white/80 mt-3 max-w-lg text-base md:text-lg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              {settings.description}
+              {profile.description}
             </motion.p>
           )}
 
@@ -181,7 +304,7 @@ const Storefront = () => {
             </Button>
           </motion.div>
 
-          {settings.website && (
+          {profile.website && (
             <motion.p
               className="text-white/50 text-sm mt-4 flex items-center gap-1"
               initial={{ opacity: 0 }}
@@ -189,14 +312,14 @@ const Storefront = () => {
               transition={{ delay: 0.5 }}
             >
               <MapPin className="w-3.5 h-3.5" />
-              {settings.website}
+              {profile.website}
             </motion.p>
           )}
         </div>
       </section>
 
       {/* ===== SECTION B: About ===== */}
-      {settings.description && (
+      {profile.description && (
         <motion.section
           className="max-w-3xl mx-auto px-6 py-16 text-center"
           variants={fadeUp}
@@ -207,27 +330,13 @@ const Storefront = () => {
         >
           <h2 className="text-2xl font-bold text-foreground mb-4">Welcome</h2>
           <p className="text-muted-foreground text-base leading-relaxed">
-            {settings.description}
+            {profile.description}
           </p>
-          <div className="flex flex-wrap justify-center gap-8 mt-8">
-            {settings.businessType && (
-              <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground">Type</p>
-                <p className="text-base font-semibold text-foreground">{settings.businessType}</p>
-              </div>
-            )}
-            {activeSubscriberCount > 0 && (
-              <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground">Subscribers</p>
-                <p className="text-base font-semibold text-foreground">{activeSubscriberCount}+</p>
-              </div>
-            )}
-          </div>
         </motion.section>
       )}
 
       {/* ===== SECTION C: Subscription Plans ===== */}
-      {activePlans.length > 0 && (
+      {plans.length > 0 && (
         <section id="storefront-plans" className="py-16 px-6" style={{ backgroundColor: "#FAFAFA" }}>
           <div className="max-w-5xl mx-auto">
             <motion.h2
@@ -241,9 +350,8 @@ const Storefront = () => {
               Choose Your Plan
             </motion.h2>
 
-            {/* Horizontal scroll on mobile, grid on desktop */}
             <div className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-3 md:overflow-visible md:pb-0">
-              {activePlans.map((plan, i) => {
+              {plans.map((plan, i) => {
                 const isPopular = plan.name === mostPopularName;
                 return (
                   <motion.div
@@ -269,13 +377,13 @@ const Storefront = () => {
                     )}
                     <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
                     <p className="text-2xl font-bold text-foreground mt-2">
-                      {plan.isFree ? "Free" : plan.price}
+                      {plan.is_free ? "Free" : formatPrice(plan.price_num)}
                     </p>
                     {plan.description && (
                       <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
                     )}
                     <ul className="mt-5 space-y-2.5 flex-1">
-                      {plan.benefits.map((b, j) => (
+                      {(plan.benefits || []).map((b, j) => (
                         <li key={j} className="flex items-start gap-2 text-sm text-foreground">
                           <Check className="w-4 h-4 mt-0.5 shrink-0" style={{ color: accentColor }} />
                           {b}
@@ -294,7 +402,7 @@ const Storefront = () => {
                     >
                       {subscribingPlan === plan.id ? (
                         <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Processing...</>
-                      ) : plan.isFree ? "Join Free" : "Subscribe"}
+                      ) : plan.is_free ? "Join Free" : "Subscribe"}
                     </Button>
                   </motion.div>
                 );
@@ -305,7 +413,7 @@ const Storefront = () => {
       )}
 
       {/* ===== SECTION D: Upcoming Drops ===== */}
-      {upcomingDrops.length > 0 && (
+      {drops.length > 0 && (
         <section className="py-16 px-6">
           <div className="max-w-5xl mx-auto">
             <motion.h2
@@ -320,7 +428,7 @@ const Storefront = () => {
             </motion.h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {upcomingDrops.map((drop, i) => {
+              {drops.map((drop, i) => {
                 const countdown = getCountdown(drop);
                 return (
                   <motion.div
@@ -332,7 +440,6 @@ const Storefront = () => {
                     viewport={{ once: true }}
                     custom={i}
                   >
-                    {/* Placeholder image area */}
                     <div
                       className="w-full h-32 rounded-xl mb-4 flex items-center justify-center"
                       style={{ background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}30)` }}
@@ -357,7 +464,7 @@ const Storefront = () => {
                     )}
 
                     <div className="mt-auto pt-4 flex items-center justify-between text-sm">
-                      <span className="font-semibold text-foreground">{drop.price}</span>
+                      <span className="font-semibold text-foreground">£{drop.price_num.toFixed(2)}</span>
                       {drop.status === "live" && (
                         <span className="text-muted-foreground text-xs">
                           {drop.remaining}/{drop.total} remaining
@@ -365,9 +472,9 @@ const Storefront = () => {
                       )}
                     </div>
 
-                    {drop.eligiblePlans.length > 0 && (
+                    {(drop.eligible_plans || []).length > 0 && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Available to {drop.eligiblePlans.join(" & ")} members
+                        Available to {drop.eligible_plans.join(" & ")} members
                       </p>
                     )}
                   </motion.div>
@@ -379,7 +486,7 @@ const Storefront = () => {
       )}
 
       {/* ===== SECTION E: Latest Content ===== */}
-      {publishedContent.length > 0 && (
+      {content.length > 0 && (
         <section className="py-16 px-6" style={{ backgroundColor: "#FAFAFA" }}>
           <div className="max-w-5xl mx-auto">
             <motion.h2
@@ -394,7 +501,7 @@ const Storefront = () => {
             </motion.h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {publishedContent.map((item, i) => (
+              {content.map((item, i) => (
                 <motion.div
                   key={item.id}
                   className="bg-white rounded-2xl border border-border overflow-hidden cursor-pointer group"
@@ -405,7 +512,6 @@ const Storefront = () => {
                   viewport={{ once: true }}
                   custom={i}
                 >
-                  {/* Placeholder hero */}
                   <div
                     className="w-full h-36 flex items-center justify-center"
                     style={{ background: `linear-gradient(135deg, ${accentColor}10, ${accentColor}25)` }}
@@ -440,41 +546,11 @@ const Storefront = () => {
         </section>
       )}
 
-      {/* ===== SECTION F: Social Proof ===== */}
-      {activeSubscriberCount > 10 && (
-        <motion.section
-          className="py-12 px-6 text-center"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          custom={0}
-        >
-          <div className="flex items-center justify-center gap-2 mb-3">
-            {/* Placeholder avatar circles */}
-            <div className="flex -space-x-2">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-medium text-white"
-                  style={{ backgroundColor: `hsl(${200 + i * 30}, 40%, ${55 + i * 5}%)` }}
-                >
-                  {String.fromCharCode(65 + i)}
-                </div>
-              ))}
-            </div>
-          </div>
-          <p className="text-muted-foreground text-base">
-            Join <span className="font-semibold text-foreground">{activeSubscriberCount}+</span> subscribers
-          </p>
-        </motion.section>
-      )}
-
-      {/* ===== SECTION G: Footer ===== */}
+      {/* ===== SECTION F: Footer ===== */}
       <footer className="border-t border-border py-10 px-6">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
-            <p className="text-sm font-semibold text-foreground">{settings.businessName}</p>
+            <p className="text-sm font-semibold text-foreground">{profile.business_name}</p>
             {socialLinks.length > 0 && (
               <div className="flex items-center gap-3 mt-2 justify-center md:justify-start">
                 {socialLinks.map(link => (
