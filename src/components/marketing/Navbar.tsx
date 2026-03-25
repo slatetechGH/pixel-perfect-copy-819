@@ -156,6 +156,7 @@ const Navbar = () => {
                   Get Started
                 </Button>
                 <button
+                  type="button"
                   onClick={() => { setMobileOpen(false); navigate("/login"); }}
                   className="text-[15px] font-medium text-white/50 hover:text-white/80 transition-colors cursor-pointer"
                 >
