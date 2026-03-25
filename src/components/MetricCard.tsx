@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/contexts/AppContext";
+import { LabelWithTooltip } from "@/components/LabelWithTooltip";
 
 interface MetricCardProps {
   title: string;
@@ -14,7 +15,6 @@ interface MetricCardProps {
 export function MetricCard({ title, value, change, trend, delay = 0 }: MetricCardProps) {
   const { demoActive, accentColor } = useApp();
 
-  // In demo mode, positive deltas use the accent colour instead of default green
   const positiveStyle = demoActive
     ? { backgroundColor: `${accentColor}1A`, color: accentColor }
     : undefined;
@@ -25,7 +25,9 @@ export function MetricCard({ title, value, change, trend, delay = 0 }: MetricCar
       style={{ animationDelay: `${delay}ms` }}
     >
       <CardContent className="p-6">
-        <p className="text-label text-muted-foreground uppercase tracking-[0.05em]">{title}</p>
+        <p className="text-label text-muted-foreground uppercase tracking-[0.05em]">
+          <LabelWithTooltip term={title} />
+        </p>
         <p className="text-metric text-foreground mt-2">{value}</p>
         <div className="flex items-center gap-1.5 mt-3">
           <span
