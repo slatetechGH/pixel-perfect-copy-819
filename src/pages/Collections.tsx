@@ -28,7 +28,7 @@ const Collections = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
   const [collections, setCollections] = useState<CollectionCount[]>([]);
-  const [recentUndo, setRecentUndo] = useState<{ subscriberId: string; collectionId: string; timeout: NodeJS.Timeout } | null>(null);
+  const [recentUndo, setRecentUndo] = useState<{ subscriberId: string; collectionId: string; timeout: ReturnType<typeof setTimeout> } | null>(null);
   const [sendConfirm, setSendConfirm] = useState(false);
   const [sending, setSending] = useState(false);
 
