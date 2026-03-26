@@ -144,6 +144,30 @@ const DashboardHome = () => {
         </Card>
       </div>
 
+      {/* Collections Today Card */}
+      {plans.some(p => p.collectionsPerMonth > 0) && (
+        <Card className="opacity-0 animate-fade-in border-0 shadow-card mb-7" style={{ animationDelay: "430ms" }}>
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-10 w-10 rounded-lg bg-amber/10 flex items-center justify-center shrink-0">
+              <ClipboardCheck className="h-5 w-5 text-amber" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[15px] font-medium text-foreground">
+                {collectionsRemaining > 0
+                  ? `${collectionsRemaining} collections remaining this month`
+                  : "No collections due"}
+              </p>
+              <button
+                onClick={() => navigate("/dashboard/collections")}
+                className="text-[13px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                View collection sheet →
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Commission Card */}
       <div className="mb-7">
         <CommissionCard mrr={parseFloat(kpiData.mrr.replace(/[^0-9.]/g, '')) || 0} />

@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Check, Calendar, Loader2 } from "lucide-react";
+import { MapPin, Check, Calendar, Loader2, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
