@@ -24,6 +24,7 @@ const emptyDrop: Omit<Drop, "id"> = {
 
 const Drops = () => {
   const { drops, setDrops, plans } = useDashboard();
+  const { canCreateDrops } = useTierLimits();
   const [filter, setFilter] = useState<string>("All");
   const [editing, setEditing] = useState<Drop | null>(null);
   const [isNew, setIsNew] = useState(false);
