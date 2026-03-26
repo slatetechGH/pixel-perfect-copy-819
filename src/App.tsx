@@ -15,6 +15,7 @@ import Broadcasts from "./pages/Broadcasts";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Leads from "./pages/Leads";
+import Collections from "./pages/Collections";
 import NotFound from "./pages/NotFound";
 import Marketing from "./pages/Marketing";
 import Login from "./pages/Login";
