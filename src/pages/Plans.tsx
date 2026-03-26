@@ -97,6 +97,12 @@ const Plans = () => {
                 <Users className="h-3.5 w-3.5" />
                 <span>{plan.subscribers} subscribers</span>
               </div>
+              {plan.collectionsPerMonth > 0 && (
+                <p className="text-[13px] text-muted-foreground mb-2">{plan.collectionsPerMonth} collections/month</p>
+              )}
+              {plan.collectionsPerMonth === 0 && plan.priceNum > 0 && (
+                <p className="text-[13px] text-muted-foreground mb-2">Digital only</p>
+              )}
               <ul className="space-y-2.5 mb-5">
                 {plan.benefits.map((b, i) => (
                   <li key={i} className="flex items-start gap-2 text-[14px] text-foreground">
