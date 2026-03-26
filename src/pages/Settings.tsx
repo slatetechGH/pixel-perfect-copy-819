@@ -364,9 +364,9 @@ const Settings = () => {
         open={cancelConfirm}
         onClose={() => setCancelConfirm(false)}
         onConfirm={() => { setCancelConfirm(false); toast("Your plan will remain active until the end of your billing period."); }}
-        title="Cancel your plan?"
-        description="Are you sure? You'll lose access at the end of your billing period."
-        confirmText="Cancel plan"
+        title={isStandard ? "Downgrade to Free?" : "Cancel your plan?"}
+        description={isStandard ? "Are you sure? You'll lose access to unlimited subscribers, plans, and broadcasts. Your existing data will be preserved but limits will be enforced." : "Are you sure? You'll lose access at the end of your billing period."}
+        confirmText={isStandard ? "Downgrade" : "Cancel plan"}
         destructive
       />
     </DashboardLayout>
