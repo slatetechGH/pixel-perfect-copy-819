@@ -40,6 +40,7 @@ export default function OnboardingPlan({ userId, onContinue, onSkip }: Props) {
       producer_id: userId,
       active: true,
       show_on_public_page: true,
+      collections_per_month: parseInt(collectionsPerMonth) || 0,
     });
     if (error) {
       toast.error("Failed to create plan");
