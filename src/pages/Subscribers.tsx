@@ -6,6 +6,8 @@ import { Search, Download, ChevronDown } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { SlideOverPanel } from "@/components/SlideOverPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { UpgradeBanner } from "@/components/UpgradeBanner";
+import { useTierLimits } from "@/hooks/useTierLimits";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
