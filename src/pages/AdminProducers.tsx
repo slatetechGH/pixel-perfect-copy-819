@@ -205,6 +205,7 @@ const AdminProducers = () => {
                     <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Signed Up</th>
                     <th className="text-center text-[12px] font-medium text-muted-foreground py-3 pr-4">Plans</th>
                     <th className="text-center text-[12px] font-medium text-muted-foreground py-3 pr-4">Subs</th>
+                    <th className="text-center text-[12px] font-medium text-muted-foreground py-3 pr-4">Collections</th>
                     <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Status</th>
                     <th className="text-right text-[12px] font-medium text-muted-foreground py-3">Actions</th>
                   </tr>
