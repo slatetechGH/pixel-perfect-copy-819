@@ -22,6 +22,7 @@ interface ProducerDetail {
   accent_color: string | null;
   stripe_connect_status: string;
   commission_percentage: number;
+  subscription_tier: string;
   created_at: string;
   description: string | null;
   phone: string | null;
