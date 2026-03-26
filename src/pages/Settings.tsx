@@ -329,35 +329,6 @@ const Settings = () => {
         </div>
       )}
 
-      {/* Upgrade modal */}
-      {upgradeModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setUpgradeModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-xl max-w-[400px] w-full mx-4 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[18px] font-bold text-foreground">Upgrade Plan</h3>
-              <button onClick={() => setUpgradeModal(false)} className="text-muted-foreground hover:text-foreground cursor-pointer"><X size={20} /></button>
-            </div>
-            <div className="space-y-3">
-              {[
-                { name: "Starter", price: "Free" },
-                { name: "Growth", price: "£29/mo" },
-                { name: "Pro", price: "£79/mo" },
-              ].map(p => (
-                <button
-                  key={p.name}
-                  onClick={() => { setUpgradeModal(false); toast("Plan upgrade coming soon"); }}
-                  className={`w-full text-left p-4 rounded-lg border transition-colors cursor-pointer ${
-                    settings.currentPlan === p.name ? "border-foreground bg-foreground/5" : "border-border hover:border-foreground/30"
-                  }`}
-                >
-                  <p className="text-[15px] font-medium text-foreground">{p.name}</p>
-                  <p className="text-[13px] text-muted-foreground">{p.price}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
       )}
 
       <ConfirmDialog
