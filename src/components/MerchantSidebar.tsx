@@ -204,9 +204,20 @@ export function MerchantSidebar() {
                   )}
                   {theme === "light" ? "Dark mode" : "Light mode"}
                 </button>
+                {/* Upgrade badge for free tier */}
+                {isFree && !demoActive && (
+                  <button
+                    onClick={() => navigate("/dashboard/upgrade")}
+                    className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px] font-medium transition-colors cursor-pointer"
+                    style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#F59E0B" }}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Upgrade to Standard
+                  </button>
+                )}
                 <div>
                   <p className="text-caption text-sidebar-foreground/50">Commission</p>
-                  <p className="text-[13px] font-medium text-sidebar-foreground">8% on revenue</p>
+                  <p className="text-[13px] font-medium text-sidebar-foreground">{commissionPercent}% on revenue</p>
                 </div>
                 {storefrontSlug && (
                   <button
