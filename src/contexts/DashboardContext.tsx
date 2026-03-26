@@ -20,6 +20,7 @@ export interface Plan {
   active: boolean;
   showOnPublicPage: boolean;
   subscriberLimit?: number;
+  collectionsPerMonth: number;
 }
 
 export interface DropItem {
