@@ -183,6 +183,11 @@ const Plans = () => {
               </div>
             </div>
             <div>
+              <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Collections per month</label>
+              <input type="number" min="0" value={editing.collectionsPerMonth || ""} onChange={e => updateField("collectionsPerMonth", e.target.value ? parseInt(e.target.value) : 0)} placeholder="e.g. 4" className="w-full h-11 px-4 rounded-lg border border-border bg-white text-[15px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all" />
+              <p className="text-[12px] text-muted-foreground mt-1">How many times can a subscriber collect goods each month? Set to 0 for digital-only plans.</p>
+            </div>
+            <div>
               <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Subscriber Limit</label>
               <input type="number" value={editing.subscriberLimit || ""} onChange={e => updateField("subscriberLimit", e.target.value ? parseInt(e.target.value) : undefined)} placeholder="Leave blank for unlimited" className="w-full h-11 px-4 rounded-lg border border-border bg-white text-[15px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all" />
             </div>

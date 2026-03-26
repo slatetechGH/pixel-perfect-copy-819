@@ -208,17 +208,17 @@ const mockPlans: Plan[] = [
   {
     id: "mock-plan-1", name: "Free Tier", price: "Free", priceNum: 0, subscribers: 64, isFree: true,
     benefits: ["Weekly email newsletter", "Public recipe access", "Shop news & updates"],
-    description: "Basic access for casual followers", active: true, showOnPublicPage: true,
+    description: "Basic access for casual followers", active: true, showOnPublicPage: true, collectionsPerMonth: 0,
   },
   {
     id: "mock-plan-2", name: "The Standard Catch", price: "£15/mo", priceNum: 15, subscribers: 89, isFree: false,
     benefits: ["10% in-store discount", "Exclusive recipes", "Early product drop access", "Monthly catch report"],
-    description: "Perfect for regular customers who want more", active: true, showOnPublicPage: true,
+    description: "Perfect for regular customers who want more", active: true, showOnPublicPage: true, collectionsPerMonth: 2,
   },
   {
     id: "mock-plan-3", name: "Chef's Catch Club", price: "£35/mo", priceNum: 35, subscribers: 34, isFree: false,
     benefits: ["15% in-store discount", "Monthly premium fish box", "All exclusive content", "Priority product drops", "Seasonal tasting events", "Direct line to fishmonger"],
-    description: "The ultimate experience for seafood enthusiasts", active: true, showOnPublicPage: true,
+    description: "The ultimate experience for seafood enthusiasts", active: true, showOnPublicPage: true, collectionsPerMonth: 4,
   },
 ];
 

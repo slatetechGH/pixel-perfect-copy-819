@@ -13,6 +13,7 @@ export function planToRow(plan: Plan, producerId: string) {
     active: plan.active,
     show_on_public_page: plan.showOnPublicPage,
     subscriber_limit: plan.subscriberLimit || null,
+    collections_per_month: plan.collectionsPerMonth,
   };
 }
 
@@ -29,6 +30,7 @@ export function rowToPlan(row: any, subCount = 0): Plan {
     active: row.active,
     showOnPublicPage: row.show_on_public_page,
     subscriberLimit: row.subscriber_limit,
+    collectionsPerMonth: row.collections_per_month || 0,
   };
 }
 

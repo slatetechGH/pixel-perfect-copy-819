@@ -21,6 +21,7 @@ import {
 const producerNavItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Subscribers", url: "/dashboard/subscribers", icon: Users },
+  { title: "Collections", url: "/dashboard/collections", icon: ClipboardCheck },
   { title: "Plans", url: "/dashboard/plans", icon: CreditCard },
   { title: "Content", url: "/dashboard/content", icon: FileText },
   { title: "Product Drops", url: "/dashboard/drops", icon: Zap },
