@@ -60,7 +60,7 @@ const DashboardHome = () => {
           <Button variant="outline" size="sm" className="text-[14px] font-medium" onClick={() => navigate("/dashboard/drops")}>
             <Zap className="h-4 w-4 mr-1.5" />New Drop
           </Button>
-          <Button size="sm" className="text-[14px] font-medium bg-foreground hover:bg-foreground/90 text-white" onClick={() => navigate("/dashboard/content")}>
+          <Button size="sm" className="text-[14px] font-medium" onClick={() => navigate("/dashboard/content")}>
             <FileText className="h-4 w-4 mr-1.5" />Post Recipe
           </Button>
         </div>
@@ -68,7 +68,7 @@ const DashboardHome = () => {
     >
       {/* Storefront URL banner */}
       {storefrontSlug && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-7 px-5 py-4 rounded-xl border border-border bg-secondary/50">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-7 px-5 py-4 rounded-xl border border-border bg-card">
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-medium text-muted-foreground">Share your storefront</p>
             <p className="text-[14px] font-medium text-foreground truncate">{storefrontUrl}</p>

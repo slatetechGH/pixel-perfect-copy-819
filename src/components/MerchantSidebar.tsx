@@ -228,8 +228,8 @@ export function MerchantSidebar() {
                   )}
                   {theme === "light" ? "Dark mode" : "Light mode"}
                 </button>
-                {/* Upgrade badge for free tier */}
-                {isFree && !demoActive && (
+                {/* Upgrade badge for free tier — hidden for admins */}
+                {isFree && !demoActive && session.role !== "admin" && (
                   <button
                     onClick={() => navigate("/dashboard/upgrade")}
                     className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px] font-medium transition-colors cursor-pointer"
@@ -239,10 +239,12 @@ export function MerchantSidebar() {
                     Upgrade to Standard
                   </button>
                 )}
-                <div>
-                  <p className="text-caption text-sidebar-foreground/50">Commission</p>
-                  <p className="text-[13px] font-medium text-sidebar-foreground">{commissionPercent}% on revenue</p>
-                </div>
+                {session.role !== "admin" && (
+                  <div>
+                    <p className="text-caption text-sidebar-foreground/50">Commission</p>
+                    <p className="text-[13px] font-medium text-sidebar-foreground">{commissionPercent}% on revenue</p>
+                  </div>
+                )}
                 {storefrontSlug && (
                   <button
                     onClick={() => navigate(`/store/${storefrontSlug}`)}

@@ -29,13 +29,15 @@ export function useTierLimits(): TierLimits {
   const { session, demoActive } = useApp();
   const { subscribers, plans } = useDashboard();
 
+  const isAdmin = session.role === "admin" && !demoActive;
   const tier: ProducerTier = (session.profile?.subscription_tier as ProducerTier) || "free";
-  const isFree = tier === "free" && !demoActive;
-  const isStandard = tier === "standard" || demoActive;
+  // Admin users are always treated as standard (no limits, no upgrade prompts)
+  const isFree = tier === "free" && !demoActive && !isAdmin;
+  const isStandard = tier === "standard" || demoActive || isAdmin;
 
   const commissionPercent = isStandard ? 5 : 8;
   const maxSubscribers = isFree ? 25 : null;
-  const maxPlans = isFree ? 1 : null;
+  const maxPlans = isFree ? 3 : null;
   const maxContacts = isFree ? 50 : null;
   const maxBroadcastsPerMonth = isFree ? 3 : null;
 
@@ -56,7 +58,7 @@ export function useTierLimits(): TierLimits {
     planCount: activePlans,
     isAtSubscriberLimit: isFree && activeSubscribers >= 25,
     isNearSubscriberLimit: isFree && activeSubscribers >= 20,
-    isAtPlanLimit: isFree && activePlans >= 1,
+    isAtPlanLimit: isFree && activePlans >= 3,
     isFree,
     isStandard,
   };

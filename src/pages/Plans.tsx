@@ -28,7 +28,7 @@ const Plans = () => {
 
   const openEditor = (plan?: Plan) => {
     if (!plan && isFree && isAtPlanLimit) {
-      toast("Free tier includes 1 plan. Upgrade to Standard to create unlimited plans.");
+      toast("Free tier includes 3 plans. Upgrade to Standard to create unlimited plans.");
       return;
     }
     if (plan) {
@@ -97,8 +97,8 @@ const Plans = () => {
         )
       }
     >
-      {isFree && plans.length >= 1 && (
-        <UpgradeBanner message="Want to offer multiple plans? Upgrade to Standard." />
+      {isFree && isAtPlanLimit && (
+        <UpgradeBanner message="You've reached the 3-plan limit. Upgrade to Standard for unlimited plans." />
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {plans.map((plan) => (
