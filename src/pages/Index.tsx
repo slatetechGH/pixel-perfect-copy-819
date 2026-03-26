@@ -84,6 +84,14 @@ const DashboardHome = () => {
         </div>
       )}
 
+      {/* Near subscriber limit banner */}
+      {isFree && isNearSubscriberLimit && !isAtSubscriberLimit && (
+        <UpgradeBanner message={`You're at ${subscriberCount} of ${maxSubscribers} subscribers. Upgrade to Standard before you hit the limit.`} />
+      )}
+      {isFree && isAtSubscriberLimit && (
+        <UpgradeBanner message="You've reached 25 subscribers — upgrade to Standard for unlimited subscribers" />
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
         <div className="cursor-pointer" onClick={() => navigate("/dashboard/analytics")}>
           <MetricCard title="Monthly Recurring Revenue" value={kpiData.mrr} change={kpiData.mrrChange} trend="up" delay={0} />
