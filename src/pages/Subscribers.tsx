@@ -98,7 +98,7 @@ const Subscribers = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    {["Name", "Email", "Plan", "Joined", "Status", "Revenue", ""].map(h => (
+                    {["Name", "Email", "Plan", "Joined", "Status", "Revenue"].map(h => (
                       <th key={h} className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">{h}</th>
                     ))}
                   </tr>

@@ -384,6 +384,12 @@ const Storefront = () => {
                       <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
                     )}
                     <ul className="mt-5 space-y-2.5 flex-1">
+                      {plan.collections_per_month > 0 && (
+                        <li className="flex items-start gap-2 text-sm text-foreground font-medium">
+                          <ShoppingBag className="w-4 h-4 mt-0.5 shrink-0" style={{ color: accentColor }} />
+                          {plan.collections_per_month} market collection{plan.collections_per_month > 1 ? "s" : ""} per month
+                        </li>
+                      )}
                       {(plan.benefits || []).map((b, j) => (
                         <li key={j} className="flex items-start gap-2 text-sm text-foreground">
                           <Check className="w-4 h-4 mt-0.5 shrink-0" style={{ color: accentColor }} />
