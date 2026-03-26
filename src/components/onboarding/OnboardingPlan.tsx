@@ -121,7 +121,19 @@ export default function OnboardingPlan({ userId, onContinue, onSkip }: Props) {
                 placeholder="25.00"
               />
             </div>
-          </div>
+            </div>
+            <div>
+              <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Collections per month</label>
+              <input
+                type="number"
+                min="0"
+                value={collectionsPerMonth}
+                onChange={e => setCollectionsPerMonth(e.target.value)}
+                className={inputCls}
+                placeholder="e.g. 4 (0 = digital only)"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">How many times can a subscriber collect goods each month?</p>
+            </div>
           <div>
             <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Benefits</label>
             <div className="space-y-2">
