@@ -15,10 +15,17 @@ import {
 } from "recharts";
 
 const DashboardHome = () => {
-  const { subscribers, settings, kpiData, revenueChartData, subscriberGrowthData, activityFeed } = useDashboard();
+  const { subscribers, settings, kpiData, revenueChartData, subscriberGrowthData, activityFeed, plans } = useDashboard();
   const { demoActive, accentColor } = useApp();
   const { getLabel } = useProducerLabels();
   const navigate = useNavigate();
+
+  // Calculate remaining collections
+  const planCollections: Record<string, number> = {};
+  plans.forEach(p => { planCollections[p.name] = p.collectionsPerMonth; });
+  const collectionsRemaining = subscribers
+    .filter(s => s.status === "active" && (planCollections[s.plan] || 0) > 0)
+    .reduce((sum, s) => sum + (planCollections[s.plan] || 0), 0);
 
   const storefrontSlug =
     settings.urlSlug ||
