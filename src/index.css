@@ -119,6 +119,32 @@
   }
 }
 
+/* Dark mode: fix hardcoded bg-white on inputs/selects/textareas inside dashboard */
+@layer utilities {
+  .dark input.bg-white,
+  .dark textarea.bg-white,
+  .dark select.bg-white {
+    background-color: hsl(215 25% 20%) !important;
+    color: hsl(210 40% 96%) !important;
+    border-color: hsl(215 20% 25%) !important;
+  }
+
+  .dark input.bg-white::placeholder,
+  .dark textarea.bg-white::placeholder {
+    color: hsl(213 27% 50%) !important;
+  }
+
+  /* Fix cards with hardcoded bg-white in dark mode */
+  .dark .bg-white {
+    background-color: hsl(217 33% 17%);
+  }
+
+  /* Ensure dashed borders are visible in dark mode */
+  .dark .border-dashed {
+    border-color: hsl(215 20% 30%);
+  }
+}
+
 /* Hide Lovable badge */
 [data-lovable-badge],
 .lovable-badge,
