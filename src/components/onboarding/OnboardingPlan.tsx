@@ -75,6 +75,7 @@ export default function OnboardingPlan({ userId, onContinue, onSkip }: Props) {
             setPlanName("");
             setPrice("");
             setBenefits(["", "", ""]);
+            setCollectionsPerMonth("");
           }}>
             Add another plan
           </Button>
