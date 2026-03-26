@@ -2,11 +2,13 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Check, Trash2 } from "lucide-react";
+import { Plus, Users, Check, Trash2, Lock } from "lucide-react";
 import { useDashboard, Plan } from "@/contexts/DashboardContext";
 import { SlideOverPanel } from "@/components/SlideOverPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { PriceCalculator } from "@/components/commission/PriceCalculator";
+import { UpgradeBanner } from "@/components/UpgradeBanner";
+import { useTierLimits } from "@/hooks/useTierLimits";
 import { toast } from "sonner";
 
 const emptyPlan: Omit<Plan, "id"> = {
