@@ -12,7 +12,7 @@ import { useSearchParams } from "react-router-dom";
 
 const freeFeatures = [
   { label: "Up to 25 subscribers", included: true },
-  { label: "1 subscription plan", included: true },
+  { label: "Up to 3 subscription plans", included: true },
   { label: "Up to 50 contacts", included: true },
   { label: "3 broadcasts/month", included: true },
   { label: "Branded storefront", included: true },

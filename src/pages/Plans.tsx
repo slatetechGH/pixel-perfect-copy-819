@@ -97,8 +97,8 @@ const Plans = () => {
         )
       }
     >
-      {isFree && plans.length >= 1 && (
-        <UpgradeBanner message="Want to offer multiple plans? Upgrade to Standard." />
+      {isFree && isAtPlanLimit && (
+        <UpgradeBanner message="You've reached the 3-plan limit. Upgrade to Standard for unlimited plans." />
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {plans.map((plan) => (

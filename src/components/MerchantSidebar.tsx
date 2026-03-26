@@ -239,10 +239,12 @@ export function MerchantSidebar() {
                     Upgrade to Standard
                   </button>
                 )}
-                <div>
-                  <p className="text-caption text-sidebar-foreground/50">Commission</p>
-                  <p className="text-[13px] font-medium text-sidebar-foreground">{commissionPercent}% on revenue</p>
-                </div>
+                {session.role !== "admin" && (
+                  <div>
+                    <p className="text-caption text-sidebar-foreground/50">Commission</p>
+                    <p className="text-[13px] font-medium text-sidebar-foreground">{commissionPercent}% on revenue</p>
+                  </div>
+                )}
                 {storefrontSlug && (
                   <button
                     onClick={() => navigate(`/store/${storefrontSlug}`)}

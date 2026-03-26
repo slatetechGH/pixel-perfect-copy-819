@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 const freeFeatures = [
   "25 subscribers",
-  "1 subscription plan",
+  "3 subscription plans",
   "Branded storefront",
   "Collection tracking",
   "3 broadcasts/month",
