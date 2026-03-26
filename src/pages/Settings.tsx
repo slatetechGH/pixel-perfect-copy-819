@@ -17,14 +17,16 @@ const accentSwatches = ["#1E293B", "#475569", "#0F172A", "#0EA5E9", "#10B981", "
 const Settings = () => {
   const { settings, setSettings } = useDashboard();
   const { setSession } = useApp();
+  const { isFree, isStandard, commissionPercent } = useTierLimits();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>("Business Profile");
   const [saving, setSaving] = useState(false);
   const [cardModal, setCardModal] = useState(false);
-  const [upgradeModal, setUpgradeModal] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [newCard, setNewCard] = useState({ number: "", expiry: "", cvc: "" });
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   const save = () => {
     setSaving(true);
