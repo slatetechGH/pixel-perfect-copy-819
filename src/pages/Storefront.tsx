@@ -42,6 +42,7 @@ interface StorefrontPlan {
   active: boolean;
   show_on_public_page: boolean;
   sort_order: number | null;
+  collections_per_month: number;
 }
 
 interface StorefrontDrop {
