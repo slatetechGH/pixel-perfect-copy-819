@@ -237,8 +237,16 @@ const AdminProducers = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 pr-4 text-[14px] text-muted-foreground">{p.email}</td>
-                      <td className="py-3 pr-4 text-[13px] text-muted-foreground">{formatDate(p.created_at)}</td>
+                       <td className="py-3 pr-4 text-[14px] text-muted-foreground">{p.email}</td>
+                       <td className="py-3 pr-4">
+                         <Badge
+                           variant={p.subscription_tier === "standard" ? "default" : "secondary"}
+                           className={`text-[11px] ${p.subscription_tier === "standard" ? "bg-amber/10 text-amber border-0" : ""}`}
+                         >
+                           {p.subscription_tier === "standard" ? "Standard" : "Free"}
+                         </Badge>
+                       </td>
+                       <td className="py-3 pr-4 text-[13px] text-muted-foreground">{formatDate(p.created_at)}</td>
                       <td className="py-3 pr-4 text-center text-[14px] text-foreground">{p.planCount}</td>
                       <td className="py-3 pr-4 text-center text-[14px] text-foreground">{p.subscriberCount}</td>
                       <td className="py-3 pr-4 text-center text-[14px] text-foreground">{p.collectionsThisMonth}</td>

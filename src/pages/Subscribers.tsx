@@ -66,6 +66,9 @@ const Subscribers = () => {
       subtitle={`${filtered.length} of ${subscribers.length} subscribers`}
       actions={<Button variant="outline" size="sm" onClick={() => toast("Export coming soon")}><Download className="h-4 w-4 mr-1.5" /> Export CSV</Button>}
     >
+      {isFree && isNearSubscriberLimit && (
+        <UpgradeBanner message={`You're at ${subscriberCount} of ${maxSubscribers} subscribers. Upgrade to Standard before you hit the limit.`} />
+      )}
       <Card className="border-0 shadow-card">
         <CardContent className="p-0">
           <div className="p-5 border-b border-border flex flex-wrap items-center gap-3">
