@@ -44,6 +44,7 @@ const adminNavItems = [
 
 export function MerchantSidebar() {
   const { state } = useSidebar();
+  const [helpOpen, setHelpOpen] = useState(false);
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
   const location = useLocation();
