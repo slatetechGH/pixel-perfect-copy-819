@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { useProducerLabels } from "@/hooks/useProducerLabels";
 import { LabelWithTooltip } from "@/components/LabelWithTooltip";
 import { CommissionCard } from "@/components/commission/CommissionCard";
+import { UpgradeBanner } from "@/components/UpgradeBanner";
+import { useTierLimits } from "@/hooks/useTierLimits";
 import { toast } from "sonner";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
