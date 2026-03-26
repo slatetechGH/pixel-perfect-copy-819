@@ -329,8 +329,6 @@ const Settings = () => {
         </div>
       )}
 
-      )}
-
       <ConfirmDialog
         open={cancelConfirm}
         onClose={() => setCancelConfirm(false)}
