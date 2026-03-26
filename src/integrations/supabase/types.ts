@@ -798,6 +798,7 @@ export type Database = {
           business_name: string | null
           business_type: string | null
           commission_percentage: number
+          completed_guides: Json
           cover_url: string | null
           created_at: string
           description: string | null
@@ -832,6 +833,7 @@ export type Database = {
           business_name?: string | null
           business_type?: string | null
           commission_percentage?: number
+          completed_guides?: Json
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -866,6 +868,7 @@ export type Database = {
           business_name?: string | null
           business_type?: string | null
           commission_percentage?: number
+          completed_guides?: Json
           cover_url?: string | null
           created_at?: string
           description?: string | null

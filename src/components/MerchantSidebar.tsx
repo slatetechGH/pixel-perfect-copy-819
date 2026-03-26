@@ -56,7 +56,7 @@ export function MerchantSidebar() {
 
   // Page guidance
   const {
-    steps, showGuidance, currentStep, nextStep, skipGuidance, replayGuidance, hasSteps,
+    steps, showGuidance, currentStep, nextStep, skipGuidance, replayGuidance, resetAllGuides, hasSteps,
   } = usePageGuidance(location.pathname);
 
   useEffect(() => {
@@ -183,15 +183,32 @@ export function MerchantSidebar() {
             <div className="px-5 pb-5">
               <div className="border-t border-sidebar-border pt-4 space-y-3">
                 {/* Help & Guidance */}
-                {hasSteps && (
-                  <button
-                    onClick={replayGuidance}
-                    className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"
-                  >
-                    <HelpCircle className="h-4 w-4" strokeWidth={1.5} />
-                    Help & Guidance
-                  </button>
-                )}
+                {session.role !== "admin" || demoActive ? (
+                  <div className="relative group">
+                    <button
+                      className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"
+                    >
+                      <HelpCircle className="h-4 w-4" strokeWidth={1.5} />
+                      Help & Guidance
+                    </button>
+                    <div className="hidden group-hover:block absolute bottom-full left-0 mb-1 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[200px] z-50">
+                      {hasSteps && (
+                        <button
+                          onClick={replayGuidance}
+                          className="w-full text-left px-3 py-2 text-[13px] text-foreground hover:bg-muted transition-colors"
+                        >
+                          Show guide for this page
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { resetAllGuides(); toast.success("All guides reset — they'll show again on next visit"); }}
+                        className="w-full text-left px-3 py-2 text-[13px] text-foreground hover:bg-muted transition-colors"
+                      >
+                        Reset all guides
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
                 {/* Theme toggle */}
                 <button
                   onClick={toggleTheme}
