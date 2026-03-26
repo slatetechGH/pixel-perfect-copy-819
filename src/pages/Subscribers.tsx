@@ -17,6 +17,7 @@ const statusDot: Record<string, string> = {
 
 const Subscribers = () => {
   const { subscribers, setSubscribers, plans } = useDashboard();
+  const { isFree, isNearSubscriberLimit, subscriberCount, maxSubscribers } = useTierLimits();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("All");
