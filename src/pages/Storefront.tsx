@@ -124,7 +124,7 @@ const Storefront = () => {
         const [plansRes, dropsRes, contentRes] = await Promise.all([
           supabase
             .from("plans")
-            .select("id, name, price_num, is_free, benefits, description, active, show_on_public_page, sort_order")
+            .select("id, name, price_num, is_free, benefits, description, active, show_on_public_page, sort_order, collections_per_month")
             .eq("producer_id", producerId)
             .eq("active", true)
             .eq("show_on_public_page", true)
