@@ -87,8 +87,19 @@ const Plans = () => {
     <DashboardLayout
       title="Plans"
       subtitle="Manage your membership tiers"
-      actions={<Button size="sm" onClick={() => openEditor()}><Plus className="h-4 w-4 mr-1.5" /> Create Plan</Button>}
+      actions={
+        isFree && isAtPlanLimit ? (
+          <Button size="sm" variant="outline" onClick={() => openEditor()}>
+            <Lock className="h-4 w-4 mr-1.5" /> Create Plan
+          </Button>
+        ) : (
+          <Button size="sm" onClick={() => openEditor()}><Plus className="h-4 w-4 mr-1.5" /> Create Plan</Button>
+        )
+      }
     >
+      {isFree && plans.length >= 1 && (
+        <UpgradeBanner message="Want to offer multiple plans? Upgrade to Standard." />
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {plans.map((plan) => (
           <Card key={plan.id} className="relative overflow-hidden border-0 shadow-card hover:shadow-card-hover transition-shadow duration-200">

@@ -90,6 +90,19 @@ const Drops = () => {
     toast.success(`"${drop.title}" cancelled`);
   };
 
+  if (!canCreateDrops) {
+    return (
+      <DashboardLayout title="Product Drops" subtitle="Limited-availability releases">
+        <div className="text-center py-16 max-w-md mx-auto">
+          <Sparkles size={48} className="text-amber mx-auto mb-4" />
+          <h3 className="text-[18px] font-semibold text-foreground mb-2">Product drops are available on the Standard plan</h3>
+          <p className="text-[14px] text-muted-foreground mb-6">Upgrade to start dropping exclusive products to your subscribers.</p>
+          <UpgradeBanner message="Upgrade to Standard to create product drops" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout
       title="Product Drops"
