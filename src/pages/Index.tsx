@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { MetricCard } from "@/components/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Zap, FileText, TrendingUp, Copy, ExternalLink } from "lucide-react";
+import { Zap, FileText, TrendingUp, Copy, ExternalLink, ClipboardCheck } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
@@ -15,10 +15,17 @@ import {
 } from "recharts";
 
 const DashboardHome = () => {
-  const { subscribers, settings, kpiData, revenueChartData, subscriberGrowthData, activityFeed } = useDashboard();
+  const { subscribers, settings, kpiData, revenueChartData, subscriberGrowthData, activityFeed, plans } = useDashboard();
   const { demoActive, accentColor } = useApp();
   const { getLabel } = useProducerLabels();
   const navigate = useNavigate();
+
+  // Calculate remaining collections
+  const planCollections: Record<string, number> = {};
+  plans.forEach(p => { planCollections[p.name] = p.collectionsPerMonth; });
+  const collectionsRemaining = subscribers
+    .filter(s => s.status === "active" && (planCollections[s.plan] || 0) > 0)
+    .reduce((sum, s) => sum + (planCollections[s.plan] || 0), 0);
 
   const storefrontSlug =
     settings.urlSlug ||
@@ -136,6 +143,30 @@ const DashboardHome = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Collections Today Card */}
+      {plans.some(p => p.collectionsPerMonth > 0) && (
+        <Card className="opacity-0 animate-fade-in border-0 shadow-card mb-7" style={{ animationDelay: "430ms" }}>
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-10 w-10 rounded-lg bg-amber/10 flex items-center justify-center shrink-0">
+              <ClipboardCheck className="h-5 w-5 text-amber" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[15px] font-medium text-foreground">
+                {collectionsRemaining > 0
+                  ? `${collectionsRemaining} collections remaining this month`
+                  : "No collections due"}
+              </p>
+              <button
+                onClick={() => navigate("/dashboard/collections")}
+                className="text-[13px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                View collection sheet →
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Commission Card */}
       <div className="mb-7">

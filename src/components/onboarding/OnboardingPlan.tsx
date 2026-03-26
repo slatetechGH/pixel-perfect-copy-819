@@ -15,6 +15,7 @@ export default function OnboardingPlan({ userId, onContinue, onSkip }: Props) {
   const [planName, setPlanName] = useState("");
   const [price, setPrice] = useState("");
   const [benefits, setBenefits] = useState(["", "", ""]);
+  const [collectionsPerMonth, setCollectionsPerMonth] = useState("");
   const [saving, setSaving] = useState(false);
   const [created, setCreated] = useState(false);
 
@@ -39,6 +40,7 @@ export default function OnboardingPlan({ userId, onContinue, onSkip }: Props) {
       producer_id: userId,
       active: true,
       show_on_public_page: true,
+      collections_per_month: parseInt(collectionsPerMonth) || 0,
     });
     if (error) {
       toast.error("Failed to create plan");
@@ -73,6 +75,7 @@ export default function OnboardingPlan({ userId, onContinue, onSkip }: Props) {
             setPlanName("");
             setPrice("");
             setBenefits(["", "", ""]);
+            setCollectionsPerMonth("");
           }}>
             Add another plan
           </Button>
@@ -118,7 +121,19 @@ export default function OnboardingPlan({ userId, onContinue, onSkip }: Props) {
                 placeholder="25.00"
               />
             </div>
-          </div>
+            </div>
+            <div>
+              <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Collections per month</label>
+              <input
+                type="number"
+                min="0"
+                value={collectionsPerMonth}
+                onChange={e => setCollectionsPerMonth(e.target.value)}
+                className={inputCls}
+                placeholder="e.g. 4 (0 = digital only)"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">How many times can a subscriber collect goods each month?</p>
+            </div>
           <div>
             <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Benefits</label>
             <div className="space-y-2">

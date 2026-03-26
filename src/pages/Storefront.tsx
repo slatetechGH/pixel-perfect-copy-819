@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Check, Calendar, Loader2 } from "lucide-react";
+import { MapPin, Check, Calendar, Loader2, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
@@ -42,6 +42,7 @@ interface StorefrontPlan {
   active: boolean;
   show_on_public_page: boolean;
   sort_order: number | null;
+  collections_per_month: number;
 }
 
 interface StorefrontDrop {
@@ -123,7 +124,7 @@ const Storefront = () => {
         const [plansRes, dropsRes, contentRes] = await Promise.all([
           supabase
             .from("plans")
-            .select("id, name, price_num, is_free, benefits, description, active, show_on_public_page, sort_order")
+            .select("id, name, price_num, is_free, benefits, description, active, show_on_public_page, sort_order, collections_per_month")
             .eq("producer_id", producerId)
             .eq("active", true)
             .eq("show_on_public_page", true)
@@ -383,6 +384,12 @@ const Storefront = () => {
                       <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
                     )}
                     <ul className="mt-5 space-y-2.5 flex-1">
+                      {plan.collections_per_month > 0 && (
+                        <li className="flex items-start gap-2 text-sm text-foreground font-medium">
+                          <ShoppingBag className="w-4 h-4 mt-0.5 shrink-0" style={{ color: accentColor }} />
+                          {plan.collections_per_month} market collection{plan.collections_per_month > 1 ? "s" : ""} per month
+                        </li>
+                      )}
                       {(plan.benefits || []).map((b, j) => (
                         <li key={j} className="flex items-start gap-2 text-sm text-foreground">
                           <Check className="w-4 h-4 mt-0.5 shrink-0" style={{ color: accentColor }} />

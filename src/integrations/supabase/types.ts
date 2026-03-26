@@ -151,6 +151,110 @@ export type Database = {
           },
         ]
       }
+      collection_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          producer_id: string
+          recipient_count: number
+          sent_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          producer_id: string
+          recipient_count?: number
+          sent_date?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          producer_id?: string
+          recipient_count?: number
+          sent_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_reminders_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_reminders_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          collected_at: string
+          created_at: string
+          id: string
+          marked_by: string
+          month_year: string
+          notes: string | null
+          plan_id: string
+          producer_id: string
+          subscriber_id: string
+        }
+        Insert: {
+          collected_at?: string
+          created_at?: string
+          id?: string
+          marked_by?: string
+          month_year: string
+          notes?: string | null
+          plan_id: string
+          producer_id: string
+          subscriber_id: string
+        }
+        Update: {
+          collected_at?: string
+          created_at?: string
+          id?: string
+          marked_by?: string
+          month_year?: string
+          notes?: string | null
+          plan_id?: string
+          producer_id?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collections_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collections_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collections_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           created_at: string
@@ -621,6 +725,7 @@ export type Database = {
         Row: {
           active: boolean
           benefits: string[] | null
+          collections_per_month: number
           created_at: string
           description: string | null
           id: string
@@ -637,6 +742,7 @@ export type Database = {
         Insert: {
           active?: boolean
           benefits?: string[] | null
+          collections_per_month?: number
           created_at?: string
           description?: string | null
           id?: string
@@ -653,6 +759,7 @@ export type Database = {
         Update: {
           active?: boolean
           benefits?: string[] | null
+          collections_per_month?: number
           created_at?: string
           description?: string | null
           id?: string

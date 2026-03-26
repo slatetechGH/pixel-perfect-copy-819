@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Users, CreditCard, FileText, Zap, Megaphone, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield, HelpCircle, Sun, Moon,
+  LayoutDashboard, Users, CreditCard, FileText, Zap, Megaphone, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield, HelpCircle, Sun, Moon, ClipboardCheck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -21,6 +21,7 @@ import {
 const producerNavItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Subscribers", url: "/dashboard/subscribers", icon: Users },
+  { title: "Collections", url: "/dashboard/collections", icon: ClipboardCheck },
   { title: "Plans", url: "/dashboard/plans", icon: CreditCard },
   { title: "Content", url: "/dashboard/content", icon: FileText },
   { title: "Product Drops", url: "/dashboard/drops", icon: Zap },
