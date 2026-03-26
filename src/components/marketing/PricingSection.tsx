@@ -1,17 +1,32 @@
 import AnimatedSection from "./AnimatedSection";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const included = [
+const freeFeatures = [
+  "25 subscribers",
+  "1 subscription plan",
+  "Branded storefront",
+  "Collection tracking",
+  "3 broadcasts/month",
+];
+
+const standardFeatures = [
   "Unlimited subscribers",
-  "Unlimited subscription tiers",
-  "Product drops & limited editions",
-  "Recipe & content sharing",
-  "Built-in messaging",
-  "Full analytics dashboard",
-  "Custom branded storefront",
-  "Stripe payments built-in",
+  "Unlimited plans",
+  "Unlimited broadcasts",
+  "Product drops",
+  "Content gating",
+  "Automated reminders",
+  "Priority support",
+];
+
+const sharedFeatures = [
+  "Branded storefront",
+  "Custom branding",
+  "Subscriber management",
+  "Analytics",
+  "Collection tracking",
 ];
 
 const PricingSection = () => {
@@ -28,41 +43,81 @@ const PricingSection = () => {
             Simple, transparent pricing.
           </h2>
           <p className="text-[18px] md:text-[20px] text-slate-mid text-center max-w-2xl mx-auto mb-16 leading-relaxed">
-            No monthly fees. No setup costs. Just a small commission when you earn.
+            No risk. Start free. Upgrade when you're ready.
           </p>
         </AnimatedSection>
 
         <AnimatedSection delay={0.1}>
-          <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-card p-10">
-            <div className="text-center mb-8">
-              <span className="text-[56px] font-bold text-foreground leading-none">£0</span>
-              <span className="text-[18px] text-slate-mid ml-2">/month</span>
-              <p className="text-[15px] text-slate-mid mt-3">
-                Just 8% commission on subscriber revenue
-              </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Free Card */}
+            <div className="bg-white rounded-2xl shadow-card p-8">
+              <p className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide mb-2">Free</p>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-[48px] font-bold text-foreground leading-none">£0</span>
+                <span className="text-[16px] text-slate-mid">/month</span>
+              </div>
+              <p className="text-[14px] text-amber font-medium mb-1">8% commission</p>
+              <p className="text-[14px] text-slate-mid mb-6">Perfect for getting started</p>
+
+              <ul className="space-y-3 mb-8">
+                {freeFeatures.map((f) => (
+                  <li key={f} className="flex items-center gap-2.5 text-[15px] text-foreground">
+                    <Check size={16} className="text-amber shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                variant="slate"
+                className="w-full h-12 text-[15px]"
+                onClick={() => navigate("/get-started")}
+              >
+                Get started free
+              </Button>
             </div>
 
-            <ul className="space-y-3 mb-8">
-              {included.map((f) => (
-                <li key={f} className="flex items-center gap-2.5 text-[15px] text-foreground">
-                  <Check size={16} className="text-amber shrink-0" />
-                  {f}
-                </li>
-              ))}
-            </ul>
+            {/* Standard Card */}
+            <div className="bg-white rounded-2xl shadow-card p-8 relative">
+              <div className="absolute top-0 right-0 bg-amber text-white text-[11px] font-medium px-3 py-1 rounded-bl-lg">
+                Popular
+              </div>
+              <p className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide mb-2">Standard</p>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-[48px] font-bold text-foreground leading-none">£39</span>
+                <span className="text-[16px] text-slate-mid">/month</span>
+              </div>
+              <p className="text-[14px] text-success font-medium mb-1">5% commission</p>
+              <p className="text-[14px] text-slate-mid mb-6">For growing producers</p>
 
-            <Button
-              variant="slate"
-              className="w-full h-12 text-[15px]"
-              onClick={() => navigate("/get-started")}
-            >
-              Get started
-            </Button>
+              <ul className="space-y-3 mb-8">
+                {standardFeatures.map((f) => (
+                  <li key={f} className="flex items-center gap-2.5 text-[15px] text-foreground">
+                    <Check size={16} className="text-amber shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                variant="slate"
+                className="w-full h-12 text-[15px]"
+                onClick={() => navigate("/get-started")}
+              >
+                Start free, upgrade anytime
+              </Button>
+              <p className="text-[12px] text-slate-light text-center mt-3">
+                Most producers upgrade within 2 months
+              </p>
+            </div>
           </div>
         </AnimatedSection>
 
         <AnimatedSection delay={0.3}>
-          <p className="text-[14px] text-slate-light text-center mt-10">
+          <p className="text-[14px] text-slate-mid text-center mt-10 max-w-xl mx-auto">
+            Both plans include: {sharedFeatures.join(", ")}.
+          </p>
+          <p className="text-[14px] text-slate-light text-center mt-3">
             No credit card required. No hidden fees. Cancel anytime.
           </p>
         </AnimatedSection>

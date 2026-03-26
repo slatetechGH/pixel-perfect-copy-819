@@ -1,12 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Percent } from "lucide-react";
+import { useTierLimits } from "@/hooks/useTierLimits";
 
 interface CommissionCardProps {
   mrr: number;
 }
 
 export function CommissionCard({ mrr }: CommissionCardProps) {
-  const commission = mrr * 0.08;
+  const { commissionPercent } = useTierLimits();
+  const commission = mrr * (commissionPercent / 100);
 
   return (
     <Card className="border-0 shadow-card">
@@ -18,7 +20,7 @@ export function CommissionCard({ mrr }: CommissionCardProps) {
       </CardHeader>
       <CardContent className="px-7 pb-7">
         <p className="text-[13px] text-muted-foreground mb-3">
-          8% of your subscriber revenue
+          {commissionPercent}% of your subscriber revenue
         </p>
         <div className="bg-secondary rounded-xl p-4">
           <p className="text-[13px] text-muted-foreground mb-1">

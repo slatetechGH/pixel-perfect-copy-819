@@ -2,11 +2,13 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Check, Trash2 } from "lucide-react";
+import { Plus, Users, Check, Trash2, Lock } from "lucide-react";
 import { useDashboard, Plan } from "@/contexts/DashboardContext";
 import { SlideOverPanel } from "@/components/SlideOverPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { PriceCalculator } from "@/components/commission/PriceCalculator";
+import { UpgradeBanner } from "@/components/UpgradeBanner";
+import { useTierLimits } from "@/hooks/useTierLimits";
 import { toast } from "sonner";
 
 const emptyPlan: Omit<Plan, "id"> = {
@@ -16,6 +18,7 @@ const emptyPlan: Omit<Plan, "id"> = {
 
 const Plans = () => {
   const { plans, setPlans } = useDashboard();
+  const { isFree, isAtPlanLimit } = useTierLimits();
   const [editing, setEditing] = useState<Plan | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<Plan | null>(null);
@@ -24,6 +27,10 @@ const Plans = () => {
   const [priceInput, setPriceInput] = useState("");
 
   const openEditor = (plan?: Plan) => {
+    if (!plan && isFree && isAtPlanLimit) {
+      toast("Free tier includes 1 plan. Upgrade to Standard to create unlimited plans.");
+      return;
+    }
     if (plan) {
       setEditing({ ...plan, benefits: [...plan.benefits] });
       setPriceInput(plan.priceNum > 0 ? String(plan.priceNum) : "");
@@ -80,8 +87,19 @@ const Plans = () => {
     <DashboardLayout
       title="Plans"
       subtitle="Manage your membership tiers"
-      actions={<Button size="sm" onClick={() => openEditor()}><Plus className="h-4 w-4 mr-1.5" /> Create Plan</Button>}
+      actions={
+        isFree && isAtPlanLimit ? (
+          <Button size="sm" variant="outline" onClick={() => openEditor()}>
+            <Lock className="h-4 w-4 mr-1.5" /> Create Plan
+          </Button>
+        ) : (
+          <Button size="sm" onClick={() => openEditor()}><Plus className="h-4 w-4 mr-1.5" /> Create Plan</Button>
+        )
+      }
     >
+      {isFree && plans.length >= 1 && (
+        <UpgradeBanner message="Want to offer multiple plans? Upgrade to Standard." />
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {plans.map((plan) => (
           <Card key={plan.id} className="relative overflow-hidden border-0 shadow-card hover:shadow-card-hover transition-shadow duration-200">

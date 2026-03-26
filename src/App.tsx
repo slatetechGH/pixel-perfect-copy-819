@@ -16,6 +16,7 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Leads from "./pages/Leads";
 import Collections from "./pages/Collections";
+import Upgrade from "./pages/Upgrade";
 import NotFound from "./pages/NotFound";
 import Marketing from "./pages/Marketing";
 import Login from "./pages/Login";
@@ -106,6 +107,7 @@ const AppRoutes = () => (
       <Route path="/dashboard/analytics" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Analytics /></ProtectedRoute>} />
       <Route path="/dashboard/leads" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Leads /></ProtectedRoute>} />
       <Route path="/dashboard/collections" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Collections /></ProtectedRoute>} />
+      <Route path="/dashboard/upgrade" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Upgrade /></ProtectedRoute>} />
       <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["admin", "producer"]}><Settings /></ProtectedRoute>} />
 
       {/* Admin — admin only */}

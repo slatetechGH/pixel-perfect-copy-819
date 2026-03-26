@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { useProducerLabels } from "@/hooks/useProducerLabels";
 import { LabelWithTooltip } from "@/components/LabelWithTooltip";
 import { CommissionCard } from "@/components/commission/CommissionCard";
+import { UpgradeBanner } from "@/components/UpgradeBanner";
+import { useTierLimits } from "@/hooks/useTierLimits";
 import { toast } from "sonner";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
@@ -18,6 +20,7 @@ const DashboardHome = () => {
   const { subscribers, settings, kpiData, revenueChartData, subscriberGrowthData, activityFeed, plans } = useDashboard();
   const { demoActive, accentColor } = useApp();
   const { getLabel } = useProducerLabels();
+  const { isNearSubscriberLimit, isAtSubscriberLimit, subscriberCount, maxSubscribers, isFree } = useTierLimits();
   const navigate = useNavigate();
 
   // Calculate remaining collections
@@ -79,6 +82,14 @@ const DashboardHome = () => {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Near subscriber limit banner */}
+      {isFree && isNearSubscriberLimit && !isAtSubscriberLimit && (
+        <UpgradeBanner message={`You're at ${subscriberCount} of ${maxSubscribers} subscribers. Upgrade to Standard before you hit the limit.`} />
+      )}
+      {isFree && isAtSubscriberLimit && (
+        <UpgradeBanner message="You've reached 25 subscribers — upgrade to Standard for unlimited subscribers" />
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">

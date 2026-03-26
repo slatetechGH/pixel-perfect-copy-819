@@ -2,11 +2,13 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Clock, Trash2, Copy } from "lucide-react";
+import { Plus, Clock, Trash2, Copy, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useDashboard, Drop, DropItem } from "@/contexts/DashboardContext";
 import { SlideOverPanel } from "@/components/SlideOverPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useTierLimits } from "@/hooks/useTierLimits";
+import { UpgradeBanner } from "@/components/UpgradeBanner";
 import { toast } from "sonner";
 
 const statusDot: Record<string, string> = {
@@ -22,6 +24,7 @@ const emptyDrop: Omit<Drop, "id"> = {
 
 const Drops = () => {
   const { drops, setDrops, plans } = useDashboard();
+  const { canCreateDrops } = useTierLimits();
   const [filter, setFilter] = useState<string>("All");
   const [editing, setEditing] = useState<Drop | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -86,6 +89,19 @@ const Drops = () => {
     setDrops(prev => prev.map(d => d.id === drop.id ? { ...d, status: "ended" as const, endsIn: "Cancelled" } : d));
     toast.success(`"${drop.title}" cancelled`);
   };
+
+  if (!canCreateDrops) {
+    return (
+      <DashboardLayout title="Product Drops" subtitle="Limited-availability releases">
+        <div className="text-center py-16 max-w-md mx-auto">
+          <Sparkles size={48} className="text-amber mx-auto mb-4" />
+          <h3 className="text-[18px] font-semibold text-foreground mb-2">Product drops are available on the Standard plan</h3>
+          <p className="text-[14px] text-muted-foreground mb-6">Upgrade to start dropping exclusive products to your subscribers.</p>
+          <UpgradeBanner message="Upgrade to Standard to create product drops" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout

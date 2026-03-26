@@ -6,6 +6,8 @@ import { Search, Download, ChevronDown } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { SlideOverPanel } from "@/components/SlideOverPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { UpgradeBanner } from "@/components/UpgradeBanner";
+import { useTierLimits } from "@/hooks/useTierLimits";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -15,6 +17,7 @@ const statusDot: Record<string, string> = {
 
 const Subscribers = () => {
   const { subscribers, setSubscribers, plans } = useDashboard();
+  const { isFree, isNearSubscriberLimit, subscriberCount, maxSubscribers } = useTierLimits();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("All");
@@ -63,6 +66,9 @@ const Subscribers = () => {
       subtitle={`${filtered.length} of ${subscribers.length} subscribers`}
       actions={<Button variant="outline" size="sm" onClick={() => toast("Export coming soon")}><Download className="h-4 w-4 mr-1.5" /> Export CSV</Button>}
     >
+      {isFree && isNearSubscriberLimit && (
+        <UpgradeBanner message={`You're at ${subscriberCount} of ${maxSubscribers} subscribers. Upgrade to Standard before you hit the limit.`} />
+      )}
       <Card className="border-0 shadow-card">
         <CardContent className="p-0">
           <div className="p-5 border-b border-border flex flex-wrap items-center gap-3">

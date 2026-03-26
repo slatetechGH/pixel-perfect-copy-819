@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Users, CreditCard, FileText, Zap, Megaphone, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield, HelpCircle, Sun, Moon, ClipboardCheck,
+  LayoutDashboard, Users, CreditCard, FileText, Zap, Megaphone, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield, HelpCircle, Sun, Moon, ClipboardCheck, Sparkles,
 } from "lucide-react";
+import { useTierLimits } from "@/hooks/useTierLimits";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDashboard } from "@/contexts/DashboardContext";
@@ -49,6 +50,7 @@ export function MerchantSidebar() {
   const { conversations, settings } = useDashboard();
   const { signOut, demoActive, accentColor, session } = useApp();
   const { theme, toggleTheme } = useTheme();
+  const { isFree, commissionPercent } = useTierLimits();
   const unreadMessages = 0;
   const [newLeadCount, setNewLeadCount] = useState(0);
 
@@ -202,9 +204,20 @@ export function MerchantSidebar() {
                   )}
                   {theme === "light" ? "Dark mode" : "Light mode"}
                 </button>
+                {/* Upgrade badge for free tier */}
+                {isFree && !demoActive && (
+                  <button
+                    onClick={() => navigate("/dashboard/upgrade")}
+                    className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px] font-medium transition-colors cursor-pointer"
+                    style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#F59E0B" }}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Upgrade to Standard
+                  </button>
+                )}
                 <div>
                   <p className="text-caption text-sidebar-foreground/50">Commission</p>
-                  <p className="text-[13px] font-medium text-sidebar-foreground">8% on revenue</p>
+                  <p className="text-[13px] font-medium text-sidebar-foreground">{commissionPercent}% on revenue</p>
                 </div>
                 {storefrontSlug && (
                   <button

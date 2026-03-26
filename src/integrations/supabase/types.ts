@@ -812,11 +812,14 @@ export type Database = {
           onboarding_step: number
           phone: string | null
           plan: string
+          producer_stripe_subscription_id: string | null
           public_visible: boolean | null
           stripe_connect_id: string | null
           stripe_connect_status: string
           stripe_customer_id: string | null
+          subscription_tier: string
           tagline: string | null
+          tier_updated_at: string | null
           twitter: string | null
           updated_at: string
           url_slug: string | null
@@ -843,11 +846,14 @@ export type Database = {
           onboarding_step?: number
           phone?: string | null
           plan?: string
+          producer_stripe_subscription_id?: string | null
           public_visible?: boolean | null
           stripe_connect_id?: string | null
           stripe_connect_status?: string
           stripe_customer_id?: string | null
+          subscription_tier?: string
           tagline?: string | null
+          tier_updated_at?: string | null
           twitter?: string | null
           updated_at?: string
           url_slug?: string | null
@@ -874,11 +880,14 @@ export type Database = {
           onboarding_step?: number
           phone?: string | null
           plan?: string
+          producer_stripe_subscription_id?: string | null
           public_visible?: boolean | null
           stripe_connect_id?: string | null
           stripe_connect_status?: string
           stripe_customer_id?: string | null
+          subscription_tier?: string
           tagline?: string | null
+          tier_updated_at?: string | null
           twitter?: string | null
           updated_at?: string
           url_slug?: string | null

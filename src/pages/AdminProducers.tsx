@@ -22,6 +22,7 @@ interface ProducerDetail {
   accent_color: string | null;
   stripe_connect_status: string;
   commission_percentage: number;
+  subscription_tier: string;
   created_at: string;
   description: string | null;
   phone: string | null;
@@ -91,6 +92,7 @@ const AdminProducers = () => {
         accent_color: p.accent_color,
         stripe_connect_status: p.stripe_connect_status,
         commission_percentage: p.commission_percentage,
+        subscription_tier: p.subscription_tier || "free",
         created_at: p.created_at,
         description: p.description,
         phone: p.phone,
@@ -199,16 +201,17 @@ const AdminProducers = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Business</th>
-                    <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Email</th>
-                    <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Signed Up</th>
-                    <th className="text-center text-[12px] font-medium text-muted-foreground py-3 pr-4">Plans</th>
-                    <th className="text-center text-[12px] font-medium text-muted-foreground py-3 pr-4">Subs</th>
-                    <th className="text-center text-[12px] font-medium text-muted-foreground py-3 pr-4">Collections</th>
-                    <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Status</th>
-                    <th className="text-right text-[12px] font-medium text-muted-foreground py-3">Actions</th>
-                  </tr>
+                 <tr className="border-b border-border">
+                     <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Business</th>
+                     <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Email</th>
+                     <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Tier</th>
+                     <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Signed Up</th>
+                     <th className="text-center text-[12px] font-medium text-muted-foreground py-3 pr-4">Plans</th>
+                     <th className="text-center text-[12px] font-medium text-muted-foreground py-3 pr-4">Subs</th>
+                     <th className="text-center text-[12px] font-medium text-muted-foreground py-3 pr-4">Collections</th>
+                     <th className="text-left text-[12px] font-medium text-muted-foreground py-3 pr-4">Status</th>
+                     <th className="text-right text-[12px] font-medium text-muted-foreground py-3">Actions</th>
+                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((p) => (
@@ -234,8 +237,16 @@ const AdminProducers = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 pr-4 text-[14px] text-muted-foreground">{p.email}</td>
-                      <td className="py-3 pr-4 text-[13px] text-muted-foreground">{formatDate(p.created_at)}</td>
+                       <td className="py-3 pr-4 text-[14px] text-muted-foreground">{p.email}</td>
+                       <td className="py-3 pr-4">
+                         <Badge
+                           variant={p.subscription_tier === "standard" ? "default" : "secondary"}
+                           className={`text-[11px] ${p.subscription_tier === "standard" ? "bg-amber/10 text-amber border-0" : ""}`}
+                         >
+                           {p.subscription_tier === "standard" ? "Standard" : "Free"}
+                         </Badge>
+                       </td>
+                       <td className="py-3 pr-4 text-[13px] text-muted-foreground">{formatDate(p.created_at)}</td>
                       <td className="py-3 pr-4 text-center text-[14px] text-foreground">{p.planCount}</td>
                       <td className="py-3 pr-4 text-center text-[14px] text-foreground">{p.subscriberCount}</td>
                       <td className="py-3 pr-4 text-center text-[14px] text-foreground">{p.collectionsThisMonth}</td>
