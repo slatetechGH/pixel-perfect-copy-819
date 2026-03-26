@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { MetricCard } from "@/components/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Zap, FileText, TrendingUp, Copy, ExternalLink } from "lucide-react";
+import { Zap, FileText, TrendingUp, Copy, ExternalLink, ClipboardCheck } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
