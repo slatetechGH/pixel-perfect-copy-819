@@ -2,11 +2,13 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Clock, Trash2, Copy } from "lucide-react";
+import { Plus, Clock, Trash2, Copy, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useDashboard, Drop, DropItem } from "@/contexts/DashboardContext";
 import { SlideOverPanel } from "@/components/SlideOverPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useTierLimits } from "@/hooks/useTierLimits";
+import { UpgradeBanner } from "@/components/UpgradeBanner";
 import { toast } from "sonner";
 
 const statusDot: Record<string, string> = {
