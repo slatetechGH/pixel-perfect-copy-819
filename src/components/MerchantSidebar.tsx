@@ -56,7 +56,7 @@ export function MerchantSidebar() {
 
   // Page guidance
   const {
-    steps, showGuidance, currentStep, nextStep, skipGuidance, replayGuidance, hasSteps,
+    steps, showGuidance, currentStep, nextStep, skipGuidance, replayGuidance, resetAllGuides, hasSteps,
   } = usePageGuidance(location.pathname);
 
   useEffect(() => {
