@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 const emptyPlan: Omit<Plan, "id"> = {
   name: "", price: "Free", priceNum: 0, subscribers: 0, isFree: false,
-  benefits: [""], description: "", active: true, showOnPublicPage: true,
+  benefits: [""], description: "", active: true, showOnPublicPage: true, collectionsPerMonth: 0,
 };
 
 const Plans = () => {
