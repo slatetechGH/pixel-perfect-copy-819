@@ -238,6 +238,7 @@ const AdminProducers = () => {
                       <td className="py-3 pr-4 text-[13px] text-muted-foreground">{formatDate(p.created_at)}</td>
                       <td className="py-3 pr-4 text-center text-[14px] text-foreground">{p.planCount}</td>
                       <td className="py-3 pr-4 text-center text-[14px] text-foreground">{p.subscriberCount}</td>
+                      <td className="py-3 pr-4 text-center text-[14px] text-foreground">{p.collectionsThisMonth}</td>
                       <td className="py-3 pr-4">
                         <Badge
                           variant={isConfigured(p) ? "default" : "secondary"}
