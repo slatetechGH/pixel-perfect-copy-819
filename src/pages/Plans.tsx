@@ -18,6 +18,7 @@ const emptyPlan: Omit<Plan, "id"> = {
 
 const Plans = () => {
   const { plans, setPlans } = useDashboard();
+  const { isFree, isAtPlanLimit } = useTierLimits();
   const [editing, setEditing] = useState<Plan | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<Plan | null>(null);
@@ -26,6 +27,10 @@ const Plans = () => {
   const [priceInput, setPriceInput] = useState("");
 
   const openEditor = (plan?: Plan) => {
+    if (!plan && isFree && isAtPlanLimit) {
+      toast("Free tier includes 1 plan. Upgrade to Standard to create unlimited plans.");
+      return;
+    }
     if (plan) {
       setEditing({ ...plan, benefits: [...plan.benefits] });
       setPriceInput(plan.priceNum > 0 ? String(plan.priceNum) : "");
