@@ -185,30 +185,35 @@ export function MerchantSidebar() {
               <div className="border-t border-sidebar-border pt-4 space-y-3">
                 {/* Help & Guidance */}
                 {session.role !== "admin" || demoActive ? (
-                  <div className="relative group">
+                   <div className="relative">
                     <button
+                      onClick={() => setHelpOpen((v) => !v)}
                       className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"
                     >
                       <HelpCircle className="h-4 w-4" strokeWidth={1.5} />
                       Help & Guidance
                     </button>
-                    <div className="hidden group-hover:block absolute bottom-full left-0 mb-1 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[200px] z-50">
-                      {hasSteps && (
-                        <button
-                          onClick={replayGuidance}
-                          className="w-full text-left px-3 py-2 text-[13px] text-foreground hover:bg-muted transition-colors"
-                        >
-                          Show guide for this page
-                        </button>
-                      )}
-                      <button
-                        onClick={() => { resetAllGuides(); toast.success("All guides reset — they'll show again on next visit"); }}
-                        className="w-full text-left px-3 py-2 text-[13px] text-foreground hover:bg-muted transition-colors"
-                      >
-                        Reset all guides
-                      </button>
-                    </div>
-                  </div>
+                    {helpOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setHelpOpen(false)} onKeyDown={(e) => e.key === "Escape" && setHelpOpen(false)} tabIndex={-1} />
+                        <div className="absolute bottom-full left-0 mb-1 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[200px] z-50">
+                          {hasSteps && (
+                            <button
+                              onClick={() => { replayGuidance(); setHelpOpen(false); }}
+                              className="w-full text-left px-3 py-2 text-[13px] text-foreground hover:bg-muted transition-colors"
+                            >
+                              Show guide for this page
+                            </button>
+                          )}
+                          <button
+                            onClick={() => { resetAllGuides(); toast.success("All guides reset — they'll show again on next visit"); setHelpOpen(false); }}
+                            className="w-full text-left px-3 py-2 text-[13px] text-foreground hover:bg-muted transition-colors"
+                          >
+                            Reset all guides
+                          </button>
+                        </div>
+                      </>
+                    )}
                 ) : null}
                 {/* Theme toggle */}
                 <button
