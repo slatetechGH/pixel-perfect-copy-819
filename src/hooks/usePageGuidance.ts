@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-
-const STORAGE_KEY = "slate-guided-pages";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useApp } from "@/contexts/AppContext";
 
 export interface GuidanceStep {
   title: string;
@@ -44,35 +44,56 @@ const pageGuidance: Record<string, GuidanceStep[]> = {
   "/dashboard/leads": [
     { title: "Lead Management", description: "Track and manage enquiries from potential producers who want to join the platform." },
   ],
+  "/dashboard/collections": [
+    { title: "Collection Tracking", description: "Track and manage physical collections for your subscribers. Mark items as collected and print collection sheets." },
+  ],
 };
 
-export function usePageGuidance(path: string) {
-  const [guidedPages, setGuidedPages] = useState<string[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    } catch { return []; }
-  });
+// Admin pages — never show guidance on these
+const adminPaths = ["/admin", "/demo-setup"];
 
-  const steps = pageGuidance[path] || [];
-  const hasBeenGuided = guidedPages.includes(path);
+export function usePageGuidance(path: string) {
+  const { session } = useApp();
+  const isAdmin = session.role === "admin";
+  const isAdminPage = adminPaths.some((p) => path.startsWith(p));
+
+  // completed_guides from profile (Supabase-persisted)
+  const completedGuides: string[] = (session.profile?.completed_guides as string[]) || [];
+
+  const steps = (isAdmin && isAdminPage) ? [] : (pageGuidance[path] || []);
+  const hasBeenGuided = completedGuides.includes(path);
   const [showGuidance, setShowGuidance] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  // Track temporary replay so it shows even if already completed
+  const replayingRef = useRef(false);
 
-  // Auto-show on first visit
+  // Auto-show on first visit (only if not completed and not admin page)
   useEffect(() => {
-    if (steps.length > 0 && !hasBeenGuided) {
+    if (steps.length > 0 && !hasBeenGuided && !isAdminPage) {
       setCurrentStep(0);
       setShowGuidance(true);
+    } else if (!replayingRef.current) {
+      setShowGuidance(false);
     }
-  }, [path, hasBeenGuided, steps.length]);
+    replayingRef.current = false;
+  }, [path, hasBeenGuided, steps.length, isAdminPage]);
 
-  const markAsGuided = useCallback(() => {
-    const updated = [...new Set([...guidedPages, path])];
-    setGuidedPages(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  const markAsGuided = useCallback(async () => {
     setShowGuidance(false);
     setCurrentStep(0);
-  }, [guidedPages, path]);
+    if (hasBeenGuided || !session.supabaseUser) return;
+
+    const updated = [...new Set([...completedGuides, path])];
+    // Update Supabase profile
+    await supabase
+      .from("profiles")
+      .update({ completed_guides: updated } as any)
+      .eq("id", session.supabaseUser.id);
+    // Optimistically update local profile
+    if (session.profile) {
+      (session.profile as any).completed_guides = updated;
+    }
+  }, [hasBeenGuided, completedGuides, path, session.supabaseUser, session.profile]);
 
   const nextStep = useCallback(() => {
     if (currentStep < steps.length - 1) {
@@ -88,10 +109,22 @@ export function usePageGuidance(path: string) {
 
   const replayGuidance = useCallback(() => {
     if (steps.length > 0) {
+      replayingRef.current = true;
       setCurrentStep(0);
       setShowGuidance(true);
     }
   }, [steps.length]);
+
+  const resetAllGuides = useCallback(async () => {
+    if (!session.supabaseUser) return;
+    await supabase
+      .from("profiles")
+      .update({ completed_guides: [] } as any)
+      .eq("id", session.supabaseUser.id);
+    if (session.profile) {
+      (session.profile as any).completed_guides = [];
+    }
+  }, [session.supabaseUser, session.profile]);
 
   return {
     steps,
@@ -100,6 +133,7 @@ export function usePageGuidance(path: string) {
     nextStep,
     skipGuidance,
     replayGuidance,
+    resetAllGuides,
     hasSteps: steps.length > 0,
   };
 }
