@@ -28,7 +28,7 @@ const Plans = () => {
 
   const openEditor = (plan?: Plan) => {
     if (!plan && isFree && isAtPlanLimit) {
-      toast("Free tier includes 1 plan. Upgrade to Standard to create unlimited plans.");
+      toast("Free tier includes 3 plans. Upgrade to Standard to create unlimited plans.");
       return;
     }
     if (plan) {
