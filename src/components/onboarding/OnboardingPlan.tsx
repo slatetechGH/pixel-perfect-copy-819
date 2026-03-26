@@ -15,6 +15,7 @@ export default function OnboardingPlan({ userId, onContinue, onSkip }: Props) {
   const [planName, setPlanName] = useState("");
   const [price, setPrice] = useState("");
   const [benefits, setBenefits] = useState(["", "", ""]);
+  const [collectionsPerMonth, setCollectionsPerMonth] = useState("");
   const [saving, setSaving] = useState(false);
   const [created, setCreated] = useState(false);
 
