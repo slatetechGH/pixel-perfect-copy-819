@@ -214,6 +214,7 @@ export function MerchantSidebar() {
                         </div>
                       </>
                     )}
+                  </div>
                 ) : null}
                 {/* Theme toggle */}
                 <button
