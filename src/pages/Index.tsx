@@ -20,6 +20,7 @@ const DashboardHome = () => {
   const { subscribers, settings, kpiData, revenueChartData, subscriberGrowthData, activityFeed, plans } = useDashboard();
   const { demoActive, accentColor } = useApp();
   const { getLabel } = useProducerLabels();
+  const { isNearSubscriberLimit, isAtSubscriberLimit, subscriberCount, maxSubscribers, isFree } = useTierLimits();
   const navigate = useNavigate();
 
   // Calculate remaining collections
