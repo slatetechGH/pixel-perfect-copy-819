@@ -92,6 +92,7 @@ const AdminProducers = () => {
         accent_color: p.accent_color,
         stripe_connect_status: p.stripe_connect_status,
         commission_percentage: p.commission_percentage,
+        subscription_tier: p.subscription_tier || "free",
         created_at: p.created_at,
         description: p.description,
         phone: p.phone,
