@@ -58,18 +58,23 @@ const AdminProducers = () => {
         return;
       }
 
-      const [profilesRes, plansRes, contentRes, dropsRes, subsRes] = await Promise.all([
+      const now = new Date();
+      const currentMonthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+      const [profilesRes, plansRes, contentRes, dropsRes, subsRes, collectionsRes] = await Promise.all([
         supabase.from("profiles").select("*").in("id", producerIds),
         supabase.from("plans").select("id, producer_id").in("producer_id", producerIds),
         supabase.from("content").select("id, producer_id").in("producer_id", producerIds),
         supabase.from("drops").select("id, producer_id").in("producer_id", producerIds),
         supabase.from("subscribers").select("id, producer_id, status").in("producer_id", producerIds),
+        supabase.from("collections").select("id, producer_id").in("producer_id", producerIds).eq("month_year", currentMonthYear),
       ]);
 
       const plans = plansRes.data || [];
       const content = contentRes.data || [];
       const drops = dropsRes.data || [];
       const subs = subsRes.data || [];
+      const colls = collectionsRes.data || [];
 
       const countBy = (arr: any[], field: string, id: string) =>
         arr.filter((r) => r[field] === id).length;
@@ -95,6 +100,7 @@ const AdminProducers = () => {
         contentCount: countBy(content, "producer_id", p.id),
         dropCount: countBy(drops, "producer_id", p.id),
         subscriberCount: activeSubsBy(p.id),
+        collectionsThisMonth: countBy(colls, "producer_id", p.id),
       }));
 
       setProducers(mapped.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
