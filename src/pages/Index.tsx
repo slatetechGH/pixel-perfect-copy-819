@@ -60,7 +60,7 @@ const DashboardHome = () => {
           <Button variant="outline" size="sm" className="text-[14px] font-medium" onClick={() => navigate("/dashboard/drops")}>
             <Zap className="h-4 w-4 mr-1.5" />New Drop
           </Button>
-          <Button size="sm" className="text-[14px] font-medium bg-foreground hover:bg-foreground/90 text-white" onClick={() => navigate("/dashboard/content")}>
+          <Button size="sm" className="text-[14px] font-medium" onClick={() => navigate("/dashboard/content")}>
             <FileText className="h-4 w-4 mr-1.5" />Post Recipe
           </Button>
         </div>
