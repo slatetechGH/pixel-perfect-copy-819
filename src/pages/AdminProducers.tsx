@@ -31,6 +31,7 @@ interface ProducerDetail {
   contentCount: number;
   dropCount: number;
   subscriberCount: number;
+  collectionsThisMonth: number;
 }
 
 const AdminProducers = () => {
