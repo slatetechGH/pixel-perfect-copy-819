@@ -220,7 +220,7 @@ const Settings = () => {
                     <p className="text-[14px] text-foreground mb-2">Stripe setup in progress</p>
                     <p className="text-[13px] text-muted-foreground mb-3">Complete your Stripe onboarding to start accepting payments.</p>
                     <Button variant="slate" onClick={async () => {
-                      const { data, error } = await (await import("@/integrations/supabase/client")).supabase.functions.invoke("stripe-connect-onboarding", { body: { action: "create_account" } });
+                      const { data } = await supabase.functions.invoke("stripe-connect-onboarding", { body: { action: "create_account" } });
                       if (data?.url) window.location.href = data.url;
                       else toast.error("Failed to resume Stripe setup");
                     }}>
@@ -230,11 +230,11 @@ const Settings = () => {
                 ) : (
                   <div>
                     <p className="text-[14px] text-foreground mb-2">Connect your Stripe account to start accepting payments</p>
-                    <p className="text-[13px] text-muted-foreground mb-3">Stripe handles all payment processing securely. Slate takes an 8% commission on subscription revenue.</p>
+                    <p className="text-[13px] text-muted-foreground mb-3">Stripe handles all payment processing securely. Slate takes a {commissionPercent}% commission on subscription revenue.</p>
                     <Button variant="slate" onClick={async () => {
-                      const { data, error } = await (await import("@/integrations/supabase/client")).supabase.functions.invoke("stripe-connect-onboarding", { body: { action: "create_account" } });
+                      const { data } = await supabase.functions.invoke("stripe-connect-onboarding", { body: { action: "create_account" } });
                       if (data?.url) window.location.href = data.url;
-                      else toast.error(data?.error || "Failed to start Stripe setup");
+                      else toast.error("Failed to start Stripe setup");
                     }}>
                       <CreditCard size={16} className="mr-1.5" /> Connect Stripe
                     </Button>
@@ -242,51 +242,57 @@ const Settings = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Slate Plan */}
             <Card className="border-0 shadow-card">
-              <CardHeader className="px-6 pt-6 pb-3"><CardTitle className="text-[15px] font-medium">Current Plan</CardTitle></CardHeader>
+              <CardHeader className="px-6 pt-6 pb-3"><CardTitle className="text-[15px] font-medium">Your Slate Plan</CardTitle></CardHeader>
               <CardContent className="px-6 pb-6">
-                <div className="flex items-center justify-between mb-4">
+                {isFree ? (
                   <div>
-                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-foreground/10 text-foreground mb-1">{settings.currentPlan}</span>
-                    <p className="text-metric text-foreground">{settings.currentPlanPrice}</p>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-secondary text-foreground">Free</span>
+                    </div>
+                    <p className="text-[14px] text-muted-foreground mb-4">8% commission on subscriber revenue</p>
+                    <Button variant="slate" onClick={() => navigate("/dashboard/upgrade")}>
+                      <Sparkles className="h-4 w-4 mr-1.5" /> Upgrade to Standard →
+                    </Button>
                   </div>
-                </div>
-                <ul className="space-y-2 mb-5 text-[14px] text-muted-foreground">
-                  <li>• Unlimited subscribers</li><li>• Unlimited tiers</li><li>• Product drops</li><li>• Full analytics</li><li>• Custom branding</li><li>• Priority support</li>
-                </ul>
-                <div className="flex gap-3">
-                  <Button variant="slate" onClick={() => setUpgradeModal(true)}>Upgrade</Button>
-                  <button onClick={() => setCancelConfirm(true)} className="text-[13px] text-destructive/80 hover:text-destructive cursor-pointer">Cancel plan</button>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-card">
-              <CardHeader className="px-6 pt-6 pb-3"><CardTitle className="text-[15px] font-medium">Payment Method</CardTitle></CardHeader>
-              <CardContent className="px-6 pb-6">
-                <div className="flex items-center justify-between">
-                  <p className="text-[14px] text-foreground">•••• •••• •••• {settings.cardLast4}</p>
-                  <Button variant="outline" size="sm" onClick={() => setCardModal(true)}>Update</Button>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-card">
-              <CardHeader className="px-6 pt-6 pb-3"><CardTitle className="text-[15px] font-medium">Billing History</CardTitle></CardHeader>
-              <CardContent className="px-6 pb-6">
-                <table className="w-full">
-                  <thead><tr className="border-b">{["Date", "Amount", "Status", "Invoice"].map(h => <th key={h} className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-3">{h}</th>)}</tr></thead>
-                  <tbody>
-                    {settings.billingHistory.map((b, i) => (
-                      <tr key={i} className="border-b last:border-0">
-                        <td className="p-3 text-[14px] text-foreground">{b.date}</td>
-                        <td className="p-3 text-[14px] text-foreground">{b.amount}</td>
-                        <td className="p-3"><span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-success/10 text-success">{b.status}</span></td>
-                        <td className="p-3">
-                          <button onClick={() => toast("Invoice download coming soon")} className="text-[14px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{b.invoice}</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                ) : (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-amber/10 text-amber">Standard</span>
+                      <span className="text-[15px] font-semibold text-foreground">£39/month</span>
+                    </div>
+                    <p className="text-[14px] text-muted-foreground mb-4">5% commission on subscriber revenue</p>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        disabled={portalLoading}
+                        onClick={async () => {
+                          setPortalLoading(true);
+                          try {
+                            const { data, error } = await supabase.functions.invoke("create-billing-portal");
+                            if (data?.url) window.location.href = data.url;
+                            else toast.error(data?.error || "Failed to open billing portal");
+                          } catch {
+                            toast.error("Failed to open billing portal");
+                          } finally {
+                            setPortalLoading(false);
+                          }
+                        }}
+                      >
+                        {portalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                        Manage subscription
+                      </Button>
+                      <button
+                        onClick={() => setCancelConfirm(true)}
+                        className="text-[13px] text-destructive/80 hover:text-destructive cursor-pointer"
+                      >
+                        Downgrade to Free
+                      </button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
