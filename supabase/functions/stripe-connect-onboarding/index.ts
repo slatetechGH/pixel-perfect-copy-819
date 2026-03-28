@@ -50,43 +50,47 @@ serve(async (req) => {
     const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
 
     const { action } = await req.json();
+    const origin = req.headers.get("origin") || "https://pixel-perfect-copy-819.lovable.app";
 
     if (action === "create_account") {
-      // Fetch profile
+      // Fetch profile to check if they already have a connect account
       const { data: profile } = await supabaseAdmin
         .from("profiles")
-        .select("email, business_name")
+        .select("email, business_name, stripe_connect_id, stripe_connect_status")
         .eq("id", userId)
         .single();
 
-      // Create connected account
-      const account = await stripe.accounts.create({
-        type: "express",
-        email: profile?.email,
-        business_profile: {
-          name: profile?.business_name || undefined,
-        },
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-      });
+      let accountId = profile?.stripe_connect_id;
 
-      // Update profile
-      await supabaseAdmin
-        .from("profiles")
-        .update({
-          stripe_connect_id: account.id,
-          stripe_connect_status: "connecting",
-        })
-        .eq("id", userId);
+      if (!accountId) {
+        // Create a new Stripe Connect Standard account
+        const account = await stripe.accounts.create({
+          type: "standard",
+          country: "GB",
+          email: profile?.email,
+          business_profile: {
+            name: profile?.business_name || undefined,
+          },
+        });
+        accountId = account.id;
 
-      // Create account link for onboarding
-      const origin = req.headers.get("origin") || "https://pixel-perfect-copy-819.lovable.app";
+        // IMMEDIATELY save the account ID BEFORE redirecting
+        await supabaseAdmin
+          .from("profiles")
+          .update({
+            stripe_connect_id: accountId,
+            stripe_connect_status: "connecting",
+          })
+          .eq("id", userId);
+
+        console.log(`Created Stripe Connect account ${accountId} for user ${userId}`);
+      }
+
+      // Create account link for onboarding (works for new or resuming accounts)
       const accountLink = await stripe.accountLinks.create({
-        account: account.id,
-        refresh_url: `${origin}/dashboard/settings`,
-        return_url: `${origin}/dashboard/settings?stripe_connected=true`,
+        account: accountId,
+        refresh_url: `${origin}/dashboard/settings?stripe=refresh`,
+        return_url: `${origin}/dashboard/settings?stripe=success`,
         type: "account_onboarding",
       });
 
@@ -116,9 +120,42 @@ serve(async (req) => {
         .update({ stripe_connect_status: status })
         .eq("id", userId);
 
-      return new Response(JSON.stringify({ status, charges_enabled: account.charges_enabled }), {
+      return new Response(JSON.stringify({
+        status,
+        charges_enabled: account.charges_enabled,
+        payouts_enabled: account.payouts_enabled,
+        details_submitted: account.details_submitted,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (action === "create_login_link") {
+      // For active accounts, create a login link to the Stripe Express dashboard
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("stripe_connect_id")
+        .eq("id", userId)
+        .single();
+
+      if (!profile?.stripe_connect_id) {
+        return new Response(JSON.stringify({ error: "No Stripe account connected" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        const loginLink = await stripe.accounts.createLoginLink(profile.stripe_connect_id);
+        return new Response(JSON.stringify({ url: loginLink.url }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch {
+        // Standard accounts use the Stripe dashboard directly
+        return new Response(JSON.stringify({ url: "https://dashboard.stripe.com" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     return new Response(JSON.stringify({ error: "Unknown action" }), {

@@ -66,7 +66,6 @@ serve(async (req) => {
       if (!url) return safeFallback + "/";
       try {
         const parsed = new URL(url);
-        // Allow same origin or known production domains
         if (origin && parsed.origin === origin) return url;
         if (parsed.hostname.endsWith(".lovable.app")) return url;
         return safeFallback + "/";
@@ -110,14 +109,14 @@ serve(async (req) => {
       .single();
 
     if (profileError || !profile?.stripe_connect_id) {
-      return new Response(JSON.stringify({ error: "Payments not available for this producer" }), {
+      return new Response(JSON.stringify({ error: "This producer hasn't set up payments yet. Check back soon!" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (profile.stripe_connect_status !== "active") {
-      return new Response(JSON.stringify({ error: "Payments not available for this producer" }), {
+      return new Response(JSON.stringify({ error: "This producer is still setting up payments. Check back soon!" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -125,23 +124,21 @@ serve(async (req) => {
 
     const commission = profile.commission_percentage || 8;
 
-    // If plan has a stripe_price_id, use it; otherwise create an ad-hoc price
+    // If plan has a stripe_price_id, use it; otherwise create product+price on the connected account
     let priceId = plan.stripe_price_id;
 
     if (!priceId) {
-      const product = await stripe.products.create(
-        { name: plan.name },
-        { stripeAccount: profile.stripe_connect_id }
-      );
-      const price = await stripe.prices.create(
-        {
-          product: product.id,
-          unit_amount: Math.round(plan.price_num * 100),
-          currency: "gbp",
-          recurring: { interval: "month" },
-        },
-        { stripeAccount: profile.stripe_connect_id }
-      );
+      // Create product and price on the platform (not the connected account for Standard accounts)
+      const product = await stripe.products.create({
+        name: plan.name,
+        metadata: { plan_id, producer_id },
+      });
+      const price = await stripe.prices.create({
+        product: product.id,
+        unit_amount: Math.round(plan.price_num * 100),
+        currency: "gbp",
+        recurring: { interval: "month" },
+      });
       priceId = price.id;
 
       await supabase
@@ -150,32 +147,33 @@ serve(async (req) => {
         .eq("id", plan_id);
     }
 
-    // Create checkout session using authenticated user's email
-    const session = await stripe.checkout.sessions.create(
-      {
-        mode: "subscription",
-        line_items: [{ price: priceId, quantity: 1 }],
-        customer_email: userEmail,
-        success_url: safeSuccessUrl,
-        cancel_url: safeCancelUrl,
-        subscription_data: {
-          application_fee_percent: commission,
-        },
-        metadata: {
-          plan_id,
-          producer_id,
-          user_id: userId,
+    // Create checkout session — for Standard Connect, use destination charges
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      customer_email: userEmail,
+      success_url: safeSuccessUrl,
+      cancel_url: safeCancelUrl,
+      subscription_data: {
+        application_fee_percent: commission,
+        transfer_data: {
+          destination: profile.stripe_connect_id,
         },
       },
-      { stripeAccount: profile.stripe_connect_id }
-    );
+      metadata: {
+        plan_id,
+        producer_id,
+        user_id: userId,
+      },
+    });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
     console.error("Checkout session error:", error);
-    return new Response(JSON.stringify({ error: "Something went wrong" }), {
+    const msg = error instanceof Error ? error.message : "Something went wrong";
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

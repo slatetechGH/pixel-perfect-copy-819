@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.send-enquiry-email]
 verify_jwt = false
+
+[functions.verify-stripe-status]
+verify_jwt = false
+
+[functions.checkout-session]
+verify_jwt = false
