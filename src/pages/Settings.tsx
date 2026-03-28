@@ -27,6 +27,119 @@ const Settings = () => {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [verifyingStripe, setVerifyingStripe] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Handle Stripe return URL params and auto-verify on load
+  useEffect(() => {
+    const stripeParam = searchParams.get("stripe");
+
+    if (stripeParam === "success") {
+      // Producer returned from Stripe onboarding — verify status
+      setActiveTab("Billing & Payments");
+      searchParams.delete("stripe");
+      setSearchParams(searchParams, { replace: true });
+      verifyStripeStatus(true);
+    } else if (stripeParam === "refresh") {
+      // Onboarding link expired — generate new one
+      setActiveTab("Billing & Payments");
+      searchParams.delete("stripe");
+      setSearchParams(searchParams, { replace: true });
+      handleResumeStripe();
+    } else if (activeTab === "Billing & Payments" && settings.stripeConnectStatus === "connecting") {
+      // Auto-check if connecting
+      verifyStripeStatus(false);
+    }
+  }, []);
+
+  const verifyStripeStatus = async (showToast: boolean) => {
+    setVerifyingStripe(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-stripe-status");
+      if (error) {
+        console.error("Verify stripe error:", error);
+        return;
+      }
+      if (data?.status) {
+        setSettings(prev => ({
+          ...prev,
+          stripeConnectStatus: data.status,
+        }));
+        if (data.status === "active" && showToast) {
+          toast.success("Stripe connected! You can now accept payments.");
+        } else if (data.status === "connecting" && showToast) {
+          toast("Your Stripe account is being verified. This usually takes a few minutes.");
+        }
+      }
+    } catch {
+      console.error("Failed to verify Stripe status");
+    } finally {
+      setVerifyingStripe(false);
+    }
+  };
+
+  const handleConnectStripe = async () => {
+    setStripeLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-connect-onboarding", {
+        body: { action: "create_account" },
+      });
+      if (error) {
+        toast.error("Failed to start Stripe setup");
+        return;
+      }
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error(data?.error || "Failed to start Stripe setup");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setStripeLoading(false);
+    }
+  };
+
+  const handleResumeStripe = async () => {
+    setStripeLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-connect-onboarding", {
+        body: { action: "create_account" },
+      });
+      if (error) {
+        toast.error("Failed to resume Stripe setup");
+        return;
+      }
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error(data?.error || "Failed to resume Stripe setup");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setStripeLoading(false);
+    }
+  };
+
+  const handleManageStripe = async () => {
+    setStripeLoading(true);
+    try {
+      const { data } = await supabase.functions.invoke("stripe-connect-onboarding", {
+        body: { action: "create_login_link" },
+      });
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      } else {
+        window.open("https://dashboard.stripe.com", "_blank");
+      }
+    } catch {
+      window.open("https://dashboard.stripe.com", "_blank");
+    } finally {
+      setStripeLoading(false);
+    }
+  };
 
   const save = () => {
     setSaving(true);
