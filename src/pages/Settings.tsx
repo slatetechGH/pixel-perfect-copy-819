@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import { toast } from "sonner";
-import { Instagram, Globe, Twitter, Facebook, Upload, Eye, Loader2, CreditCard, X, Copy, Sparkles } from "lucide-react";
+import { Instagram, Globe, Twitter, Facebook, Upload, Eye, Loader2, CreditCard, X, Copy, Sparkles, ExternalLink, RefreshCw } from "lucide-react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useTierLimits } from "@/hooks/useTierLimits";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const tabs = ["Business Profile", "Public Page", "Notifications", "Billing & Payments"] as const;
 const accentSwatches = ["#1E293B", "#475569", "#0F172A", "#0EA5E9", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#14B8A6"];
