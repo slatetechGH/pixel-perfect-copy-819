@@ -324,32 +324,44 @@ const Settings = () => {
               <CardHeader className="px-6 pt-6 pb-3"><CardTitle className="text-[15px] font-medium">Accept Payments</CardTitle></CardHeader>
               <CardContent className="px-6 pb-6">
                 {settings.stripeConnectStatus === "active" ? (
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-success/10 text-success">Stripe connected ✓</span>
-                    <p className="text-[13px] text-muted-foreground">You can accept payments from subscribers.</p>
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-success/10 text-success">Stripe connected ✓</span>
+                    </div>
+                    <p className="text-[14px] text-foreground mb-1">Payments will go directly to your bank account</p>
+                    <p className="text-[13px] text-muted-foreground mb-3">
+                      Account: {settings.stripeConnectId ? `•••${settings.stripeConnectId.slice(-8)}` : "Connected"}
+                    </p>
+                    <div className="flex gap-3">
+                      <Button variant="outline" size="sm" onClick={handleManageStripe} disabled={stripeLoading}>
+                        <ExternalLink size={14} className="mr-1.5" /> Manage Stripe Account
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => verifyStripeStatus(true)} disabled={verifyingStripe}>
+                        <RefreshCw size={14} className={`mr-1.5 ${verifyingStripe ? "animate-spin" : ""}`} /> Refresh Status
+                      </Button>
+                    </div>
                   </div>
                 ) : settings.stripeConnectStatus === "connecting" ? (
                   <div>
-                    <p className="text-[14px] text-foreground mb-2">Stripe setup in progress</p>
-                    <p className="text-[13px] text-muted-foreground mb-3">Complete your Stripe onboarding to start accepting payments.</p>
-                    <Button variant="slate" onClick={async () => {
-                      const { data } = await supabase.functions.invoke("stripe-connect-onboarding", { body: { action: "create_account" } });
-                      if (data?.url) window.location.href = data.url;
-                      else toast.error("Failed to resume Stripe setup");
-                    }}>
-                      Resume Setup
-                    </Button>
+                    <p className="text-[14px] text-foreground mb-2">Your Stripe account is being set up</p>
+                    <p className="text-[13px] text-muted-foreground mb-3">Complete your Stripe onboarding to start accepting payments. Verification usually takes a few minutes after completing the form.</p>
+                    <div className="flex gap-3">
+                      <Button variant="slate" onClick={handleResumeStripe} disabled={stripeLoading}>
+                        {stripeLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                        Continue Stripe Setup
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => verifyStripeStatus(true)} disabled={verifyingStripe}>
+                        <RefreshCw size={14} className={`mr-1.5 ${verifyingStripe ? "animate-spin" : ""}`} /> Check Status
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div>
                     <p className="text-[14px] text-foreground mb-2">Connect your Stripe account to start accepting payments</p>
                     <p className="text-[13px] text-muted-foreground mb-3">Stripe handles all payment processing securely. Slate takes a {commissionPercent}% commission on subscription revenue.</p>
-                    <Button variant="slate" onClick={async () => {
-                      const { data } = await supabase.functions.invoke("stripe-connect-onboarding", { body: { action: "create_account" } });
-                      if (data?.url) window.location.href = data.url;
-                      else toast.error("Failed to start Stripe setup");
-                    }}>
-                      <CreditCard size={16} className="mr-1.5" /> Connect Stripe
+                    <Button variant="slate" onClick={handleConnectStripe} disabled={stripeLoading}>
+                      {stripeLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CreditCard size={16} className="mr-1.5" />}
+                      Connect Stripe
                     </Button>
                   </div>
                 )}
