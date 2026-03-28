@@ -204,7 +204,8 @@ const Storefront = () => {
       });
 
       if (error || data?.error) {
-        toast.error(data?.error || "Something went wrong. Please try again.");
+        const errorMsg = data?.error || "Something went wrong. Please try again.";
+        toast.error(errorMsg);
         return;
       }
 
