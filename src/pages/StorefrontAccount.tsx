@@ -502,20 +502,20 @@ const StorefrontAccount = () => {
       {/* Confirm dialogs */}
       <ConfirmDialog
         open={confirmAction === "pause"}
-        onOpenChange={(open) => !open && setConfirmAction(null)}
+        onClose={() => setConfirmAction(null)}
         title="Pause subscription?"
         description="Your subscription will be paused. You won't be charged next month. Your plan benefits will be suspended until you resume."
-        confirmLabel={actionLoading === "pause" ? "Pausing..." : "Pause Subscription"}
+        confirmText={actionLoading === "pause" ? "Pausing..." : "Pause Subscription"}
         onConfirm={() => handleAction("pause")}
       />
       <ConfirmDialog
         open={confirmAction === "cancel"}
-        onOpenChange={(open) => !open && setConfirmAction(null)}
+        onClose={() => setConfirmAction(null)}
         title="Cancel subscription?"
         description={`Are you sure you want to cancel? Your plan benefits will end ${subscriber.current_period_end ? `on ${format(new Date(subscriber.current_period_end), "d MMMM yyyy")}` : "at the end of the billing period"}. You can resubscribe anytime.`}
-        confirmLabel={actionLoading === "cancel" ? "Cancelling..." : "Cancel Subscription"}
+        confirmText={actionLoading === "cancel" ? "Cancelling..." : "Cancel Subscription"}
         onConfirm={() => handleAction("cancel")}
-        variant="destructive"
+        destructive
       />
     </div>
   );
