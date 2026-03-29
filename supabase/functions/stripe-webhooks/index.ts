@@ -55,10 +55,11 @@ serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const connectAccountId = event.account;
         const customerEmail = session.customer_email || "";
         const planId = session.metadata?.plan_id;
         const producerId = session.metadata?.producer_id;
+        const customerId = session.customer as string || null;
+        const subscriptionId = session.subscription as string || null;
 
         if (producerId && customerEmail) {
           // Look up plan name
@@ -72,6 +73,42 @@ serve(async (req) => {
             if (plan) planName = plan.name;
           }
 
+          // Check if user exists in auth, if not create one
+          let userId: string | null = null;
+          const { data: existingUsers } = await supabase.auth.admin.listUsers();
+          const existingUser = existingUsers?.users?.find(u => u.email === customerEmail);
+
+          if (existingUser) {
+            userId = existingUser.id;
+          } else {
+            // Create auth user with a random password — they'll use password reset to set theirs
+            const tempPassword = crypto.randomUUID() + "Aa1!";
+            const { data: newUser, error: createErr } = await supabase.auth.admin.createUser({
+              email: customerEmail,
+              password: tempPassword,
+              email_confirm: true,
+            });
+            if (newUser?.user) {
+              userId = newUser.user.id;
+              // Assign customer role (trigger creates 'producer' by default, so update it)
+              await supabase.from("user_roles")
+                .update({ role: "customer" })
+                .eq("user_id", userId);
+            }
+            if (createErr) console.error("Error creating customer auth user:", createErr);
+          }
+
+          // Fetch subscription period if available
+          let periodStart: string | null = null;
+          let periodEnd: string | null = null;
+          if (subscriptionId) {
+            try {
+              const sub = await stripe.subscriptions.retrieve(subscriptionId);
+              periodStart = new Date(sub.current_period_start * 1000).toISOString();
+              periodEnd = new Date(sub.current_period_end * 1000).toISOString();
+            } catch { /* ignore */ }
+          }
+
           // Create subscriber record
           await supabase.from("subscribers").insert({
             producer_id: producerId,
@@ -81,9 +118,23 @@ serve(async (req) => {
             status: "active",
             joined_at: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
             revenue: "£0",
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+            user_id: userId,
+            current_period_start: periodStart,
+            current_period_end: periodEnd,
           });
 
-          console.log(`Created subscriber: ${customerEmail} for producer ${producerId}`);
+          // Create customer_profiles link
+          if (userId) {
+            await supabase.from("customer_profiles").insert({
+              user_id: userId,
+              producer_id: producerId,
+              name: customerEmail.split("@")[0],
+            });
+          }
+
+          console.log(`Created subscriber: ${customerEmail} for producer ${producerId}, userId: ${userId}`);
         }
         break;
       }
@@ -131,17 +182,32 @@ serve(async (req) => {
           subscription.status === "past_due" ? "past_due" :
           subscription.status === "canceled" ? "canceled" : "incomplete";
 
+        const periodStart = new Date(subscription.current_period_start * 1000).toISOString();
+        const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+
         await supabase
           .from("subscriptions")
           .update({
             status,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            current_period_start: periodStart,
+            current_period_end: periodEnd,
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_subscription_id", subscription.id);
 
-        // Also update subscriber status
+        // Sync to subscribers table too
+        const isPaused = !!(subscription as any).pause_collection;
+        const subStatus = isPaused ? "paused" : status === "canceled" ? "cancelled" : status === "active" ? "active" : status;
+        await supabase
+          .from("subscribers")
+          .update({
+            status: subStatus,
+            current_period_start: periodStart,
+            current_period_end: periodEnd,
+          })
+          .eq("stripe_subscription_id", subscription.id);
+
+        // Handle cancelled status
         if (status === "canceled") {
           const customer = await stripe.customers.retrieve(subscription.customer as string);
           const email = (customer as Stripe.Customer).email;

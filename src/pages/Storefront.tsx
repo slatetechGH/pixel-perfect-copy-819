@@ -1,11 +1,12 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Check, Calendar, Loader2, ShoppingBag } from "lucide-react";
+import { MapPin, Check, Calendar, Loader2, ShoppingBag, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
 import { supabase } from "@/integrations/supabase/client";
+import { useApp } from "@/contexts/AppContext";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -69,6 +70,7 @@ interface StorefrontContent {
 const Storefront = () => {
   const { businessSlug } = useParams<{ businessSlug: string }>();
   const navigate = useNavigate();
+  const { session } = useApp();
 
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -245,6 +247,24 @@ const Storefront = () => {
 
   return (
     <div className="min-h-screen bg-white" style={{ "--store-accent": accentColor } as React.CSSProperties}>
+      {/* Top nav bar */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-end px-6 py-4">
+        {session.isLoggedIn && session.role === "customer" ? (
+          <Link
+            to={`/store/${businessSlug}/account`}
+            className="flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white transition-colors"
+          >
+            <User className="w-4 h-4" /> My Account
+          </Link>
+        ) : (
+          <Link
+            to={`/store/${businessSlug}/join`}
+            className="flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white transition-colors"
+          >
+            <User className="w-4 h-4" /> Log In
+          </Link>
+        )}
+      </div>
       {/* ===== SECTION A: Hero ===== */}
       <section className="relative w-full overflow-hidden" style={{ minHeight: 420 }}>
         {profile.cover_url ? (
