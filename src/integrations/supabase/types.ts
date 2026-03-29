@@ -901,6 +901,8 @@ export type Database = {
       subscribers: {
         Row: {
           created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
           email: string
           id: string
           joined_at: string | null
@@ -910,10 +912,15 @@ export type Database = {
           producer_id: string
           revenue: string | null
           status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
           email: string
           id?: string
           joined_at?: string | null
@@ -923,10 +930,15 @@ export type Database = {
           producer_id: string
           revenue?: string | null
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
           email?: string
           id?: string
           joined_at?: string | null
@@ -936,7 +948,10 @@ export type Database = {
           producer_id?: string
           revenue?: string | null
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
