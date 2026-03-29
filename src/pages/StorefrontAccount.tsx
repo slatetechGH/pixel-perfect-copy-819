@@ -105,8 +105,8 @@ const StorefrontAccount = () => {
         const { data: sub } = await supabase
           .from("subscribers")
           .select("id, plan, status, joined_at, stripe_customer_id, stripe_subscription_id, current_period_end, current_period_start, producer_id")
-          .eq("user_id", session.userId)
-          .eq("producer_id", pub.id)
+      .eq("user_id", session.supabaseUser?.id)
+      .eq("producer_id", pub.id)
           .single();
 
         if (sub) {
