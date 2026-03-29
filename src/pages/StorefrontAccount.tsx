@@ -153,7 +153,7 @@ const StorefrontAccount = () => {
     };
 
     fetchData();
-  }, [session.isLoggedIn, session.userId, businessSlug]);
+  }, [session.isLoggedIn, session.supabaseUser?.id, businessSlug]);
 
   const handleAction = async (action: "pause" | "resume" | "cancel") => {
     setActionLoading(action);
