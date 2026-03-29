@@ -14,3 +14,12 @@ verify_jwt = false
 
 [functions.checkout-session]
 verify_jwt = false
+
+[functions.create-customer-portal]
+verify_jwt = false
+
+[functions.get-customer-invoices]
+verify_jwt = false
+
+[functions.update-customer-subscription]
+verify_jwt = false
