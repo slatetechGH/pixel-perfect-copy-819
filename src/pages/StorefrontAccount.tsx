@@ -208,7 +208,7 @@ const StorefrontAccount = () => {
 
   const handlePasswordReset = async () => {
     const { error } = await supabase.auth.resetPasswordForEmail(
-      session.email || "",
+      session.supabaseUser?.email || "",
       { redirectTo: `${window.location.origin}/reset-password` }
     );
     if (error) toast.error("Failed to send reset email");
