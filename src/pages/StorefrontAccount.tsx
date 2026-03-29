@@ -84,7 +84,7 @@ const StorefrontAccount = () => {
 
   // Fetch data
   useEffect(() => {
-    if (!session.isLoggedIn || !businessSlug) return;
+    if (!session.isLoggedIn || !businessSlug || !session.supabaseUser) return;
 
     const fetchData = async () => {
       try {
