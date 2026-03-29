@@ -475,10 +475,10 @@ const StorefrontAccount = () => {
               <Settings className="w-4 h-4" /> Account Settings
             </h2>
             <div className="space-y-3">
-              {session.email && (
+              {session.supabaseUser?.email && (
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-sm text-foreground">{session.email}</p>
+                  <p className="text-sm text-foreground">{session.supabaseUser.email}</p>
                 </div>
               )}
               <button
