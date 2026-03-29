@@ -182,17 +182,32 @@ serve(async (req) => {
           subscription.status === "past_due" ? "past_due" :
           subscription.status === "canceled" ? "canceled" : "incomplete";
 
+        const periodStart = new Date(subscription.current_period_start * 1000).toISOString();
+        const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+
         await supabase
           .from("subscriptions")
           .update({
             status,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            current_period_start: periodStart,
+            current_period_end: periodEnd,
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_subscription_id", subscription.id);
 
-        // Also update subscriber status
+        // Sync to subscribers table too
+        const isPaused = !!(subscription as any).pause_collection;
+        const subStatus = isPaused ? "paused" : status === "canceled" ? "cancelled" : status === "active" ? "active" : status;
+        await supabase
+          .from("subscribers")
+          .update({
+            status: subStatus,
+            current_period_start: periodStart,
+            current_period_end: periodEnd,
+          })
+          .eq("stripe_subscription_id", subscription.id);
+
+        // Handle cancelled status
         if (status === "canceled") {
           const customer = await stripe.customers.retrieve(subscription.customer as string);
           const email = (customer as Stripe.Customer).email;
