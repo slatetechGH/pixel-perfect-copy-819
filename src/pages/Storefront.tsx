@@ -70,6 +70,7 @@ interface StorefrontContent {
 const Storefront = () => {
   const { businessSlug } = useParams<{ businessSlug: string }>();
   const navigate = useNavigate();
+  const { session } = useApp();
 
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
