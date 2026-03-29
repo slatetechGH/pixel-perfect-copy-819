@@ -109,7 +109,7 @@ const StorefrontJoin = () => {
       }
 
       toast.success("Welcome back!");
-      navigate(`/store/${businessSlug}`, { replace: true });
+      navigate(`/store/${businessSlug}/account`, { replace: true });
     } catch {
       toast.error("Something went wrong");
     } finally {
