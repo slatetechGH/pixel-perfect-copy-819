@@ -23,9 +23,9 @@ const StorefrontJoin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // If already logged in as customer, redirect to storefront
+  // If already logged in as customer, redirect to account page
   if (session.isLoggedIn && session.role === "customer") {
-    navigate(`/store/${businessSlug}`, { replace: true });
+    navigate(`/store/${businessSlug}/account`, { replace: true });
     return null;
   }
 
