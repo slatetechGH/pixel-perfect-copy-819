@@ -1,11 +1,12 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Check, Calendar, Loader2, ShoppingBag } from "lucide-react";
+import { MapPin, Check, Calendar, Loader2, ShoppingBag, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
 import { supabase } from "@/integrations/supabase/client";
+import { useApp } from "@/contexts/AppContext";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
