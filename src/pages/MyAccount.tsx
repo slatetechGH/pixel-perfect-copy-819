@@ -386,6 +386,9 @@ const MyAccount = () => {
               className="mb-6 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-center"
             >
               <p className="text-emerald-800 font-semibold">🎉 Subscription confirmed! Welcome aboard.</p>
+              <p className="text-emerald-700 text-sm mt-1">
+                We've sent you an email to set your password — check your inbox.
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
