@@ -50,7 +50,7 @@ export function MerchantSidebar() {
   const location = useLocation();
   const { conversations, settings } = useDashboard();
   const { signOut, demoActive, accentColor, session } = useApp();
-  const { theme, toggleTheme } = useTheme();
+  
   const { isFree, commissionPercent } = useTierLimits();
   const unreadMessages = 0;
   const [newLeadCount, setNewLeadCount] = useState(0);
