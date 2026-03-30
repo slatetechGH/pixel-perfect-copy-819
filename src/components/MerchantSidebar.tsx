@@ -216,18 +216,6 @@ export function MerchantSidebar() {
                     )}
                   </div>
                 ) : null}
-                {/* Theme toggle */}
-                <button
-                  onClick={toggleTheme}
-                  className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"
-                >
-                  {theme === "light" ? (
-                    <Moon className="h-4 w-4" strokeWidth={1.5} />
-                  ) : (
-                    <Sun className="h-4 w-4" strokeWidth={1.5} />
-                  )}
-                  {theme === "light" ? "Dark mode" : "Light mode"}
-                </button>
                 {/* Upgrade badge for free tier — hidden for admins */}
                 {isFree && !demoActive && session.role !== "admin" && (
                   <button

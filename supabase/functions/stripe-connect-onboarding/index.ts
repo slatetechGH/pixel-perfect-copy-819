@@ -44,7 +44,6 @@ serve(async (req) => {
     }
     const userId = userData.user.id;
 
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
 
     const { action } = await req.json();
