@@ -1,3 +1,4 @@
+// DO NOT MODIFY — This function uses direct Stripe API calls. Do NOT replace with Stripe SDK.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
