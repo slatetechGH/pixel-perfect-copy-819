@@ -39,6 +39,7 @@ import Cookies from "./pages/Cookies";
 import StorefrontWelcome from "./pages/StorefrontWelcome";
 import Onboarding from "./pages/Onboarding";
 import DemoPreview from "./pages/DemoPreview";
+import MyAccount from "./pages/MyAccount";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +57,7 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
 
   // Role-based access: if allowedRoles specified, check the user's role
   if (allowedRoles && !allowedRoles.includes(session.role)) {
-    if (session.role === "customer") return <Navigate to="/" replace />;
+    if (session.role === "customer") return <Navigate to="/my-account" replace />;
     return <Navigate to="/dashboard" replace />;
   }
   
@@ -89,6 +90,9 @@ const AppRoutes = () => (
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/demo-preview/:businessSlug" element={<DemoPreview />} />
       <Route path="/onboarding" element={<ProtectedRoute allowedRoles={["producer"]}><Onboarding /></ProtectedRoute>} />
+
+      {/* Customer portal — unified account */}
+      <Route path="/my-account" element={<ProtectedRoute allowedRoles={["customer"]}><MyAccount /></ProtectedRoute>} />
 
       {/* Customer-facing storefront — public, no auth */}
       <Route path="/store/:businessSlug" element={<Storefront />} />

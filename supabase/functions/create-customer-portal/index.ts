@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -7,12 +6,37 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY")!;
+
+async function stripeRequest(endpoint: string, method = "GET", body?: Record<string, string>) {
+  const options: RequestInit = {
+    method,
+    headers: {
+      "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+  };
+  if (body && method !== "GET") {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(body)) {
+      params.append(key, value);
+    }
+    options.body = params.toString();
+  }
+  const response = await fetch(`https://api.stripe.com/v1/${endpoint}`, options);
+  const data = await response.json();
+  if (!response.ok) {
+    console.error("Stripe API error:", data);
+    throw new Error(data.error?.message || "Stripe API request failed");
+  }
+  return data;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
   if (!STRIPE_SECRET_KEY) {
     return new Response(JSON.stringify({ error: "Payment service not configured" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -20,10 +44,8 @@ serve(async (req) => {
   }
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-  const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  // Auth
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -31,31 +53,32 @@ serve(async (req) => {
     });
   }
 
-  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-  });
+  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const token = authHeader.replace("Bearer ", "");
-  const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-  if (claimsError || !claimsData?.claims) {
+  const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+  if (userError || !userData.user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
-  const userId = claimsData.claims.sub;
+  const userId = userData.user.id;
 
   try {
-    const { return_url } = await req.json();
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
+    const { return_url, subscriber_id } = await req.json();
 
-    // Find subscriber record for this user
-    const { data: subscriber } = await supabaseAdmin
+    // Find subscriber record — optionally by subscriber_id for multi-subscription
+    let query = supabaseAdmin
       .from("subscribers")
       .select("stripe_customer_id")
       .eq("user_id", userId)
-      .eq("status", "active")
-      .single();
+      .eq("status", "active");
+
+    if (subscriber_id) {
+      query = query.eq("id", subscriber_id);
+    }
+
+    const { data: subscriber } = await query.single();
 
     if (!subscriber?.stripe_customer_id) {
       return new Response(JSON.stringify({ error: "No active subscription found" }), {
@@ -63,9 +86,9 @@ serve(async (req) => {
       });
     }
 
-    const session = await stripe.billingPortal.sessions.create({
+    const session = await stripeRequest("billing_portal/sessions", "POST", {
       customer: subscriber.stripe_customer_id,
-      return_url: return_url || "https://slatetech.co.uk",
+      return_url: return_url || "https://slatetech.co.uk/my-account",
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
