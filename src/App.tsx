@@ -91,6 +91,9 @@ const AppRoutes = () => (
       <Route path="/demo-preview/:businessSlug" element={<DemoPreview />} />
       <Route path="/onboarding" element={<ProtectedRoute allowedRoles={["producer"]}><Onboarding /></ProtectedRoute>} />
 
+      {/* Customer portal — unified account */}
+      <Route path="/my-account" element={<ProtectedRoute allowedRoles={["customer"]}><MyAccount /></ProtectedRoute>} />
+
       {/* Customer-facing storefront — public, no auth */}
       <Route path="/store/:businessSlug" element={<Storefront />} />
       <Route path="/store/:businessSlug/content/:contentId" element={<StorefrontContent />} />
