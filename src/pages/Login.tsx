@@ -6,6 +6,7 @@ import SlateLogo from "@/components/SlateLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/contexts/AppContext";
 import { toast } from "sonner";
+import { getRedirectPath } from "@/lib/auth-routing";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -15,18 +16,40 @@ const Login = () => {
   const [forgotSent, setForgotSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginTriggered, setLoginTriggered] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Redirect based on role once session is established
   useEffect(() => {
-    if (!authLoading && session.isLoggedIn) {
-      if (session.role === "customer") {
-        navigate("/my-account", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
+    if (authLoading || !session.isLoggedIn || !session.supabaseUser?.id) return;
+
+    let cancelled = false;
+
+    const redirectUser = async () => {
+      setRedirecting(true);
+
+      try {
+        const redirectPath = await getRedirectPath(session.supabaseUser!.id);
+        if (!cancelled) {
+          navigate(redirectPath, { replace: true });
+        }
+      } catch {
+        if (!cancelled) {
+          navigate("/my-account", { replace: true });
+        }
+      } finally {
+        if (!cancelled) {
+          setRedirecting(false);
+        }
       }
-    }
-  }, [authLoading, session.isLoggedIn, session.role, navigate]);
+    };
+
+    redirectUser();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, session.isLoggedIn, session.supabaseUser?.id, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +91,7 @@ const Login = () => {
   };
 
   // Show loading while checking session or after login triggered
-  if (authLoading || (loginTriggered && loading)) {
+  if (authLoading || (loginTriggered && loading) || redirecting) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

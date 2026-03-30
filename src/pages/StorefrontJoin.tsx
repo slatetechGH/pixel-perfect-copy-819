@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Loader2, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
+import { getUserRole } from "@/lib/auth-routing";
 
 interface PendingPlanInfo {
   id: string;
@@ -21,7 +22,7 @@ const StorefrontJoin = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { settings } = useDashboard();
-  const { accentColor } = useApp();
+  const { accentColor, setSession } = useApp();
 
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [name, setName] = useState("");
@@ -52,20 +53,62 @@ const StorefrontJoin = () => {
     fetchPlan();
   }, [searchParams]);
 
+  const getProducerIdBySlug = async (producerSlug: string) => {
+    const { data: producer } = await supabase
+      .from("public_profiles")
+      .select("id")
+      .eq("url_slug", producerSlug)
+      .single();
+
+    return producer?.id ?? null;
+  };
+
+  const ensureStorefrontCustomerRole = async (userId: string) => {
+    const existingRole = await getUserRole(userId);
+
+    if (existingRole === "customer") {
+      setSession((prev) => ({ ...prev, role: "customer" }));
+      return existingRole;
+    }
+
+    if (!businessSlug) return existingRole;
+
+    const producerId = await getProducerIdBySlug(businessSlug);
+    if (!producerId) return existingRole;
+
+    const pendingPlanId = searchParams.get("plan") || localStorage.getItem("pending_plan_id");
+    const { data: customerLink } = await supabase
+      .from("customer_profiles")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("producer_id", producerId)
+      .maybeSingle();
+
+    if (!customerLink && !pendingPlanId) return existingRole;
+
+    const { error: assignError } = await supabase.rpc("assign_customer_role" as any);
+
+    if (assignError && !existingRole) {
+      await supabase.from("user_roles").insert({ user_id: userId, role: "customer" } as any);
+    }
+
+    const normalizedRole = await getUserRole(userId);
+
+    if (normalizedRole === "customer") {
+      setSession((prev) => ({ ...prev, role: "customer" }));
+    }
+
+    return normalizedRole;
+  };
+
   const startCheckout = async (planId: string, producerSlug: string) => {
     setCheckoutInProgress(true);
-    localStorage.removeItem("pending_plan_id");
     toast("Signing you in and starting checkout...");
 
     try {
-      // Look up producer ID from slug
-      const { data: producer } = await supabase
-        .from("public_profiles")
-        .select("id")
-        .eq("url_slug", producerSlug)
-        .single();
+      const producerId = await getProducerIdBySlug(producerSlug);
 
-      if (!producer?.id) {
+      if (!producerId) {
         toast.error("Could not find producer. Please try again.");
         setCheckoutInProgress(false);
         return;
@@ -74,7 +117,7 @@ const StorefrontJoin = () => {
       const response = await supabase.functions.invoke("checkout-session", {
         body: {
           plan_id: planId,
-          producer_id: producer.id,
+          producer_id: producerId,
           success_url: `${window.location.origin}/my-account?welcome=true`,
           cancel_url: `${window.location.origin}/store/${producerSlug}`,
         },
@@ -91,6 +134,7 @@ const StorefrontJoin = () => {
       }
 
       if (response.data?.url) {
+        localStorage.removeItem("pending_plan_id");
         window.location.href = response.data.url;
       } else {
         toast.error("No checkout URL returned. Please try again.");
@@ -103,12 +147,14 @@ const StorefrontJoin = () => {
     }
   };
 
-  const handlePostAuth = async () => {
+  const handlePostAuth = async (userId: string) => {
+    const role = await ensureStorefrontCustomerRole(userId);
     const planId = searchParams.get("plan") || localStorage.getItem("pending_plan_id");
 
-    if (planId && businessSlug) {
+    if (role === "customer" && planId && businessSlug) {
       await startCheckout(planId, businessSlug);
     } else {
+      localStorage.removeItem("pending_plan_id");
       navigate("/my-account", { replace: true });
     }
   };
@@ -173,7 +219,7 @@ const StorefrontJoin = () => {
           }
 
           toast.success(`Welcome to ${settings.businessName}!`);
-          await handlePostAuth();
+          await handlePostAuth(data.user.id);
         } else {
           // Email confirmation required
           try {
@@ -225,21 +271,8 @@ const StorefrontJoin = () => {
       }
 
       if (data.user) {
-        const { data: roles } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.user.id);
-
-        const role = roles?.[0]?.role;
-
-        if (!role) {
-          try {
-            await supabase.from("user_roles").insert({ user_id: data.user.id, role: "customer" } as any);
-          } catch { /* ignore */ }
-        }
-
         toast.success("Welcome back!");
-        await handlePostAuth();
+        await handlePostAuth(data.user.id);
       }
     } catch {
       toast.error("Something went wrong");
