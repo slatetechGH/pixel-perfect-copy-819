@@ -86,7 +86,31 @@ const MyAccount = () => {
   const [savingProfile, setSavingProfile] = useState(false);
 
   const isWelcome = searchParams.get("welcome") === "true";
+  const [welcomeEmailSent, setWelcomeEmailSent] = useState(false);
   const hasCollections = subscriptions.some(s => s.collectionsTotal > 0);
+
+  // Auto-trigger password reset email for new subscribers arriving from Stripe checkout
+  useEffect(() => {
+    if (!isWelcome || welcomeEmailSent) return;
+    setWelcomeEmailSent(true);
+
+    const sendPasswordSetup = async () => {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const email = currentSession?.user?.email || session.supabaseUser?.email;
+      if (!email) return;
+
+      try {
+        await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        console.log("Password setup email sent to", email);
+      } catch (err) {
+        console.error("Failed to send password setup email:", err);
+      }
+    };
+
+    sendPasswordSetup();
+  }, [isWelcome]);
 
   // Auth guard
   useEffect(() => {
