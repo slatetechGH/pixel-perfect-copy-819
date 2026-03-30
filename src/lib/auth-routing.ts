@@ -5,7 +5,7 @@ export type AuthRole = "admin" | "producer" | "customer";
 export interface AuthRoutingState {
   role: AuthRole | null;
   onboardingCompleted: boolean | null;
-  redirectPath: "/dashboard" | "/onboarding" | "/my-account";
+  redirectPath: "/dashboard" | "/onboarding" | "/my-account" | "/login";
 }
 
 export async function getUserRole(userId: string): Promise<AuthRole | null> {
@@ -44,7 +44,8 @@ export async function getAuthRoutingState(userId: string): Promise<AuthRoutingSt
     return { role, onboardingCompleted: true, redirectPath: "/my-account" };
   }
 
-  return { role: null, onboardingCompleted: null, redirectPath: "/my-account" };
+  // No role found — send to login (not /my-account, which requires "customer" role)
+  return { role: null, onboardingCompleted: null, redirectPath: "/login" };
 }
 
 export async function getRedirectPath(userId: string) {

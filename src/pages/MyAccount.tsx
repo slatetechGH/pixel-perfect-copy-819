@@ -86,7 +86,31 @@ const MyAccount = () => {
   const [savingProfile, setSavingProfile] = useState(false);
 
   const isWelcome = searchParams.get("welcome") === "true";
+  const [welcomeEmailSent, setWelcomeEmailSent] = useState(false);
   const hasCollections = subscriptions.some(s => s.collectionsTotal > 0);
+
+  // Auto-trigger password reset email for new subscribers arriving from Stripe checkout
+  useEffect(() => {
+    if (!isWelcome || welcomeEmailSent) return;
+    setWelcomeEmailSent(true);
+
+    const sendPasswordSetup = async () => {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const email = currentSession?.user?.email || session.supabaseUser?.email;
+      if (!email) return;
+
+      try {
+        await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        console.log("Password setup email sent to", email);
+      } catch (err) {
+        console.error("Failed to send password setup email:", err);
+      }
+    };
+
+    sendPasswordSetup();
+  }, [isWelcome]);
 
   // Auth guard
   useEffect(() => {
@@ -102,20 +126,54 @@ const MyAccount = () => {
     const fetchData = async () => {
       try {
         const userId = session.supabaseUser!.id;
+        const userEmail = session.supabaseUser!.email;
 
-        // Get ALL subscriber records for this user
+        // Try subscribers table first (has user_id)
         const { data: subs } = await supabase
           .from("subscribers")
           .select("id, plan, status, joined_at, stripe_customer_id, stripe_subscription_id, current_period_end, current_period_start, producer_id")
           .eq("user_id", userId);
 
-        if (!subs || subs.length === 0) {
+        // Also query subscriptions table by email (webhook-created records may not have user_id in subscribers)
+        let subscriptionRecords: any[] = [];
+        if (userEmail) {
+          const { data: subsByEmail } = await supabase
+            .from("subscriptions")
+            .select("id, plan_id, status, stripe_customer_id, stripe_subscription_id, current_period_end, current_period_start, producer_id, amount_paid, created_at")
+            .eq("customer_email", userEmail);
+          subscriptionRecords = subsByEmail || [];
+        }
+
+        // Merge: use subscribers as primary, fill gaps from subscriptions table
+        const subscriberProducerIds = new Set((subs || []).map(s => s.producer_id));
+        const extraFromSubscriptions = subscriptionRecords.filter(
+          sub => !subscriberProducerIds.has(sub.producer_id)
+        );
+
+        // Convert subscriptions records to the subscriber-like format for display
+        const normalizedExtras = extraFromSubscriptions.map((sub: any) => ({
+          id: sub.id,
+          plan: "", // will be resolved from plan_id below
+          plan_id: sub.plan_id,
+          status: sub.status,
+          joined_at: sub.created_at ? new Date(sub.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : null,
+          stripe_customer_id: sub.stripe_customer_id,
+          stripe_subscription_id: sub.stripe_subscription_id,
+          current_period_end: sub.current_period_end,
+          current_period_start: sub.current_period_start,
+          producer_id: sub.producer_id,
+          amount_paid: sub.amount_paid,
+        }));
+
+        const allSubs = [...(subs || []), ...normalizedExtras];
+
+        if (allSubs.length === 0) {
           setLoading(false);
           return;
         }
 
         // Get producer profiles
-        const producerIds = [...new Set(subs.map(s => s.producer_id))];
+        const producerIds = [...new Set(allSubs.map(s => s.producer_id))];
         const { data: producers } = await supabase
           .from("public_profiles")
           .select("id, business_name, accent_color, logo_url, url_slug")
@@ -133,23 +191,33 @@ const MyAccount = () => {
           .in("producer_id", producerIds)
           .eq("active", true);
 
+        // Resolve plan names for subscription-sourced records
+        for (const extra of normalizedExtras) {
+          if (extra.plan_id) {
+            const matchedPlan = (allPlans || []).find((p: any) => p.id === extra.plan_id);
+            if (matchedPlan) extra.plan = matchedPlan.name;
+          }
+        }
+
         // Get collections for current month
         const now = new Date();
         const monthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-        const subIds = subs.map(s => s.id);
-        const { data: allCollections } = await supabase
-          .from("collections")
-          .select("id, collected_at, month_year, subscriber_id")
-          .in("subscriber_id", subIds)
-          .eq("month_year", monthYear);
+        const subIds = (subs || []).map(s => s.id);
+        const { data: allCollections } = subIds.length > 0
+          ? await supabase
+              .from("collections")
+              .select("id, collected_at, month_year, subscriber_id")
+              .in("subscriber_id", subIds)
+              .eq("month_year", monthYear)
+          : { data: [] };
 
         // Build subscription cards
-        const cards: SubscriptionCard[] = subs.map(sub => {
+        const cards: SubscriptionCard[] = allSubs.map(sub => {
           const producer = producerMap[sub.producer_id] || {
             id: sub.producer_id, business_name: "Unknown Producer", accent_color: null, logo_url: null, url_slug: null,
           };
           const producerPlans = (allPlans || []).filter((p: any) => p.producer_id === sub.producer_id) as PlanInfo[];
-          const currentPlan = producerPlans.find(p => p.name === sub.plan) || null;
+          const currentPlan = producerPlans.find(p => p.name === sub.plan) || (sub as any).plan_id ? producerPlans.find(p => p.id === (sub as any).plan_id) || null : null;
           const availablePlans = producerPlans.filter(p => p.name !== sub.plan && !p.is_free);
           const collections = ((allCollections || []) as any[]).filter(c => c.subscriber_id === sub.id);
 
@@ -362,6 +430,9 @@ const MyAccount = () => {
               className="mb-6 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-center"
             >
               <p className="text-emerald-800 font-semibold">🎉 Subscription confirmed! Welcome aboard.</p>
+              <p className="text-emerald-700 text-sm mt-1">
+                We've sent you an email to set your password — check your inbox.
+              </p>
             </motion.div>
           )}
         </AnimatePresence>

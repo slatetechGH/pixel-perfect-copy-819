@@ -447,6 +447,28 @@ const StorefrontJoin = () => {
             </Button>
           </form>
 
+          {/* Forgot password — login mode only */}
+          {mode === "login" && (
+            <div className="text-center mt-3">
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    toast.error("Enter your email address first");
+                    return;
+                  }
+                  await supabase.auth.resetPasswordForEmail(email.trim(), {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  toast.success("Password reset email sent — check your inbox");
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
+
           {/* Toggle mode */}
           <p className="text-center text-sm text-muted-foreground mt-6">
             {mode === "signup" ? (
