@@ -19,7 +19,7 @@ const Privacy = () => {
         <div className="prose prose-slate max-w-none space-y-8 text-[15px] leading-relaxed text-foreground/80">
           <section>
             <h2 className="text-[20px] font-semibold text-foreground mb-3">1. Who We Are</h2>
-            <p>Slate Technologies Ltd ("Slate", "we", "us", "our") is a company registered in England and Wales. We operate the Slate platform, a subscription management service for independent producers. You can contact us at <a href="mailto:sales@slatetech.co.uk" className="text-amber hover:underline">sales@slatetech.co.uk</a>.</p>
+            <p>Slate Technologies ("Slate", "we", "us", "our") is a company registered in England and Wales. We operate the Slate platform, a subscription management service for independent producers. You can contact us at <a href="mailto:sales@slatetech.co.uk" className="text-amber hover:underline">sales@slatetech.co.uk</a>.</p>
           </section>
 
           <section>

@@ -6,7 +6,7 @@ const FeatureMockupDashboard = () => (
     <div className="flex gap-2.5">
       <div className="flex-1 bg-secondary rounded-lg p-3">
         <p className="text-[16px] font-bold text-foreground">£4,850</p>
-        <p className="text-[9px] text-muted-foreground/60 mt-0.5">MRR</p>
+        <p className="text-[9px] text-muted-foreground/60 mt-0.5">Monthly Income</p>
         <div className="flex items-center gap-1 mt-1">
           <TrendingUp size={10} className="text-success" />
           <span className="text-[9px] font-medium" style={{ color: "#10B981" }}>+15.5%</span>
@@ -14,7 +14,7 @@ const FeatureMockupDashboard = () => (
       </div>
       <div className="flex-1 bg-secondary rounded-lg p-3">
         <p className="text-[16px] font-bold text-foreground">187</p>
-        <p className="text-[9px] text-muted-foreground/60 mt-0.5">Subscribers</p>
+        <p className="text-[9px] text-muted-foreground/60 mt-0.5">Customers</p>
         <div className="flex items-center gap-1 mt-1">
           <TrendingUp size={10} className="text-success" />
           <span className="text-[9px] font-medium" style={{ color: "#10B981" }}>+12.3%</span>
@@ -48,8 +48,8 @@ const FeatureMockupDashboard = () => (
     {/* Activity feed */}
     <div className="space-y-2">
       {[
-        { name: "Sarah Mitchell", tier: "Premium tier", time: "2 min ago", color: "#10B981" },
-        { name: "James Chen", tier: "Standard tier", time: "15 min ago", color: "#F59E0B" },
+        { name: "Sarah Mitchell", tier: "Premium plan", time: "2 min ago", color: "#10B981" },
+        { name: "James Chen", tier: "Standard plan", time: "15 min ago", color: "#F59E0B" },
       ].map((row) => (
         <div key={row.name} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: row.color }} />

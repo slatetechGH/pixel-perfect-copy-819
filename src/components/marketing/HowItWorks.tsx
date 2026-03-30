@@ -13,8 +13,8 @@ const steps = [
   },
   {
     num: "3",
-    title: "Accept customers",
-    desc: "Share your Slate storefront. Customers subscribe and pay directly through Stripe.",
+    title: "Share your page",
+    desc: "Share your store link with customers. They subscribe and pay directly through Stripe.",
   },
   {
     num: "4",

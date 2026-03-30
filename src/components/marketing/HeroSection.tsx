@@ -19,7 +19,7 @@ const DashboardPreview = () => (
       <div className="bg-white rounded-xl p-4">
         <div className="flex items-center gap-1.5 mb-2">
           <TrendingUp size={13} className="text-slate-light" strokeWidth={1.5} />
-          <span className="text-[11px] font-medium text-slate-light">Monthly Revenue</span>
+          <span className="text-[11px] font-medium text-slate-light">Monthly Income</span>
         </div>
         <p className="text-[22px] md:text-[26px] font-bold text-foreground leading-none mb-2">£4,280</p>
         <span className="inline-flex items-center gap-1 text-[11px] font-medium text-success bg-success/10 px-1.5 py-0.5 rounded-full">
@@ -37,11 +37,11 @@ const DashboardPreview = () => (
         </div>
       </div>
 
-      {/* Subscribers */}
+      {/* Customers */}
       <div className="bg-white rounded-xl p-4">
         <div className="flex items-center gap-1.5 mb-2">
           <Users size={13} className="text-slate-light" strokeWidth={1.5} />
-          <span className="text-[11px] font-medium text-slate-light">Active Subscribers</span>
+          <span className="text-[11px] font-medium text-slate-light">Active Customers</span>
         </div>
         <p className="text-[22px] md:text-[26px] font-bold text-foreground leading-none mb-2">312</p>
         <span className="inline-flex items-center gap-1 text-[11px] font-medium text-success bg-success/10 px-1.5 py-0.5 rounded-full">
@@ -112,9 +112,9 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-[17px] md:text-[19px] text-slate-mid leading-relaxed mb-8 max-w-lg"
             >
-              Slate gives independent producers a platform to sell subscriptions, drop exclusive products, and monetise loyalty.
+              Slate gives independent producers a simple way to sell subscriptions, launch exclusive products, and reward loyal customers.
               <br /><br />
-              Reward your loyal customers and build predictable revenue.
+              Build predictable income and grow your business.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 16 }}

@@ -11,8 +11,8 @@ const steps = [
   {
     num: "2",
     icon: Palette,
-    title: "Set up your storefront",
-    desc: "Add plans, recipes, and product drops",
+    title: "Set up your store page",
+    desc: "Add plans, recipes, and exclusive products",
   },
   {
     num: "3",
@@ -23,7 +23,7 @@ const steps = [
 ];
 
 const HowItWorksStrip = () => (
-  <section id="how-it-works" className="bg-secondary py-12 md:py-14">
+  <section className="bg-secondary py-12 md:py-14">
     <div className="max-w-[1200px] mx-auto px-6 md:px-8">
       <div className="grid md:grid-cols-3 gap-8 md:gap-6">
         {steps.map((s, i) => (

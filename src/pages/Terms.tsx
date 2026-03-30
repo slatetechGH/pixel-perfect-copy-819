@@ -86,7 +86,7 @@ const Terms = () => {
 
           <section>
             <h2 className="text-[20px] font-semibold text-foreground mb-3">9. Intellectual Property</h2>
-            <p>Slate owns all rights to the platform, including its design, code, and branding. Producers retain ownership of all content, images, recipes, and other materials they upload to the platform. By uploading content, producers grant Slate a limited licence to display that content on the platform as part of the Service.</p>
+            <p>Slate owns all rights to the platform, including its design, code, and branding. Producers retain ownership of all content, images, recipes, and other materials they upload to the platform. By uploading content, producers grant Slate a licence to display that content on the platform as part of the Service.</p>
           </section>
 
           <section>
