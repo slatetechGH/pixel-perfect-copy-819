@@ -5,7 +5,7 @@ export type AuthRole = "admin" | "producer" | "customer";
 export interface AuthRoutingState {
   role: AuthRole | null;
   onboardingCompleted: boolean | null;
-  redirectPath: "/dashboard" | "/onboarding" | "/my-account";
+  redirectPath: "/dashboard" | "/onboarding" | "/my-account" | "/login";
 }
 
 export async function getUserRole(userId: string): Promise<AuthRole | null> {
