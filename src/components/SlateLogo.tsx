@@ -63,7 +63,7 @@ const SlateLogo = ({ dark = false, size = 20, asLink = true, className = "" }: S
       </svg>
       {/* Wordmark */}
       <span
-        className="font-bold tracking-[-0.02em] leading-none"
+        className="font-bold tracking-[-0.02em] leading-none text-5xl"
         style={{ color: wordColor, fontSize: "1em" }}
       >
         slate
