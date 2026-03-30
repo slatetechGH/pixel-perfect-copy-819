@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Users, CreditCard, FileText, Zap, Megaphone, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield, HelpCircle, Sun, Moon, ClipboardCheck, Sparkles,
+  LayoutDashboard, Users, CreditCard, FileText, Zap, Megaphone, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield, HelpCircle, ClipboardCheck, Sparkles,
 } from "lucide-react";
 import { useTierLimits } from "@/hooks/useTierLimits";
 import { NavLink } from "@/components/NavLink";
@@ -11,7 +11,7 @@ import { useApp } from "@/contexts/AppContext";
 import SlateLogo from "@/components/SlateLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useTheme } from "@/hooks/useTheme";
+
 import { usePageGuidance } from "@/hooks/usePageGuidance";
 import { GuidanceOverlay } from "@/components/GuidanceOverlay";
 import {
@@ -50,7 +50,7 @@ export function MerchantSidebar() {
   const location = useLocation();
   const { conversations, settings } = useDashboard();
   const { signOut, demoActive, accentColor, session } = useApp();
-  const { theme, toggleTheme } = useTheme();
+  
   const { isFree, commissionPercent } = useTierLimits();
   const unreadMessages = 0;
   const [newLeadCount, setNewLeadCount] = useState(0);
@@ -216,18 +216,6 @@ export function MerchantSidebar() {
                     )}
                   </div>
                 ) : null}
-                {/* Theme toggle */}
-                <button
-                  onClick={toggleTheme}
-                  className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"
-                >
-                  {theme === "light" ? (
-                    <Moon className="h-4 w-4" strokeWidth={1.5} />
-                  ) : (
-                    <Sun className="h-4 w-4" strokeWidth={1.5} />
-                  )}
-                  {theme === "light" ? "Dark mode" : "Light mode"}
-                </button>
                 {/* Upgrade badge for free tier — hidden for admins */}
                 {isFree && !demoActive && session.role !== "admin" && (
                   <button
