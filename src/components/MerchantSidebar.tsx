@@ -11,7 +11,7 @@ import { useApp } from "@/contexts/AppContext";
 import SlateLogo from "@/components/SlateLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useTheme } from "@/hooks/useTheme";
+
 import { usePageGuidance } from "@/hooks/usePageGuidance";
 import { GuidanceOverlay } from "@/components/GuidanceOverlay";
 import {
