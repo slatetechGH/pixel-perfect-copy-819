@@ -194,6 +194,16 @@ const Storefront = () => {
       return;
     }
 
+    // Check if user is logged in before calling checkout
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+    if (!currentSession) {
+      // Save pending plan and redirect to join page
+      localStorage.setItem("pending_plan_id", plan.id);
+      navigate(`/store/${businessSlug}/join?plan=${plan.id}`);
+      return;
+    }
+
     setSubscribingPlan(plan.id);
     try {
       const response = await supabase.functions.invoke("checkout-session", {
@@ -208,17 +218,11 @@ const Storefront = () => {
       console.log("Checkout response:", response);
 
       if (response.error) {
-        // When the edge function returns a non-2xx status, error is set and data may contain the JSON body
         let errorMsg = "Something went wrong. Please try again.";
-        try {
-          // response.error might be a FunctionsHttpError with a context property
-          if (response.data?.error) {
-            errorMsg = response.data.error;
-          } else if (response.error instanceof Error) {
-            errorMsg = response.error.message;
-          }
-        } catch {
-          // fallback to generic
+        if (response.data?.error) {
+          errorMsg = response.data.error;
+        } else if (response.error instanceof Error) {
+          errorMsg = response.error.message;
         }
         console.error("Checkout error:", response.error);
         toast.error(errorMsg);
