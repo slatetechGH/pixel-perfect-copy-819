@@ -94,7 +94,7 @@ const Login = () => {
                 type="email"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setErrors(prev => { const n = { ...prev }; delete n.email; return n; }); }}
-                placeholder="you@yourbusiness.co.uk"
+                placeholder="John@example.co.uk"
                 className={`w-full h-11 px-4 rounded-lg border bg-white text-[15px] text-foreground placeholder:text-slate-light focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all ${errors.email ? "border-destructive" : "border-slate-light/40"}`}
               />
               {errors.email && <p className="text-[13px] text-destructive mt-1">{errors.email}</p>}
