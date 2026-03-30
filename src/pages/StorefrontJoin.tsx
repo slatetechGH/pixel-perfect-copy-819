@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useApp } from "@/contexts/AppContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,9 +10,16 @@ import { ArrowLeft, Loader2, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
 
+interface PendingPlanInfo {
+  id: string;
+  name: string;
+  price_num: number;
+}
+
 const StorefrontJoin = () => {
   const { businessSlug } = useParams<{ businessSlug: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { settings } = useDashboard();
   const { accentColor } = useApp();
 
@@ -23,6 +30,88 @@ const StorefrontJoin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<PendingPlanInfo | null>(null);
+  const [checkoutInProgress, setCheckoutInProgress] = useState(false);
+
+  // Fetch pending plan info from URL params
+  useEffect(() => {
+    const planId = searchParams.get("plan") || localStorage.getItem("pending_plan_id");
+    if (!planId) return;
+
+    const fetchPlan = async () => {
+      const { data } = await supabase
+        .from("plans")
+        .select("id, name, price_num")
+        .eq("id", planId)
+        .single();
+
+      if (data) {
+        setPendingPlan({ id: data.id, name: data.name, price_num: data.price_num });
+      }
+    };
+    fetchPlan();
+  }, [searchParams]);
+
+  const startCheckout = async (planId: string, producerSlug: string) => {
+    setCheckoutInProgress(true);
+    localStorage.removeItem("pending_plan_id");
+    toast("Signing you in and starting checkout...");
+
+    try {
+      // Look up producer ID from slug
+      const { data: producer } = await supabase
+        .from("public_profiles")
+        .select("id")
+        .eq("url_slug", producerSlug)
+        .single();
+
+      if (!producer?.id) {
+        toast.error("Could not find producer. Please try again.");
+        setCheckoutInProgress(false);
+        return;
+      }
+
+      const response = await supabase.functions.invoke("checkout-session", {
+        body: {
+          plan_id: planId,
+          producer_id: producer.id,
+          success_url: `${window.location.origin}/my-account?welcome=true`,
+          cancel_url: `${window.location.origin}/store/${producerSlug}`,
+        },
+      });
+
+      console.log("Checkout response:", response);
+
+      if (response.error || response.data?.error) {
+        const errorMsg = response.data?.error || (response.error instanceof Error ? response.error.message : "Checkout failed");
+        console.error("Checkout error:", response.error || response.data?.error);
+        toast.error(errorMsg);
+        setCheckoutInProgress(false);
+        return;
+      }
+
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        toast.error("No checkout URL returned. Please try again.");
+        setCheckoutInProgress(false);
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("Failed to start checkout. Please try again.");
+      setCheckoutInProgress(false);
+    }
+  };
+
+  const handlePostAuth = async () => {
+    const planId = searchParams.get("plan") || localStorage.getItem("pending_plan_id");
+
+    if (planId && businessSlug) {
+      await startCheckout(planId, businessSlug);
+    } else {
+      navigate("/my-account", { replace: true });
+    }
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,9 +173,9 @@ const StorefrontJoin = () => {
           }
 
           toast.success(`Welcome to ${settings.businessName}!`);
-          navigate(`/store/${businessSlug}/account`, { replace: true });
+          await handlePostAuth();
         } else {
-          // Email confirmation required — try to assign role/profile anyway
+          // Email confirmation required
           try {
             await supabase.rpc("assign_customer_role" as any);
           } catch {
@@ -100,7 +189,6 @@ const StorefrontJoin = () => {
             } as any).then(() => {});
           }
 
-          // Show confirmation message
           setShowConfirmation(true);
           toast.success("Account created!");
         }
@@ -136,7 +224,6 @@ const StorefrontJoin = () => {
         return;
       }
 
-      // Check the user's role to redirect appropriately
       if (data.user) {
         const { data: roles } = await supabase
           .from("user_roles")
@@ -145,19 +232,14 @@ const StorefrontJoin = () => {
 
         const role = roles?.[0]?.role;
 
-        toast.success("Welcome back!");
-
-        if (role === "customer") {
-          navigate("/my-account", { replace: true });
-        } else if (role === "producer" || role === "admin") {
-          navigate("/dashboard", { replace: true });
-        } else {
-          // No role found — assume customer (signed up through storefront)
+        if (!role) {
           try {
             await supabase.from("user_roles").insert({ user_id: data.user.id, role: "customer" } as any);
           } catch { /* ignore */ }
-          navigate("/my-account", { replace: true });
         }
+
+        toast.success("Welcome back!");
+        await handlePostAuth();
       }
     } catch {
       toast.error("Something went wrong");
@@ -167,6 +249,18 @@ const StorefrontJoin = () => {
   };
 
   const logoInitial = settings.businessName ? settings.businessName.charAt(0).toUpperCase() : "S";
+
+  // Show checkout in progress
+  if (checkoutInProgress) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">Starting checkout...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show confirmation message after signup when email confirmation is required
   if (showConfirmation) {
@@ -246,11 +340,21 @@ const StorefrontJoin = () => {
             <h1 className="text-xl font-bold text-foreground">
               {mode === "signup" ? `Join ${settings.businessName}` : `Log in to ${settings.businessName}`}
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {mode === "signup"
-                ? "Create your account to subscribe and access exclusive content"
-                : "Welcome back"}
-            </p>
+
+            {/* Pending plan context message */}
+            {pendingPlan ? (
+              <p className="text-sm text-muted-foreground mt-1">
+                {mode === "signup"
+                  ? `Create an account to subscribe to ${pendingPlan.name} at £${pendingPlan.price_num}/mo`
+                  : `Log in to subscribe to ${pendingPlan.name} at £${pendingPlan.price_num}/mo`}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground mt-1">
+                {mode === "signup"
+                  ? "Create your account to subscribe and access exclusive content"
+                  : "Welcome back"}
+              </p>
+            )}
           </div>
 
           {/* Form */}
