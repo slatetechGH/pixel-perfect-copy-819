@@ -17,12 +17,16 @@ const Login = () => {
   const [loginTriggered, setLoginTriggered] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Redirect to dashboard once session is established (covers initial load + post-login)
+  // Redirect based on role once session is established
   useEffect(() => {
     if (!authLoading && session.isLoggedIn) {
-      navigate("/dashboard", { replace: true });
+      if (session.role === "customer") {
+        navigate("/my-account", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
     }
-  }, [authLoading, session.isLoggedIn, navigate]);
+  }, [authLoading, session.isLoggedIn, session.role, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
