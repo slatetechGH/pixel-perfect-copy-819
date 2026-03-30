@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -7,12 +6,59 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY")!;
+
+async function stripeRequest(endpoint: string, method = "GET", body?: Record<string, any>) {
+  const options: RequestInit = {
+    method,
+    headers: {
+      "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+  };
+
+  if (body) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(body)) {
+      if (value !== undefined && value !== null) {
+        if (typeof value === "object" && !Array.isArray(value)) {
+          for (const [subKey, subValue] of Object.entries(value)) {
+            params.append(`${key}[${subKey}]`, String(subValue));
+          }
+        } else if (Array.isArray(value)) {
+          value.forEach((item, index) => {
+            if (typeof item === "object") {
+              for (const [subKey, subValue] of Object.entries(item)) {
+                params.append(`${key}[${index}][${subKey}]`, String(subValue));
+              }
+            } else {
+              params.append(`${key}[${index}]`, String(item));
+            }
+          });
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    }
+    options.body = params.toString();
+  }
+
+  const response = await fetch(`https://api.stripe.com/v1/${endpoint}`, options);
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("Stripe API error:", data);
+    throw new Error(data.error?.message || "Stripe API request failed");
+  }
+
+  return data;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
   if (!STRIPE_SECRET_KEY) {
     return new Response(JSON.stringify({ error: "STRIPE_SECRET_KEY not configured" }), {
       status: 500,
@@ -24,7 +70,6 @@ serve(async (req) => {
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -44,13 +89,10 @@ serve(async (req) => {
     }
     const userId = userData.user.id;
 
-    const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
-
-    const { action } = await req.json();
+    const { action } = await req.json().catch(() => ({ action: "create_account" }));
     const origin = req.headers.get("origin") || "https://pixel-perfect-copy-819.lovable.app";
 
     if (action === "create_account") {
-      // Fetch profile to check if they already have a connect account
       const { data: profile } = await supabaseAdmin
         .from("profiles")
         .select("email, business_name, stripe_connect_id, stripe_connect_status")
@@ -60,19 +102,16 @@ serve(async (req) => {
       let accountId = profile?.stripe_connect_id;
 
       if (!accountId) {
-        // Create a new Stripe Connect Standard account
-        const account = await stripe.accounts.create({
+        const account = await stripeRequest("accounts", "POST", {
           type: "standard",
           country: "GB",
           email: profile?.email,
-          business_profile: {
-            name: profile?.business_name || undefined,
-          },
+          business_profile: { name: profile?.business_name || undefined },
         });
         accountId = account.id;
+        console.log(`Created Stripe Connect account ${accountId} for user ${userId}`);
 
-        // IMMEDIATELY save the account ID BEFORE redirecting
-        await supabaseAdmin
+        const { error: updateError } = await supabaseAdmin
           .from("profiles")
           .update({
             stripe_connect_id: accountId,
@@ -80,11 +119,14 @@ serve(async (req) => {
           })
           .eq("id", userId);
 
-        console.log(`Created Stripe Connect account ${accountId} for user ${userId}`);
+        if (updateError) {
+          console.error("Failed to save stripe_connect_id:", updateError);
+        } else {
+          console.log("Saved stripe_connect_id to profile");
+        }
       }
 
-      // Create account link for onboarding (works for new or resuming accounts)
-      const accountLink = await stripe.accountLinks.create({
+      const accountLink = await stripeRequest("account_links", "POST", {
         account: accountId,
         refresh_url: `${origin}/dashboard/settings?stripe=refresh`,
         return_url: `${origin}/dashboard/settings?stripe=success`,
@@ -109,7 +151,7 @@ serve(async (req) => {
         });
       }
 
-      const account = await stripe.accounts.retrieve(profile.stripe_connect_id);
+      const account = await stripeRequest(`accounts/${profile.stripe_connect_id}`);
       const status = account.charges_enabled ? "active" : "connecting";
 
       await supabaseAdmin
@@ -128,7 +170,6 @@ serve(async (req) => {
     }
 
     if (action === "create_login_link") {
-      // For active accounts, create a login link to the Stripe Express dashboard
       const { data: profile } = await supabaseAdmin
         .from("profiles")
         .select("stripe_connect_id")
@@ -143,12 +184,11 @@ serve(async (req) => {
       }
 
       try {
-        const loginLink = await stripe.accounts.createLoginLink(profile.stripe_connect_id);
+        const loginLink = await stripeRequest(`accounts/${profile.stripe_connect_id}/login_links`, "POST");
         return new Response(JSON.stringify({ url: loginLink.url }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       } catch {
-        // Standard accounts use the Stripe dashboard directly
         return new Response(JSON.stringify({ url: "https://dashboard.stripe.com" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

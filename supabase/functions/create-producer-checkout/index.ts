@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -7,12 +6,59 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY")!;
+
+async function stripeRequest(endpoint: string, method = "GET", body?: Record<string, any>) {
+  const options: RequestInit = {
+    method,
+    headers: {
+      "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+  };
+
+  if (body) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(body)) {
+      if (value !== undefined && value !== null) {
+        if (typeof value === "object" && !Array.isArray(value)) {
+          for (const [subKey, subValue] of Object.entries(value)) {
+            params.append(`${key}[${subKey}]`, String(subValue));
+          }
+        } else if (Array.isArray(value)) {
+          value.forEach((item, index) => {
+            if (typeof item === "object") {
+              for (const [subKey, subValue] of Object.entries(item)) {
+                params.append(`${key}[${index}][${subKey}]`, String(subValue));
+              }
+            } else {
+              params.append(`${key}[${index}]`, String(item));
+            }
+          });
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    }
+    options.body = params.toString();
+  }
+
+  const response = await fetch(`https://api.stripe.com/v1/${endpoint}`, options);
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("Stripe API error:", data);
+    throw new Error(data.error?.message || "Stripe API request failed");
+  }
+
+  return data;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
   if (!STRIPE_SECRET_KEY) {
     return new Response(JSON.stringify({ error: "Stripe not configured" }), {
       status: 500,
@@ -33,7 +79,6 @@ serve(async (req) => {
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
 
   try {
     const token = authHeader.replace("Bearer ", "");
@@ -48,7 +93,6 @@ serve(async (req) => {
     const user = userData.user;
     const { success_url, cancel_url } = await req.json();
 
-    // Get or create Stripe customer for this producer
     const { data: profile } = await supabase
       .from("profiles")
       .select("stripe_customer_id, email")
@@ -65,22 +109,20 @@ serve(async (req) => {
     let customerId = profile.stripe_customer_id;
 
     if (!customerId) {
-      // Check if customer exists by email
-      const customers = await stripe.customers.list({ email: profile.email, limit: 1 });
-      if (customers.data.length > 0) {
+      // Search for existing customer by email
+      const customers = await stripeRequest(`customers?email=${encodeURIComponent(profile.email)}&limit=1`);
+      if (customers.data?.length > 0) {
         customerId = customers.data[0].id;
       } else {
-        const customer = await stripe.customers.create({ email: profile.email });
+        const customer = await stripeRequest("customers", "POST", { email: profile.email });
         customerId = customer.id;
       }
-      // Save customer ID
       await supabase
         .from("profiles")
         .update({ stripe_customer_id: customerId })
         .eq("id", user.id);
     }
 
-    // Use configured price ID or fall back
     const priceId = SLATE_STANDARD_PRICE_ID;
     if (!priceId) {
       return new Response(JSON.stringify({ error: "Standard plan price not configured. Set SLATE_STANDARD_PRICE_ID secret." }), {
@@ -89,7 +131,6 @@ serve(async (req) => {
       });
     }
 
-    // Validate URLs
     const origin = req.headers.get("origin") || "";
     const safeFallback = origin || "https://pixel-perfect-copy-819.lovable.app";
 
@@ -105,17 +146,16 @@ serve(async (req) => {
       }
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await stripeRequest("checkout/sessions", "POST", {
       customer: customerId,
       mode: "subscription",
-      line_items: [{ price: priceId, quantity: 1 }],
+      "line_items[0][price]": priceId,
+      "line_items[0][quantity]": "1",
       success_url: isAllowedUrl(success_url),
       cancel_url: isAllowedUrl(cancel_url),
-      allow_promotion_codes: true,
-      metadata: {
-        producer_id: user.id,
-        type: "slate_standard_upgrade",
-      },
+      allow_promotion_codes: "true",
+      "metadata[producer_id]": user.id,
+      "metadata[type]": "slate_standard_upgrade",
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

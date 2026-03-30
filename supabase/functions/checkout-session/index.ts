@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -7,12 +6,59 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY")!;
+
+async function stripeRequest(endpoint: string, method = "GET", body?: Record<string, any>) {
+  const options: RequestInit = {
+    method,
+    headers: {
+      "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+  };
+
+  if (body) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(body)) {
+      if (value !== undefined && value !== null) {
+        if (typeof value === "object" && !Array.isArray(value)) {
+          for (const [subKey, subValue] of Object.entries(value)) {
+            params.append(`${key}[${subKey}]`, String(subValue));
+          }
+        } else if (Array.isArray(value)) {
+          value.forEach((item, index) => {
+            if (typeof item === "object") {
+              for (const [subKey, subValue] of Object.entries(item)) {
+                params.append(`${key}[${index}][${subKey}]`, String(subValue));
+              }
+            } else {
+              params.append(`${key}[${index}]`, String(item));
+            }
+          });
+        } else {
+          params.append(key, String(value));
+        }
+      }
+    }
+    options.body = params.toString();
+  }
+
+  const response = await fetch(`https://api.stripe.com/v1/${endpoint}`, options);
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("Stripe API error:", data);
+    throw new Error(data.error?.message || "Stripe API request failed");
+  }
+
+  return data;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
   if (!STRIPE_SECRET_KEY) {
     return new Response(JSON.stringify({ error: "Payment service not configured" }), {
       status: 500,
@@ -21,10 +67,8 @@ serve(async (req) => {
   }
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-  const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  // ── Auth: require a valid JWT ──
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -33,20 +77,18 @@ serve(async (req) => {
     });
   }
 
-  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-  });
+  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const token = authHeader.replace("Bearer ", "");
-  const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-  if (claimsError || !claimsData?.claims) {
+  const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+  if (userError || !userData.user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
-  const userId = claimsData.claims.sub;
-  const userEmail = claimsData.claims.email as string;
+  const userId = userData.user.id;
+  const userEmail = userData.user.email || "";
 
   try {
     const { plan_id, producer_id, success_url, cancel_url } = await req.json();
@@ -58,7 +100,6 @@ serve(async (req) => {
       });
     }
 
-    // ── Validate redirect URLs: must be same origin ──
     const origin = req.headers.get("origin") || "";
     const safeFallback = origin || "https://pixel-perfect-copy-819.lovable.app";
 
@@ -78,7 +119,6 @@ serve(async (req) => {
     const safeCancelUrl = isAllowedUrl(cancel_url);
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
 
     // Look up plan
     const { data: plan, error: planError } = await supabase
@@ -124,21 +164,23 @@ serve(async (req) => {
 
     const commission = profile.commission_percentage || 8;
 
-    // If plan has a stripe_price_id, use it; otherwise create product+price on the connected account
     let priceId = plan.stripe_price_id;
 
     if (!priceId) {
-      // Create product and price on the platform (not the connected account for Standard accounts)
-      const product = await stripe.products.create({
+      // Create product on platform
+      const product = await stripeRequest("products", "POST", {
         name: plan.name,
-        metadata: { plan_id, producer_id },
+        "metadata[plan_id]": plan_id,
+        "metadata[producer_id]": producer_id,
       });
-      const price = await stripe.prices.create({
+
+      const price = await stripeRequest("prices", "POST", {
         product: product.id,
-        unit_amount: Math.round(plan.price_num * 100),
+        unit_amount: String(Math.round(plan.price_num * 100)),
         currency: "gbp",
-        recurring: { interval: "month" },
+        "recurring[interval]": "month",
       });
+
       priceId = price.id;
 
       await supabase
@@ -147,24 +189,19 @@ serve(async (req) => {
         .eq("id", plan_id);
     }
 
-    // Create checkout session — for Standard Connect, use destination charges
-    const session = await stripe.checkout.sessions.create({
+    // Create checkout session with destination charges
+    const session = await stripeRequest("checkout/sessions", "POST", {
       mode: "subscription",
-      line_items: [{ price: priceId, quantity: 1 }],
+      "line_items[0][price]": priceId,
+      "line_items[0][quantity]": "1",
       customer_email: userEmail,
       success_url: safeSuccessUrl,
       cancel_url: safeCancelUrl,
-      subscription_data: {
-        application_fee_percent: commission,
-        transfer_data: {
-          destination: profile.stripe_connect_id,
-        },
-      },
-      metadata: {
-        plan_id,
-        producer_id,
-        user_id: userId,
-      },
+      "subscription_data[application_fee_percent]": String(commission),
+      "subscription_data[transfer_data][destination]": profile.stripe_connect_id,
+      "metadata[plan_id]": plan_id,
+      "metadata[producer_id]": producer_id,
+      "metadata[user_id]": userId,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
