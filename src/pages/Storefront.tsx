@@ -189,7 +189,10 @@ const Storefront = () => {
   const formatPrice = (priceNum: number) => `£${priceNum}/mo`;
 
   const handleSubscribe = async (plan: StorefrontPlan) => {
-    if (plan.is_free) {
+    console.log('Subscribe clicked:', { planId: plan.id, producerId: profile?.id, slug: businessSlug });
+
+    // Free plans — just redirect to join page
+    if (plan.is_free || plan.price_num === 0 || plan.price_num === null) {
       navigate(`/store/${businessSlug}/join`);
       return;
     }
@@ -198,7 +201,6 @@ const Storefront = () => {
     const { data: { session: currentSession } } = await supabase.auth.getSession();
 
     if (!currentSession) {
-      // Save pending plan and redirect to join page
       localStorage.setItem("pending_plan_id", plan.id);
       navigate(`/store/${businessSlug}/join?plan=${plan.id}`);
       return;
@@ -206,39 +208,45 @@ const Storefront = () => {
 
     setSubscribingPlan(plan.id);
     try {
-      const response = await supabase.functions.invoke("checkout-session", {
-        body: {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'apikey': supabaseAnonKey,
+      };
+
+      if (currentSession?.access_token) {
+        headers['Authorization'] = `Bearer ${currentSession.access_token}`;
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/checkout-session`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
           plan_id: plan.id,
-          producer_id: profile.id,
+          producer_id: profile?.id || null,
           success_url: `${window.location.origin}/my-account?welcome=true`,
           cancel_url: `${window.location.origin}/store/${businessSlug}`,
-        },
+        }),
       });
 
-      console.log("Checkout response:", response);
+      const data = await response.json();
 
-      if (response.error) {
-        let errorMsg = "Something went wrong. Please try again.";
-        if (response.data?.error) {
-          errorMsg = response.data.error;
-        } else if (response.error instanceof Error) {
-          errorMsg = response.error.message;
-        }
-        console.error("Checkout error:", response.error);
-        toast.error(errorMsg);
+      if (!response.ok || data.error) {
+        console.error('Checkout error:', data);
+        toast.error(data.error || 'Something went wrong. Please try again.');
         return;
       }
 
-      if (response.data?.url) {
-        window.location.href = response.data.url;
+      if (data.url) {
+        window.location.href = data.url;
       } else {
-        const errorMsg = response.data?.error || "No checkout URL returned. Please try again.";
-        console.error("Checkout error: no URL in response", response.data);
-        toast.error(errorMsg);
+        toast.error('No checkout URL returned. Please try again.');
       }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to start checkout. Please try again.");
+    } catch (error: any) {
+      console.error('Subscribe error:', error);
+      toast.error(error.message || 'Failed to start checkout. Please try again.');
     } finally {
       setSubscribingPlan(null);
     }
