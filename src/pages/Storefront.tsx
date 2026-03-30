@@ -196,26 +196,45 @@ const Storefront = () => {
 
     setSubscribingPlan(plan.id);
     try {
-      const { data, error } = await supabase.functions.invoke("checkout-session", {
+      const response = await supabase.functions.invoke("checkout-session", {
         body: {
           plan_id: plan.id,
           producer_id: profile.id,
-          success_url: `${window.location.origin}/store/${businessSlug}/welcome?session_id={CHECKOUT_SESSION_ID}`,
+          success_url: `${window.location.origin}/my-account?welcome=true`,
           cancel_url: `${window.location.origin}/store/${businessSlug}`,
         },
       });
 
-      if (error || data?.error) {
-        const errorMsg = data?.error || "Something went wrong. Please try again.";
+      console.log("Checkout response:", response);
+
+      if (response.error) {
+        // When the edge function returns a non-2xx status, error is set and data may contain the JSON body
+        let errorMsg = "Something went wrong. Please try again.";
+        try {
+          // response.error might be a FunctionsHttpError with a context property
+          if (response.data?.error) {
+            errorMsg = response.data.error;
+          } else if (response.error instanceof Error) {
+            errorMsg = response.error.message;
+          }
+        } catch {
+          // fallback to generic
+        }
+        console.error("Checkout error:", response.error);
         toast.error(errorMsg);
         return;
       }
 
-      if (data?.url) {
-        window.location.href = data.url;
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        const errorMsg = response.data?.error || "No checkout URL returned. Please try again.";
+        console.error("Checkout error: no URL in response", response.data);
+        toast.error(errorMsg);
       }
-    } catch {
-      toast.error("Failed to start checkout. Please try again.");
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to start checkout. Please try again.");
     } finally {
       setSubscribingPlan(null);
     }
