@@ -136,7 +136,7 @@ const Login = () => {
             Get started
           </button>
         </p>
-        <p className="text-center mt-2 text-[12px] text-slate-light">
+        <p className="text-center mt-2 text-slate-800 text-sm">
           Customer? You can also log in through your producer's storefront page.
         </p>
       </div>
