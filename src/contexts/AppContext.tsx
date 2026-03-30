@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { getUserRole } from "@/lib/auth-routing";
 
 // ===== TYPES =====
 export interface Lead {
@@ -181,8 +182,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchRole = async (userId: string): Promise<UserRole | null> => {
-    const { data } = await supabase.rpc("get_user_role", { _user_id: userId });
-    return (data as UserRole) || null;
+    return await getUserRole(userId);
   };
 
   // Load profile/role in background — doesn't block auth state

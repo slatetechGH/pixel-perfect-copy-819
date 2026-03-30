@@ -10,6 +10,7 @@ import OnboardingPlan from "@/components/onboarding/OnboardingPlan";
 import OnboardingPayments from "@/components/onboarding/OnboardingPayments";
 import OnboardingShare from "@/components/onboarding/OnboardingShare";
 import { toast } from "sonner";
+import { getAuthRoutingState } from "@/lib/auth-routing";
 
 const TOTAL_STEPS = 5;
 const LOAD_TIMEOUT_MS = 8000;
@@ -38,6 +39,17 @@ const Onboarding = () => {
 
     const load = async () => {
       try {
+        const routeState = await getAuthRoutingState(userId);
+
+        if (cancelled) return;
+
+        if (routeState.role !== "producer") {
+          clearTimeout(loadTimeout);
+          setLoading(false);
+          navigate("/my-account", { replace: true });
+          return;
+        }
+
         const { data, error: fetchErr } = await supabase
           .from("profiles")
           .select("*")

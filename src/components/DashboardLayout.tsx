@@ -3,10 +3,11 @@ import { MerchantSidebar } from "@/components/MerchantSidebar";
 import { useApp } from "@/contexts/AppContext";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import SlateLogo from "@/components/SlateLogo";
 import { OnboardingBanner } from "@/components/OnboardingBanner";
+import { getAuthRoutingState } from "@/lib/auth-routing";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,25 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
   const { resetToDefaults, settings } = useDashboard();
   const navigate = useNavigate();
   const [resetConfirm, setResetConfirm] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!session.supabaseUser?.id || demoActive) return;
+
+    const guardCustomerAccess = async () => {
+      const routeState = await getAuthRoutingState(session.supabaseUser!.id);
+      if (!cancelled && routeState.role === "customer") {
+        navigate("/my-account", { replace: true });
+      }
+    };
+
+    guardCustomerAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session.supabaseUser?.id, demoActive, navigate]);
 
   const handleReset = () => {
     resetToDefaults();
