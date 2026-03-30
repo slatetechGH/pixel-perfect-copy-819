@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -7,12 +6,27 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY")!;
+
+async function stripeRequest(endpoint: string) {
+  const response = await fetch(`https://api.stripe.com/v1/${endpoint}`, {
+    headers: {
+      "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
+    },
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    console.error("Stripe API error:", data);
+    throw new Error(data.error?.message || "Stripe API request failed");
+  }
+  return data;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
   if (!STRIPE_SECRET_KEY) {
     return new Response(JSON.stringify({ error: "STRIPE_SECRET_KEY not configured" }), {
       status: 500,
@@ -24,7 +38,6 @@ serve(async (req) => {
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -43,9 +56,7 @@ serve(async (req) => {
       });
     }
     const userId = userData.user.id;
-    const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
 
-    // Fetch producer's stripe_connect_id
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("stripe_connect_id, stripe_connect_status")
@@ -58,11 +69,9 @@ serve(async (req) => {
       });
     }
 
-    // Retrieve account from Stripe
-    const account = await stripe.accounts.retrieve(profile.stripe_connect_id);
+    const account = await stripeRequest(`accounts/${profile.stripe_connect_id}`);
     const status = account.charges_enabled ? "active" : "connecting";
 
-    // Update profile with latest status
     if (status !== profile.stripe_connect_status) {
       await supabaseAdmin
         .from("profiles")

@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -7,12 +6,86 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY")!;
+
+async function stripeRequest(endpoint: string, method = "GET", body?: Record<string, any>) {
+  const options: RequestInit = {
+    method,
+    headers: {
+      "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+  };
+
+  if (body) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(body)) {
+      if (value !== undefined && value !== null) {
+        params.append(key, String(value));
+      }
+    }
+    options.body = params.toString();
+  }
+
+  const response = await fetch(`https://api.stripe.com/v1/${endpoint}`, options);
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("Stripe API error:", data);
+    throw new Error(data.error?.message || "Stripe API request failed");
+  }
+
+  return data;
+}
+
+// Stripe webhook signature verification using Web Crypto API
+async function verifyStripeSignature(payload: string, sigHeader: string, secret: string): Promise<any> {
+  const parts = sigHeader.split(",");
+  let timestamp = "";
+  const signatures: string[] = [];
+
+  for (const part of parts) {
+    const [key, value] = part.split("=");
+    if (key === "t") timestamp = value;
+    if (key === "v1") signatures.push(value);
+  }
+
+  if (!timestamp || signatures.length === 0) {
+    throw new Error("Invalid signature header");
+  }
+
+  // Check timestamp tolerance (5 minutes)
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - parseInt(timestamp)) > 300) {
+    throw new Error("Webhook timestamp too old");
+  }
+
+  const signedPayload = `${timestamp}.${payload}`;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signedPayload));
+  const expectedSig = Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  if (!signatures.includes(expectedSig)) {
+    throw new Error("Signature verification failed");
+  }
+
+  return JSON.parse(payload);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
   if (!STRIPE_SECRET_KEY) {
     return new Response(JSON.stringify({ error: "STRIPE_SECRET_KEY not configured" }), {
       status: 500,
@@ -24,14 +97,12 @@ serve(async (req) => {
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
     const body = await req.text();
-    let event: Stripe.Event;
 
-    // Verify webhook signature — mandatory
+    // Verify webhook signature
     if (!STRIPE_WEBHOOK_SECRET) {
       console.error("STRIPE_WEBHOOK_SECRET is not configured");
       return new Response(JSON.stringify({ error: "Webhook secret not configured" }), {
@@ -48,21 +119,20 @@ serve(async (req) => {
       });
     }
 
-    event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
+    const event = await verifyStripeSignature(body, signature, STRIPE_WEBHOOK_SECRET);
 
     console.log(`Processing Stripe event: ${event.type}`);
 
     switch (event.type) {
       case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session = event.data.object;
         const customerEmail = session.customer_email || "";
         const planId = session.metadata?.plan_id;
         const producerId = session.metadata?.producer_id;
-        const customerId = session.customer as string || null;
-        const subscriptionId = session.subscription as string || null;
+        const customerId = session.customer || null;
+        const subscriptionId = session.subscription || null;
 
         if (producerId && customerEmail) {
-          // Look up plan name
           let planName = "Unknown Plan";
           if (planId) {
             const { data: plan } = await supabase
@@ -76,12 +146,11 @@ serve(async (req) => {
           // Check if user exists in auth, if not create one
           let userId: string | null = null;
           const { data: existingUsers } = await supabase.auth.admin.listUsers();
-          const existingUser = existingUsers?.users?.find(u => u.email === customerEmail);
+          const existingUser = existingUsers?.users?.find((u: any) => u.email === customerEmail);
 
           if (existingUser) {
             userId = existingUser.id;
           } else {
-            // Create auth user with a random password — they'll use password reset to set theirs
             const tempPassword = crypto.randomUUID() + "Aa1!";
             const { data: newUser, error: createErr } = await supabase.auth.admin.createUser({
               email: customerEmail,
@@ -90,7 +159,6 @@ serve(async (req) => {
             });
             if (newUser?.user) {
               userId = newUser.user.id;
-              // Assign customer role (trigger creates 'producer' by default, so update it)
               await supabase.from("user_roles")
                 .update({ role: "customer" })
                 .eq("user_id", userId);
@@ -103,13 +171,12 @@ serve(async (req) => {
           let periodEnd: string | null = null;
           if (subscriptionId) {
             try {
-              const sub = await stripe.subscriptions.retrieve(subscriptionId);
+              const sub = await stripeRequest(`subscriptions/${subscriptionId}`);
               periodStart = new Date(sub.current_period_start * 1000).toISOString();
               periodEnd = new Date(sub.current_period_end * 1000).toISOString();
             } catch { /* ignore */ }
           }
 
-          // Create subscriber record
           await supabase.from("subscribers").insert({
             producer_id: producerId,
             name: customerEmail.split("@")[0],
@@ -125,7 +192,6 @@ serve(async (req) => {
             current_period_end: periodEnd,
           });
 
-          // Create customer_profiles link
           if (userId) {
             await supabase.from("customer_profiles").insert({
               user_id: userId,
@@ -140,11 +206,10 @@ serve(async (req) => {
       }
 
       case "customer.subscription.created": {
-        const subscription = event.data.object as Stripe.Subscription;
-        const customer = await stripe.customers.retrieve(subscription.customer as string);
-        const customerEmail = (customer as Stripe.Customer).email || "";
+        const subscription = event.data.object;
+        const customer = await stripeRequest(`customers/${subscription.customer}`);
+        const customerEmail = customer.email || "";
 
-        // Find the producer via the connected account
         const connectAccountId = event.account;
         if (connectAccountId) {
           const { data: profile } = await supabase
@@ -154,15 +219,15 @@ serve(async (req) => {
             .single();
 
           if (profile) {
-            const amount = subscription.items.data[0]?.price?.unit_amount || 0;
+            const amount = subscription.items?.data?.[0]?.price?.unit_amount || 0;
             const commission = Math.round(amount * (profile.commission_percentage / 100));
-            const stripeFee = Math.round(amount * 0.022 + 30); // 2.2% + 30p in pence
+            const stripeFee = Math.round(amount * 0.022 + 30);
             const net = amount - stripeFee - commission;
 
             await supabase.from("subscriptions").insert({
               producer_id: profile.id,
               stripe_subscription_id: subscription.id,
-              stripe_customer_id: subscription.customer as string,
+              stripe_customer_id: subscription.customer,
               customer_email: customerEmail,
               amount_paid: amount,
               slate_commission_earned: commission,
@@ -177,7 +242,7 @@ serve(async (req) => {
       }
 
       case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object;
         const status = subscription.status === "active" ? "active" :
           subscription.status === "past_due" ? "past_due" :
           subscription.status === "canceled" ? "canceled" : "incomplete";
@@ -195,8 +260,7 @@ serve(async (req) => {
           })
           .eq("stripe_subscription_id", subscription.id);
 
-        // Sync to subscribers table too
-        const isPaused = !!(subscription as any).pause_collection;
+        const isPaused = !!subscription.pause_collection;
         const subStatus = isPaused ? "paused" : status === "canceled" ? "cancelled" : status === "active" ? "active" : status;
         await supabase
           .from("subscribers")
@@ -207,22 +271,20 @@ serve(async (req) => {
           })
           .eq("stripe_subscription_id", subscription.id);
 
-        // Handle cancelled status
         if (status === "canceled") {
-          const customer = await stripe.customers.retrieve(subscription.customer as string);
-          const email = (customer as Stripe.Customer).email;
-          if (email) {
+          const customer = await stripeRequest(`customers/${subscription.customer}`);
+          if (customer.email) {
             await supabase
               .from("subscribers")
               .update({ status: "cancelled" })
-              .eq("email", email);
+              .eq("email", customer.email);
           }
         }
         break;
       }
 
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object;
         await supabase
           .from("subscriptions")
           .update({
@@ -231,20 +293,18 @@ serve(async (req) => {
           })
           .eq("stripe_subscription_id", subscription.id);
 
-        // Mark subscriber as cancelled
-        const customer = await stripe.customers.retrieve(subscription.customer as string);
-        const email = (customer as Stripe.Customer).email;
-        if (email) {
+        const customer = await stripeRequest(`customers/${subscription.customer}`);
+        if (customer.email) {
           await supabase
             .from("subscribers")
             .update({ status: "cancelled" })
-            .eq("email", email);
+            .eq("email", customer.email);
         }
         break;
       }
 
       case "invoice.payment_succeeded": {
-        const invoice = event.data.object as Stripe.Invoice;
+        const invoice = event.data.object;
         const connectAccountId = event.account;
 
         if (connectAccountId && invoice.customer_email) {
@@ -258,7 +318,6 @@ serve(async (req) => {
             const amount = invoice.amount_paid || 0;
             const commission = Math.round(amount * (profile.commission_percentage / 100));
 
-            // Create transaction records
             await supabase.from("transactions").insert({
               producer_id: profile.id,
               transaction_type: "payment_received",
@@ -273,10 +332,7 @@ serve(async (req) => {
               stripe_event_id: event.id,
             });
 
-            // Update subscriber revenue
-            const revenuePence = amount;
-            const revenuePounds = (revenuePence / 100).toFixed(0);
-            // Note: this is a simplistic update - in production you'd accumulate
+            const revenuePounds = (amount / 100).toFixed(0);
             console.log(`Invoice paid: £${revenuePounds} from ${invoice.customer_email}`);
           }
         }
@@ -284,7 +340,7 @@ serve(async (req) => {
       }
 
       case "charge.succeeded": {
-        const charge = event.data.object as Stripe.Charge;
+        const charge = event.data.object;
         const connectAccountId = event.account;
 
         if (connectAccountId) {
@@ -317,9 +373,9 @@ serve(async (req) => {
       }
 
       case "account.updated": {
-        const account = event.data.object as Stripe.Account;
+        const account = event.data.object;
         const status = account.charges_enabled ? "active" : "connecting";
-        
+
         await supabase
           .from("profiles")
           .update({ stripe_connect_status: status })
