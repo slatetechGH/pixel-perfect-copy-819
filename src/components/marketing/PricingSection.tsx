@@ -1,31 +1,31 @@
 import AnimatedSection from "./AnimatedSection";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const freeFeatures = [
-  "25 subscribers",
+  "25 customers",
   "3 subscription plans",
-  "Branded storefront",
+  "Branded store page",
   "Collection tracking",
-  "3 broadcasts/month",
+  "3 email updates/month",
 ];
 
 const standardFeatures = [
-  "Unlimited subscribers",
+  "Unlimited customers",
   "Unlimited plans",
-  "Unlimited broadcasts",
-  "Product drops",
-  "Content gating",
+  "Unlimited email updates",
+  "Limited releases",
+  "Members-only content",
   "Automated reminders",
   "Priority support",
 ];
 
 const sharedFeatures = [
-  "Branded storefront",
+  "Branded store page",
   "Custom branding",
-  "Subscriber management",
-  "Analytics",
+  "Customer management",
+  "Reports & insights",
   "Collection tracking",
 ];
 

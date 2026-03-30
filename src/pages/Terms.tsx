@@ -19,7 +19,7 @@ const Terms = () => {
         <div className="prose prose-slate max-w-none space-y-8 text-[15px] leading-relaxed text-foreground/80">
           <section>
             <h2 className="text-[20px] font-semibold text-foreground mb-3">1. The Service</h2>
-            <p>Slate Technologies Ltd ("Slate", "we", "us") provides a subscription management platform for independent producers ("the Service"). The Service enables producers to create storefronts, manage subscriptions, publish content, and sell product drops to their customers. By accessing or using the Service, you agree to be bound by these terms.</p>
+            <p>Slate Technologies ("Slate", "we", "us") provides a subscription management platform for independent producers ("the Service"). The Service enables producers to create storefronts, manage subscriptions, publish content, and sell product drops to their customers. By accessing or using the Service, you agree to be bound by these terms.</p>
           </section>
 
           <section>
@@ -86,7 +86,7 @@ const Terms = () => {
 
           <section>
             <h2 className="text-[20px] font-semibold text-foreground mb-3">9. Intellectual Property</h2>
-            <p>Slate owns all rights to the platform, including its design, code, and branding. Producers retain ownership of all content, images, recipes, and other materials they upload to the platform. By uploading content, producers grant Slate a limited licence to display that content on the platform as part of the Service.</p>
+            <p>Slate owns all rights to the platform, including its design, code, and branding. Producers retain ownership of all content, images, recipes, and other materials they upload to the platform. By uploading content, producers grant Slate a licence to display that content on the platform as part of the Service.</p>
           </section>
 
           <section>

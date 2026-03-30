@@ -70,7 +70,7 @@ const Footer = () => {
 
         <div className="border-t border-white/[0.08] pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-[12px] text-slate-light">
-            © {new Date().getFullYear()} Slate Technologies Ltd. All rights reserved.
+            © {new Date().getFullYear()} Slate Technologies. All rights reserved.
           </p>
           <div className="flex gap-6">
             <button onClick={() => navigate("/privacy")} className="text-[12px] text-slate-light hover:text-white transition-colors cursor-pointer">Privacy Policy</button>
