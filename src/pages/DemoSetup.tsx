@@ -6,7 +6,7 @@ import { useApp, DemoPlan, DemoDrop, DemoContent, DemoProfile } from "@/contexts
 import { type Conversation, type Message } from "@/contexts/DashboardContext";
 import { toast } from "sonner";
 import {
-  Beef, CakeSlice, Fish, Milk, Tractor, Beer, X, Plus, Loader2, Save, RotateCcw, Rocket, UserPlus,
+  Beef, CakeSlice, Fish, Milk, Tractor, Beer, X, Plus, Loader2, Save, RotateCcw, Rocket, UserPlus, Eye,
 } from "lucide-react";
 import SlateLogo from "@/components/SlateLogo";
 import { AssignToProducerModal } from "@/components/AssignToProducerModal";
