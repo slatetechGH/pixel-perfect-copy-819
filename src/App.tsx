@@ -40,6 +40,7 @@ import Cookies from "./pages/Cookies";
 import StorefrontWelcome from "./pages/StorefrontWelcome";
 import Onboarding from "./pages/Onboarding";
 import DemoPreview from "./pages/DemoPreview";
+import DemoStorefront from "./pages/DemoStorefront";
 import MyAccount from "./pages/MyAccount";
 import { getAuthRoutingState } from "@/lib/auth-routing";
 
@@ -113,6 +114,7 @@ const AppRoutes = () => (
       <Route path="/demo-setup" element={<ProtectedRoute allowedRoles={["admin"]}><DemoSetup /></ProtectedRoute>} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/demo-preview/:businessSlug" element={<DemoPreview />} />
+      <Route path="/demo-storefront/:slug" element={<DemoStorefront />} />
       <Route path="/onboarding" element={<ProtectedRoute allowedRoles={["producer"]}><Onboarding /></ProtectedRoute>} />
 
       {/* Customer portal — unified account */}

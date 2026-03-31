@@ -6,7 +6,7 @@ import { useApp, DemoPlan, DemoDrop, DemoContent, DemoProfile } from "@/contexts
 import { type Conversation, type Message } from "@/contexts/DashboardContext";
 import { toast } from "sonner";
 import {
-  Beef, CakeSlice, Fish, Milk, Tractor, Beer, X, Plus, Loader2, Save, RotateCcw, Rocket, UserPlus,
+  Beef, CakeSlice, Fish, Milk, Tractor, Beer, X, Plus, Loader2, Save, RotateCcw, Rocket, UserPlus, Eye,
 } from "lucide-react";
 import SlateLogo from "@/components/SlateLogo";
 import { AssignToProducerModal } from "@/components/AssignToProducerModal";
@@ -890,16 +890,50 @@ const DemoSetup = () => {
                   >
                     <Rocket size={20} /> {demoActive ? "Re-launch Demo" : "Launch Demo"}
                   </button>
-                  {demoActive && businessName && (
-                    <a
-                      href={`/store/${businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  {businessName && (
+                    <button
+                      onClick={() => {
+                        if (!businessName) { toast.error("Business name is required"); return; }
+                        const slug = businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+                        // Save storefront demo data to localStorage
+                        const raw = localStorage.getItem("slate_demo_preview");
+                        if (raw) {
+                          localStorage.setItem("slate_demo_storefront", raw);
+                        } else {
+                          // Build minimal storefront data from current form state
+                          const validPlans = plans.filter(p => p.name);
+                          const planNames = validPlans.map(p => p.name);
+                          const storefrontData = {
+                            settings: {
+                              businessName, businessType, description: tagline, email, phone, website,
+                              urlSlug: slug, accentColor: selectedColor, logoUrl, coverUrl,
+                            },
+                            plans: validPlans.map((p, i) => ({
+                              id: `plan-${i}`, name: p.name, price: p.isFree ? "Free" : `£${p.price}/mo`,
+                              priceNum: p.price, isFree: p.isFree, benefits: p.features,
+                              description: "", active: true, showOnPublicPage: true,
+                            })),
+                            drops: drops.filter(d => d.name).map((d, i) => ({
+                              id: `drop-${i}`, title: d.name, description: "",
+                              status: d.status, total: d.quantity, remaining: d.quantity - d.sold,
+                              price: `£${d.price.toFixed(2)}`, priceNum: d.price,
+                              eligiblePlans: planNames,
+                            })),
+                            content: content.filter(c => c.title).map((c, i) => ({
+                              id: `content-${i}`, title: c.title, type: c.type, body: "",
+                              status: c.status, tier: "Free",
+                            })),
+                          };
+                          localStorage.setItem("slate_demo_storefront", JSON.stringify(storefrontData));
+                        }
+                        window.open(`/demo-storefront/${slug}`, "_blank");
+                        toast.success("Storefront preview opened in a new tab!");
+                      }}
                       className="w-full py-3 px-8 border-2 text-[16px] font-semibold rounded-[10px] transition-colors cursor-pointer flex items-center justify-center gap-2 hover:opacity-80"
                       style={{ borderColor: selectedColor, color: selectedColor }}
                     >
-                      View Customer Storefront ↗
-                    </a>
+                      <Eye size={18} /> Preview Storefront ↗
+                    </button>
                   )}
                   <button
                     onClick={() => {
