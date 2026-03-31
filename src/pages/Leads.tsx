@@ -2,17 +2,27 @@ import { useState, useEffect, useCallback } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Mail, Search, ChevronDown, ChevronUp, Trash2, Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  UserPlus, Mail, Search, ChevronDown, ChevronUp, Trash2, Loader2,
+  Calendar, MoreHorizontal, Download, ArrowUpDown,
+} from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
 
 interface Lead {
   id: string;
-  type: "signup" | "contact" | "newsletter";
-  status: "new" | "reviewed" | "contacted";
+  type: string;
+  status: string;
   created_at: string;
   notes: string | null;
+  last_contacted_at: string | null;
   email: string;
   name: string | null;
   phone: string | null;
@@ -29,97 +39,170 @@ interface Lead {
   terms: boolean | null;
 }
 
-const tabs = ["Signup Requests", "Contact Enquiries", "Newsletter Signups"] as const;
-const tabTypeMap: Record<string, Lead["type"]> = {
-  "Signup Requests": "signup",
-  "Contact Enquiries": "contact",
-  "Newsletter Signups": "newsletter",
+const STATUS_TABS = [
+  { key: "all", label: "All" },
+  { key: "new", label: "New" },
+  { key: "reviewed", label: "Reviewed" },
+  { key: "meeting_booked", label: "Meeting Booked" },
+  { key: "follow_up", label: "Follow Up" },
+  { key: "converted", label: "Converted" },
+  { key: "ignored", label: "Ignored" },
+] as const;
+
+const STATUS_OPTIONS = STATUS_TABS.filter(t => t.key !== "all");
+
+const statusColors: Record<string, string> = {
+  new: "bg-blue-100 text-blue-700",
+  reviewed: "bg-muted text-muted-foreground",
+  meeting_booked: "bg-emerald-100 text-emerald-700",
+  follow_up: "bg-amber-100 text-amber-700",
+  converted: "bg-green-100 text-green-700",
+  ignored: "bg-gray-100 text-gray-400",
+  contacted: "bg-muted text-muted-foreground",
 };
 
-const statusBadge: Record<string, string> = {
-  new: "bg-amber/10 text-amber",
-  reviewed: "bg-secondary text-muted-foreground",
-  contacted: "bg-success/10 text-success",
-};
+const statusLabel = (s: string) => STATUS_OPTIONS.find(o => o.key === s)?.label || s;
 
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-};
+type SortKey = "newest" | "oldest" | "alpha";
 
 const Leads = () => {
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<typeof tabs[number]>("Signup Requests");
+  const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortKey>("newest");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   const fetchLeads = useCallback(async () => {
-    const { data, error, count } = await supabase
+    const { data, error } = await supabase
       .from("leads")
-      .select("*", { count: "exact" })
+      .select("*")
       .order("created_at", { ascending: false });
-    console.log("Leads query result:", { data, error, count });
     if (error) {
-      console.error("Failed to fetch leads:", error.message);
-      toast.error("Failed to load leads: " + error.message);
+      toast.error("Failed to load leads");
+      console.error(error);
     }
     setLeads((data as Lead[]) || []);
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchLeads();
-  }, [fetchLeads]);
+  useEffect(() => { fetchLeads(); }, [fetchLeads]);
 
-  const type = tabTypeMap[activeTab];
+  // Filtering
   const filtered = leads
-    .filter(l => l.type === type)
+    .filter(l => activeTab === "all" || l.status === activeTab)
     .filter(l => {
+      if (!search) return true;
       const s = search.toLowerCase();
-      return (l.name || "").toLowerCase().includes(s) || l.email.toLowerCase().includes(s) || (l.business_name || "").toLowerCase().includes(s);
+      return (
+        (l.name || "").toLowerCase().includes(s) ||
+        l.email.toLowerCase().includes(s) ||
+        (l.phone || "").toLowerCase().includes(s) ||
+        (l.business_name || "").toLowerCase().includes(s) ||
+        (l.notes || "").toLowerCase().includes(s)
+      );
+    })
+    .sort((a, b) => {
+      if (sort === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      if (sort === "alpha") return (a.name || a.email).localeCompare(b.name || b.email);
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
-  const totalCount = leads.length;
-  const newCount = leads.filter(l => l.status === "new").length;
+  const tabCounts = STATUS_TABS.reduce((acc, t) => {
+    acc[t.key] = t.key === "all" ? leads.length : leads.filter(l => l.status === t.key).length;
+    return acc;
+  }, {} as Record<string, number>);
 
-  const toggleExpand = async (id: string) => {
-    if (expandedId === id) {
-      setExpandedId(null);
-      return;
+  // Selection
+  const allVisibleSelected = filtered.length > 0 && filtered.every(l => selected.has(l.id));
+  const toggleSelectAll = () => {
+    if (allVisibleSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map(l => l.id)));
     }
-    const lead = leads.find(l => l.id === id);
-    if (lead && lead.status === "new") {
-      setLeads(prev => prev.map(l => l.id === id ? { ...l, status: "reviewed" as const } : l));
-      await supabase.from("leads").update({ status: "reviewed" }).eq("id", id);
-    }
-    setExpandedId(id);
+  };
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
   };
 
-  const updateStatus = async (id: string, status: Lead["status"]) => {
+  // Actions
+  const updateStatus = async (id: string, status: string) => {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
-    const { error } = await supabase.from("leads").update({ status }).eq("id", id);
-    if (error) toast.error("Failed to update status");
-    else toast.success("Status updated");
+    const { error } = await supabase.from("leads").update({ status } as any).eq("id", id);
+    if (error) toast.error("Failed to update"); else toast.success("Status updated");
+  };
+
+  const bulkUpdateStatus = async (status: string) => {
+    const ids = Array.from(selected);
+    setLeads(prev => prev.map(l => ids.includes(l.id) ? { ...l, status } : l));
+    setSelected(new Set());
+    for (const id of ids) {
+      await supabase.from("leads").update({ status } as any).eq("id", id);
+    }
+    toast.success(`${ids.length} leads moved to ${statusLabel(status)}`);
   };
 
   const updateNotes = async (id: string, notes: string) => {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, notes } : l));
-    await supabase.from("leads").update({ notes }).eq("id", id);
+    await supabase.from("leads").update({ notes } as any).eq("id", id);
   };
 
   const deleteLead = async (id: string) => {
     setLeads(prev => prev.filter(l => l.id !== id));
     setExpandedId(null);
-    const { error } = await supabase.from("leads").delete().eq("id", id);
-    if (error) toast.error("Failed to delete lead");
-    else toast.success("Lead deleted");
+    setSelected(prev => { const n = new Set(prev); n.delete(id); return n; });
+    await supabase.from("leads").delete().eq("id", id);
+    toast.success("Lead deleted");
+  };
+
+  const bulkDelete = async () => {
+    const ids = Array.from(selected);
+    setLeads(prev => prev.filter(l => !ids.includes(l.id)));
+    setSelected(new Set());
+    setExpandedId(null);
+    for (const id of ids) {
+      await supabase.from("leads").delete().eq("id", id);
+    }
+    toast.success(`${ids.length} leads deleted`);
+  };
+
+  const exportCSV = () => {
+    if (leads.length === 0) { toast.info("No leads to export"); return; }
+    const headers = ["Name", "Email", "Phone", "Business", "Type", "Status", "Date", "Notes"];
+    const rows = leads.map(l => [
+      l.name || "", l.email, l.phone || "", l.business_name || "",
+      l.type, l.status, l.created_at, l.notes || "",
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "leads-export.csv"; a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported!");
+  };
+
+  const toggleExpand = async (id: string) => {
+    if (expandedId === id) { setExpandedId(null); return; }
+    const lead = leads.find(l => l.id === id);
+    if (lead && lead.status === "new") {
+      setLeads(prev => prev.map(l => l.id === id ? { ...l, status: "reviewed" } : l));
+      await supabase.from("leads").update({ status: "reviewed" } as any).eq("id", id);
+    }
+    setExpandedId(id);
   };
 
   if (loading) {
     return (
-      <DashboardLayout title="Leads & Enquiries" subtitle="All marketing website submissions">
+      <DashboardLayout title="Leads & Enquiries" subtitle="Manage all incoming leads">
         <div className="flex items-center justify-center py-24">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -130,127 +213,221 @@ const Leads = () => {
   return (
     <DashboardLayout
       title="Leads & Enquiries"
-      subtitle="All marketing website submissions"
+      subtitle="Manage all incoming leads"
       actions={
-        <div className="flex items-center gap-3">
-          <span className="text-[13px] text-muted-foreground">{totalCount} total · {newCount} new</span>
-          <Button variant="outline" size="sm" onClick={() => toast("Export coming soon")}>Export CSV</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={exportCSV}>
+            <Download className="h-4 w-4 mr-1.5" />Export CSV
+          </Button>
         </div>
       }
     >
-      {/* Tabs */}
-      <div className="flex gap-1 mb-5 border-b border-border">
-        {tabs.map(tab => {
-          const tabType = tabTypeMap[tab];
-          const tabCount = leads.filter(l => l.type === tabType).length;
-          const tabNewCount = leads.filter(l => l.type === tabType && l.status === "new").length;
-          return (
-            <button
-              key={tab}
-              onClick={() => { setActiveTab(tab); setExpandedId(null); }}
-              className={`px-4 py-2.5 text-[14px] font-medium transition-colors cursor-pointer border-b-2 flex items-center gap-2 ${
-                activeTab === tab ? "text-foreground border-foreground" : "text-muted-foreground border-transparent hover:text-foreground"
-              }`}
-            >
-              {tab}
-              <span className="text-[12px] text-muted-foreground">({tabCount})</span>
-              {tabNewCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-amber text-white text-[11px] font-medium flex items-center justify-center">{tabNewCount}</span>
-              )}
-            </button>
-          );
-        })}
+      {/* Status tabs */}
+      <div className="flex gap-1 mb-5 border-b border-border overflow-x-auto">
+        {STATUS_TABS.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => { setActiveTab(tab.key); setExpandedId(null); setSelected(new Set()); }}
+            className={`px-3 py-2.5 text-[13px] font-medium transition-colors cursor-pointer border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === tab.key ? "text-foreground border-foreground" : "text-muted-foreground border-transparent hover:text-foreground"
+            }`}
+          >
+            {tab.label}
+            {tabCounts[tab.key] > 0 && (
+              <span className={`text-[11px] rounded-full px-1.5 py-0.5 font-medium ${
+                tab.key === "new" && tabCounts[tab.key] > 0 ? "bg-blue-100 text-blue-700" : "bg-muted text-muted-foreground"
+              }`}>
+                {tabCounts[tab.key]}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Search */}
-      <div className="mb-5 relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search by name, email, or business..."
-          className="w-full h-10 pl-9 pr-3 rounded-lg border border-border bg-white text-[14px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
-        />
+      {/* Search + Sort */}
+      <div className="flex items-center gap-3 mb-5">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name, email, phone, or notes..."
+            className="w-full h-10 pl-9 pr-3 rounded-lg border border-input bg-popover text-[14px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary"
+          />
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <ArrowUpDown className="h-4 w-4 mr-1.5" />Sort
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setSort("newest")}>Newest first {sort === "newest" && "✓"}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSort("oldest")}>Oldest first {sort === "oldest" && "✓"}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSort("alpha")}>Alphabetical {sort === "alpha" && "✓"}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-muted border border-border">
+          <span className="text-[13px] font-medium text-foreground">{selected.size} selected</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">Move to →</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {STATUS_OPTIONS.map(s => (
+                <DropdownMenuItem key={s.key} onClick={() => bulkUpdateStatus(s.key)}>{s.label}</DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="destructive" size="sm" onClick={() => setBulkDeleteConfirm(true)}>
+            <Trash2 className="h-4 w-4 mr-1" />Delete Selected
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>Clear</Button>
+        </div>
+      )}
+
+      {/* Lead list */}
       <Card className="border-0 shadow-card">
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <div className="text-center py-16">
               <UserPlus size={48} className="text-muted-foreground mx-auto mb-4" />
-              <p className="text-[16px] font-medium text-muted-foreground mb-2">No {activeTab.toLowerCase()} yet</p>
-              <p className="text-[14px] text-muted-foreground">Leads from your marketing site will appear here</p>
+              <p className="text-[16px] font-medium text-muted-foreground mb-2">No leads found</p>
+              <p className="text-[14px] text-muted-foreground">
+                {search ? "Try a different search term" : "Leads from your marketing site will appear here"}
+              </p>
             </div>
           ) : (
             <div>
-              {/* Table header */}
-              <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-border text-caption font-medium text-muted-foreground uppercase tracking-[0.05em]">
-                <div className="col-span-3">{type === "newsletter" ? "Email" : "Name"}</div>
+              {/* Header */}
+              <div className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-border text-[11px] font-medium text-muted-foreground uppercase tracking-wider items-center">
+                <div className="col-span-1 flex items-center">
+                  <Checkbox
+                    checked={allVisibleSelected}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </div>
+                <div className="col-span-3">Name / Business</div>
                 <div className="col-span-3">Email</div>
-                {type !== "newsletter" && <div className="col-span-2">Business</div>}
-                <div className={type === "newsletter" ? "col-span-3" : "col-span-2"}>Date</div>
-                <div className="col-span-1">Status</div>
+                <div className="col-span-2">Date</div>
+                <div className="col-span-2">Status</div>
                 <div className="col-span-1"></div>
               </div>
 
               {filtered.map(lead => (
                 <div key={lead.id}>
-                  <button
-                    onClick={() => toggleExpand(lead.id)}
-                    className="w-full grid grid-cols-12 gap-4 px-5 py-4 border-b border-border hover:bg-background/60 transition-colors cursor-pointer text-left items-center"
+                  <div
+                    className="grid grid-cols-12 gap-3 px-5 py-3.5 border-b border-border/50 hover:bg-muted/50 transition-colors items-center"
                   >
-                    <div className="col-span-3 text-[14px] font-medium text-foreground truncate">{lead.name || lead.email}</div>
-                    <div className="col-span-3 text-[13px] text-muted-foreground truncate">{lead.email}</div>
-                    {type !== "newsletter" && <div className="col-span-2 text-[13px] text-muted-foreground truncate">{lead.business_name || "—"}</div>}
-                    <div className={`${type === "newsletter" ? "col-span-3" : "col-span-2"} text-[13px] text-muted-foreground`}>{formatDate(lead.created_at)}</div>
-                    <div className="col-span-1">
-                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium capitalize ${statusBadge[lead.status]}`}>
-                        {lead.status}
-                      </span>
+                    <div className="col-span-1 flex items-center" onClick={e => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selected.has(lead.id)}
+                        onCheckedChange={() => toggleSelect(lead.id)}
+                      />
                     </div>
-                    <div className="col-span-1 flex justify-end">
-                      {expandedId === lead.id ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
+                    <div
+                      className="col-span-3 cursor-pointer"
+                      onClick={() => toggleExpand(lead.id)}
+                    >
+                      <p className="text-[14px] font-medium text-foreground truncate">
+                        {lead.business_name || lead.name || lead.email}
+                      </p>
+                      {lead.name && lead.business_name && (
+                        <p className="text-[12px] text-muted-foreground truncate">{lead.name}</p>
+                      )}
+                      {lead.notes && (
+                        <p className="text-[11px] text-muted-foreground truncate mt-0.5 italic">
+                          {lead.notes.substring(0, 60)}{lead.notes.length > 60 ? "…" : ""}
+                        </p>
+                      )}
                     </div>
-                  </button>
+                    <div className="col-span-3 text-[13px] text-muted-foreground truncate cursor-pointer" onClick={() => toggleExpand(lead.id)}>
+                      {lead.email}
+                      {lead.phone && <p className="text-[12px] text-muted-foreground/70">{lead.phone}</p>}
+                    </div>
+                    <div className="col-span-2 text-[12px] text-muted-foreground cursor-pointer" onClick={() => toggleExpand(lead.id)}>
+                      {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}
+                    </div>
+                    <div className="col-span-2" onClick={e => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium cursor-pointer ${statusColors[lead.status] || statusColors.new}`}>
+                            {statusLabel(lead.status)}
+                            <ChevronDown className="h-3 w-3 ml-1" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {STATUS_OPTIONS.map(s => (
+                            <DropdownMenuItem key={s.key} onClick={() => updateStatus(lead.id, s.key)}>{s.label}</DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <div className="col-span-1 flex justify-end" onClick={e => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted cursor-pointer">
+                            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => toggleExpand(lead.id)}>
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate("/admin/meetings", { state: { bookForLead: lead } })}>
+                            <Calendar className="h-4 w-4 mr-2" />Book Meeting
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <a href={`mailto:${lead.email}`}>
+                              <Mail className="h-4 w-4 mr-2" />Send Email
+                            </a>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteConfirm(lead.id)}>
+                            <Trash2 className="h-4 w-4 mr-2" />Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
 
                   {/* Expanded detail */}
                   {expandedId === lead.id && (
-                    <div className="px-5 py-5 border-b border-border bg-secondary/50">
-                      <div className="grid grid-cols-2 gap-4 mb-5">
-                        {lead.name && <div><span className="text-[12px] text-muted-foreground block">Name</span><span className="text-[14px] text-foreground">{lead.name}</span></div>}
-                        <div><span className="text-[12px] text-muted-foreground block">Email</span><span className="text-[14px] text-foreground">{lead.email}</span></div>
-                        {lead.phone && <div><span className="text-[12px] text-muted-foreground block">Phone</span><span className="text-[14px] text-foreground">{lead.phone}</span></div>}
-                        {lead.business_name && <div><span className="text-[12px] text-muted-foreground block">Business</span><span className="text-[14px] text-foreground">{lead.business_name}</span></div>}
-                        {lead.business_type && <div><span className="text-[12px] text-muted-foreground block">Business Type</span><span className="text-[14px] text-foreground">{lead.business_type}</span></div>}
-                        {lead.hear_about && <div><span className="text-[12px] text-muted-foreground block">How they heard</span><span className="text-[14px] text-foreground">{lead.hear_about}</span></div>}
-                        {lead.website && <div><span className="text-[12px] text-muted-foreground block">Website</span><span className="text-[14px] text-foreground">{lead.website}</span></div>}
-                        {lead.customer_count && <div><span className="text-[12px] text-muted-foreground block">Customers</span><span className="text-[14px] text-foreground">{lead.customer_count}</span></div>}
-                        {lead.interested_plan && <div><span className="text-[12px] text-muted-foreground block">Interested Plan</span><span className="text-[14px] text-foreground capitalize">{lead.interested_plan}</span></div>}
-                        {lead.interests && lead.interests.length > 0 && (
-                          <div className="col-span-2"><span className="text-[12px] text-muted-foreground block">Interests</span><span className="text-[14px] text-foreground">{lead.interests.join(", ")}</span></div>
-                        )}
-                        {lead.message && (
-                          <div className="col-span-2"><span className="text-[12px] text-muted-foreground block">Message</span><p className="text-[14px] text-foreground whitespace-pre-wrap">{lead.message}</p></div>
-                        )}
-                        {lead.additional_notes && (
-                          <div className="col-span-2"><span className="text-[12px] text-muted-foreground block">Additional Notes</span><p className="text-[14px] text-foreground">{lead.additional_notes}</p></div>
-                        )}
-                        <div><span className="text-[12px] text-muted-foreground block">Submitted</span><span className="text-[14px] text-foreground">{formatDate(lead.created_at)}</span></div>
+                    <div className="px-5 py-5 border-b border-border bg-muted/30">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
+                        {lead.name && <Field label="Name" value={lead.name} />}
+                        <Field label="Email" value={lead.email} />
+                        {lead.phone && <Field label="Phone" value={lead.phone} />}
+                        {lead.business_name && <Field label="Business" value={lead.business_name} />}
+                        {lead.business_type && <Field label="Business Type" value={lead.business_type} />}
+                        {lead.hear_about && <Field label="How they heard" value={lead.hear_about} />}
+                        {lead.website && <Field label="Website" value={lead.website} />}
+                        {lead.customer_count && <Field label="Customers" value={lead.customer_count} />}
+                        {lead.interested_plan && <Field label="Interested Plan" value={lead.interested_plan} />}
+                        <Field label="Type" value={lead.type} />
+                        <Field label="Submitted" value={new Date(lead.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} />
+                        {lead.last_contacted_at && <Field label="Last Contacted" value={formatDistanceToNow(new Date(lead.last_contacted_at), { addSuffix: true })} />}
                       </div>
-
-                      {/* Status dropdown */}
-                      <div className="mb-4">
-                        <label className="text-[12px] font-medium text-muted-foreground block mb-1">Status</label>
-                        <select
-                          value={lead.status}
-                          onChange={e => updateStatus(lead.id, e.target.value as Lead["status"])}
-                          className="h-9 px-3 rounded-lg border border-border bg-white text-[13px] appearance-none pr-8 focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
-                        >
-                          <option value="new">New</option>
-                          <option value="reviewed">Reviewed</option>
-                          <option value="contacted">Contacted</option>
-                        </select>
-                      </div>
+                      {lead.interests && lead.interests.length > 0 && (
+                        <div className="mb-4">
+                          <span className="text-[12px] text-muted-foreground block mb-1">Interests</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {lead.interests.map((i, idx) => (
+                              <span key={idx} className="text-[12px] px-2 py-0.5 rounded-md bg-muted text-foreground">{i}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {lead.message && (
+                        <div className="mb-4">
+                          <span className="text-[12px] text-muted-foreground block mb-1">Message</span>
+                          <p className="text-[13px] text-foreground whitespace-pre-wrap bg-background rounded-lg p-3 border border-border">{lead.message}</p>
+                        </div>
+                      )}
 
                       {/* Notes */}
                       <div className="mb-4">
@@ -261,24 +438,23 @@ const Leads = () => {
                           onChange={e => setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, notes: e.target.value } : l))}
                           rows={2}
                           placeholder="Add notes about this lead..."
-                          className="w-full px-3 py-2 rounded-lg border border-border bg-white text-[13px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all resize-none"
+                          className="w-full px-3 py-2 rounded-lg border border-input bg-popover text-[13px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary resize-none"
                         />
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-3">
-                        <a
-                          href={`mailto:${lead.email}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-[13px] font-medium text-foreground hover:bg-secondary transition-colors"
-                        >
-                          <Mail size={14} /> Send email
-                        </a>
-                        <button
-                          onClick={() => setDeleteConfirm(lead.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-destructive/80 hover:text-destructive hover:bg-destructive/5 transition-colors cursor-pointer"
-                        >
-                          <Trash2 size={14} /> Delete
-                        </button>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Button variant="outline" size="sm" onClick={() => navigate("/admin/meetings", { state: { bookForLead: lead } })}>
+                          <Calendar className="h-4 w-4 mr-1.5" />Book Meeting
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={`mailto:${lead.email}`}>
+                            <Mail className="h-4 w-4 mr-1.5" />Send Email
+                          </a>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteConfirm(lead.id)}>
+                          <Trash2 className="h-4 w-4 mr-1.5" />Delete
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -298,8 +474,25 @@ const Leads = () => {
         confirmText="Delete"
         destructive
       />
+
+      <ConfirmDialog
+        open={bulkDeleteConfirm}
+        onClose={() => setBulkDeleteConfirm(false)}
+        onConfirm={bulkDelete}
+        title="Delete selected leads"
+        description={`Delete ${selected.size} leads? This cannot be undone.`}
+        confirmText="Delete All"
+        destructive
+      />
     </DashboardLayout>
   );
 };
+
+const Field = ({ label, value }: { label: string; value: string }) => (
+  <div>
+    <span className="text-[12px] text-muted-foreground block">{label}</span>
+    <span className="text-[14px] text-foreground capitalize">{value}</span>
+  </div>
+);
 
 export default Leads;
