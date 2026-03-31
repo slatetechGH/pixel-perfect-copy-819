@@ -40,6 +40,7 @@ import Cookies from "./pages/Cookies";
 import StorefrontWelcome from "./pages/StorefrontWelcome";
 import Onboarding from "./pages/Onboarding";
 import DemoPreview from "./pages/DemoPreview";
+import DemoStorefront from "./pages/DemoStorefront";
 import MyAccount from "./pages/MyAccount";
 import { getAuthRoutingState } from "@/lib/auth-routing";
 
