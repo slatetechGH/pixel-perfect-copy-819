@@ -1,16 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Calendar, Plus, Check, Clock, Loader2, Trash2,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Calendar, Plus, Check, Loader2, Trash2, ExternalLink,
+  Video, Phone, MapPin, MoreHorizontal, Clock, TrendingUp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/contexts/AppContext";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { formatDistanceToNow, format } from "date-fns";
 
 interface Meeting {
   id: string;
@@ -20,40 +29,95 @@ interface Meeting {
   notes: string | null;
   completed: boolean;
   producer_id: string | null;
+  lead_id: string | null;
+  duration_minutes: number | null;
+  meeting_link: string | null;
+  status: string | null;
   created_at: string;
 }
 
-const TYPES = [
-  { value: "demo_call", label: "Demo Call" },
-  { value: "onboarding", label: "Onboarding" },
-  { value: "check_in", label: "Check-in" },
-  { value: "follow_up", label: "Follow-up" },
-  { value: "other", label: "Other" },
+const MEETING_TYPES = [
+  { value: "google_meet", label: "Google Meet", icon: Video },
+  { value: "teams", label: "Microsoft Teams", icon: Video },
+  { value: "phone", label: "Phone Call", icon: Phone },
+  { value: "in_person", label: "In Person", icon: MapPin },
+  { value: "demo_call", label: "Demo Call", icon: Video },
+  { value: "onboarding", label: "Onboarding", icon: Video },
+  { value: "check_in", label: "Check-in", icon: Video },
+  { value: "follow_up", label: "Follow-up", icon: Phone },
+  { value: "other", label: "Other", icon: Calendar },
 ];
 
-const formatDateTime = (iso: string) => {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) +
-      " at " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  } catch { return "—"; }
+const DURATIONS = [15, 30, 45, 60];
+
+const STATUSES = [
+  { value: "scheduled", label: "Scheduled", color: "bg-blue-100 text-blue-700" },
+  { value: "completed", label: "Completed", color: "bg-green-100 text-green-700" },
+  { value: "cancelled", label: "Cancelled", color: "bg-muted text-muted-foreground" },
+  { value: "no_show", label: "No Show", color: "bg-red-100 text-red-700" },
+];
+
+const generateCalendarLink = (
+  type: string,
+  title: string,
+  startDate: Date,
+  duration: number,
+  email: string,
+  notes: string
+) => {
+  const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
+  const fmtGoogle = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+
+  if (type === "google_meet") {
+    const params = new URLSearchParams({
+      action: "TEMPLATE",
+      text: title,
+      dates: `${fmtGoogle(startDate)}/${fmtGoogle(endDate)}`,
+      details: notes || `Meeting with ${email}`,
+      add: email,
+    });
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  }
+
+  if (type === "teams") {
+    const params = new URLSearchParams({
+      subject: title,
+      startdt: startDate.toISOString(),
+      enddt: endDate.toISOString(),
+      to: email,
+      body: notes || `Meeting with ${email}`,
+    });
+    return `https://outlook.office.com/calendar/0/deeplink/compose?${params.toString()}`;
+  }
+
+  return null;
 };
+
+const typeInfo = (val: string) => MEETING_TYPES.find(t => t.value === val) || MEETING_TYPES[MEETING_TYPES.length - 1];
+const statusInfo = (val: string) => STATUSES.find(s => s.value === val) || STATUSES[0];
 
 const AdminMeetings = () => {
   const { session } = useApp();
+  const location = useLocation();
+  const bookForLead = (location.state as any)?.bookForLead || null;
+
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<"upcoming" | "completed">("upcoming");
+  const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showBooking, setShowBooking] = useState(!!bookForLead);
 
-  // Form state
-  const [title, setTitle] = useState("");
-  const [meetingType, setMeetingType] = useState("demo_call");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("10:00");
-  const [notes, setNotes] = useState("");
+  // Form
+  const [formName, setFormName] = useState(bookForLead?.name || bookForLead?.business_name || "");
+  const [formEmail, setFormEmail] = useState(bookForLead?.email || "");
+  const [formLeadId, setFormLeadId] = useState(bookForLead?.id || "");
+  const [formDate, setFormDate] = useState("");
+  const [formTime, setFormTime] = useState("10:00");
+  const [formDuration, setFormDuration] = useState(30);
+  const [formType, setFormType] = useState("google_meet");
+  const [formNotes, setFormNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [calendarLink, setCalendarLink] = useState<string | null>(null);
 
   const fetchMeetings = useCallback(async () => {
     const { data } = await supabase
@@ -67,32 +131,78 @@ const AdminMeetings = () => {
   useEffect(() => { fetchMeetings(); }, [fetchMeetings]);
 
   const now = new Date();
-  const upcoming = meetings.filter(m => !m.completed && new Date(m.date) >= now);
-  const overdue = meetings.filter(m => !m.completed && new Date(m.date) < now);
-  const completed = meetings.filter(m => m.completed);
+  const upcoming = meetings.filter(m => {
+    const s = m.status || (m.completed ? "completed" : "scheduled");
+    return s === "scheduled" && new Date(m.date) >= now;
+  });
+  const overdue = meetings.filter(m => {
+    const s = m.status || (m.completed ? "completed" : "scheduled");
+    return s === "scheduled" && new Date(m.date) < now;
+  });
+  const past = meetings.filter(m => {
+    const s = m.status || (m.completed ? "completed" : "scheduled");
+    return s !== "scheduled";
+  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const handleCreate = async () => {
-    if (!title.trim() || !date) { toast.error("Title and date required"); return; }
+  // Stats
+  const thisMonth = meetings.filter(m => {
+    const d = new Date(m.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const thisWeek = meetings.filter(m => {
+    const d = new Date(m.date);
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return d >= weekAgo && d <= now;
+  });
+
+  const resetForm = () => {
+    setFormName(""); setFormEmail(""); setFormLeadId(""); setFormDate("");
+    setFormTime("10:00"); setFormDuration(30); setFormType("google_meet");
+    setFormNotes(""); setCalendarLink(null);
+  };
+
+  const handleBookMeeting = async () => {
+    if (!formName.trim() || !formDate) { toast.error("Name and date are required"); return; }
     setSaving(true);
-    const dateTime = new Date(`${date}T${time}`).toISOString();
-    const { error } = await supabase.from("admin_meetings").insert({
+
+    const dateTime = new Date(`${formDate}T${formTime}`);
+    const title = `Slate Demo – ${formName.trim()}`;
+    const link = generateCalendarLink(formType, title, dateTime, formDuration, formEmail, formNotes);
+
+    const insertData: any = {
       admin_id: session.supabaseUser!.id,
-      title: title.trim(),
-      meeting_type: meetingType,
-      date: dateTime,
-      notes: notes.trim() || null,
-    } as any);
+      title,
+      meeting_type: formType,
+      date: dateTime.toISOString(),
+      notes: formNotes.trim() || null,
+      duration_minutes: formDuration,
+      meeting_link: link,
+      status: "scheduled",
+    };
+    if (formLeadId) insertData.lead_id = formLeadId;
+
+    const { error } = await supabase.from("admin_meetings").insert(insertData);
     if (error) { toast.error("Failed to create meeting"); setSaving(false); return; }
-    toast.success("Meeting created");
-    setTitle(""); setDate(""); setTime("10:00"); setNotes(""); setShowForm(false);
+
+    // Update lead status if linked
+    if (formLeadId) {
+      await supabase.from("leads").update({
+        status: "meeting_booked",
+        last_contacted_at: new Date().toISOString(),
+      } as any).eq("id", formLeadId);
+    }
+
+    toast.success(`Meeting booked with ${formName}`);
+    setCalendarLink(link);
     setSaving(false);
     fetchMeetings();
   };
 
-  const toggleComplete = async (id: string, completed: boolean) => {
-    setMeetings(prev => prev.map(m => m.id === id ? { ...m, completed } : m));
-    await supabase.from("admin_meetings").update({ completed } as any).eq("id", id);
-    toast.success(completed ? "Marked complete" : "Marked incomplete");
+  const updateMeetingStatus = async (id: string, status: string) => {
+    const completed = status === "completed";
+    setMeetings(prev => prev.map(m => m.id === id ? { ...m, status, completed } : m));
+    await supabase.from("admin_meetings").update({ status, completed } as any).eq("id", id);
+    toast.success(`Meeting marked as ${statusInfo(status).label}`);
   };
 
   const deleteMeeting = async (id: string) => {
@@ -101,42 +211,10 @@ const AdminMeetings = () => {
     toast.success("Meeting deleted");
   };
 
-  const typeLabel = (val: string) => TYPES.find(t => t.value === val)?.label || val;
-
-  const MeetingRow = ({ m, showOverdue }: { m: Meeting; showOverdue?: boolean }) => (
-    <div className={`flex items-start justify-between py-4 border-b border-border/50 last:border-0 ${showOverdue ? "bg-amber/5 -mx-5 px-5 rounded-lg" : ""}`}>
-      <div className="flex items-start gap-3 min-w-0">
-        <button
-          onClick={() => toggleComplete(m.id, !m.completed)}
-          className={`mt-0.5 h-5 w-5 rounded border flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
-            m.completed ? "bg-success border-success text-white" : "border-border hover:border-foreground"
-          }`}
-        >
-          {m.completed && <Check className="h-3 w-3" />}
-        </button>
-        <div className="min-w-0">
-          <p className={`text-[14px] font-medium ${m.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>{m.title}</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className={`text-[12px] ${showOverdue ? "text-amber font-medium" : "text-muted-foreground"}`}>
-              {formatDateTime(m.date)}
-            </span>
-            <span className="text-[11px] rounded-md px-1.5 py-0.5 bg-secondary text-muted-foreground">{typeLabel(m.meeting_type)}</span>
-          </div>
-          {m.notes && <p className="text-[13px] text-muted-foreground mt-1">{m.notes}</p>}
-        </div>
-      </div>
-      <button onClick={() => setDeleteId(m.id)} className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer shrink-0 ml-2 mt-0.5">
-        <Trash2 className="h-4 w-4" />
-      </button>
-    </div>
-  );
-
   if (loading) {
     return (
-      <DashboardLayout title="Meetings & Follow-ups" subtitle="Track your meetings and tasks">
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+      <DashboardLayout title="Meetings & Follow-ups" subtitle="Track your meetings">
+        <div className="flex items-center justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       </DashboardLayout>
     );
   }
@@ -146,60 +224,30 @@ const AdminMeetings = () => {
       title="Meetings & Follow-ups"
       subtitle="Track your meetings and tasks"
       actions={
-        <Button size="sm" onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4 mr-1.5" />{showForm ? "Cancel" : "New Meeting"}
+        <Button size="sm" onClick={() => { resetForm(); setShowBooking(true); }}>
+          <Plus className="h-4 w-4 mr-1.5" />Book Meeting
         </Button>
       }
     >
-      {/* Create form */}
-      {showForm && (
-        <Card className="border-0 shadow-card mb-6">
-          <CardContent className="p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              <div>
-                <Label className="text-[12px]">Title *</Label>
-                <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Demo call with Riverside Farm" />
-              </div>
-              <div>
-                <Label className="text-[12px]">Type</Label>
-                <select
-                  value={meetingType}
-                  onChange={e => setMeetingType(e.target.value)}
-                  className="w-full h-10 px-3 rounded-lg border border-border bg-white text-[14px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10"
-                >
-                  {TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-              </div>
-              <div>
-                <Label className="text-[12px]">Date *</Label>
-                <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
-              </div>
-              <div>
-                <Label className="text-[12px]">Time</Label>
-                <Input type="time" value={time} onChange={e => setTime(e.target.value)} />
-              </div>
-            </div>
-            <div className="mb-4">
-              <Label className="text-[12px]">Notes</Label>
-              <textarea
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
-                rows={2}
-                placeholder="Any notes for this meeting..."
-                className="w-full px-3 py-2 rounded-lg border border-border bg-white text-[13px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 resize-none"
-              />
-            </div>
-            <Button onClick={handleCreate} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Plus className="h-4 w-4 mr-1.5" />}
-              Create Meeting
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+        <div className="rounded-xl border border-border p-4 bg-blue-50">
+          <p className="text-[12px] text-muted-foreground font-medium">This Month</p>
+          <p className="text-[22px] font-semibold text-foreground">{thisMonth.length}</p>
+        </div>
+        <div className="rounded-xl border border-border p-4 bg-emerald-50">
+          <p className="text-[12px] text-muted-foreground font-medium">This Week</p>
+          <p className="text-[22px] font-semibold text-foreground">{thisWeek.length}</p>
+        </div>
+        <div className="rounded-xl border border-border p-4 bg-amber-50">
+          <p className="text-[12px] text-muted-foreground font-medium flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" />Upcoming</p>
+          <p className="text-[22px] font-semibold text-foreground">{upcoming.length}</p>
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-1 mb-5 border-b border-border">
-        {(["upcoming", "completed"] as const).map(tab => (
+        {(["upcoming", "past"] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -207,51 +255,151 @@ const AdminMeetings = () => {
               activeTab === tab ? "text-foreground border-foreground" : "text-muted-foreground border-transparent hover:text-foreground"
             }`}
           >
-            {tab} ({tab === "upcoming" ? upcoming.length + overdue.length : completed.length})
+            {tab === "upcoming" ? `Upcoming (${upcoming.length + overdue.length})` : `Past (${past.length})`}
           </button>
         ))}
       </div>
 
       {activeTab === "upcoming" ? (
-        <Card className="border-0 shadow-card">
-          <CardContent className="px-5 pb-5 pt-2">
-            {overdue.length === 0 && upcoming.length === 0 ? (
-              <div className="text-center py-12">
+        <div className="space-y-3">
+          {overdue.length > 0 && (
+            <>
+              <p className="text-[12px] font-semibold text-amber-600 uppercase tracking-wider">Overdue</p>
+              {overdue.map(m => <MeetingCard key={m.id} m={m} onStatusChange={updateMeetingStatus} onDelete={id => setDeleteId(id)} overdue />)}
+            </>
+          )}
+          {upcoming.length > 0 && (
+            <>
+              {overdue.length > 0 && <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider mt-4">Upcoming</p>}
+              {upcoming.map(m => <MeetingCard key={m.id} m={m} onStatusChange={updateMeetingStatus} onDelete={id => setDeleteId(id)} />)}
+            </>
+          )}
+          {overdue.length === 0 && upcoming.length === 0 && (
+            <Card className="border-0 shadow-card">
+              <CardContent className="py-12 text-center">
                 <Calendar className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
                 <p className="text-[14px] text-muted-foreground">No upcoming meetings</p>
-              </div>
-            ) : (
-              <>
-                {overdue.length > 0 && (
-                  <div className="mb-2">
-                    <p className="text-[12px] font-semibold text-amber uppercase tracking-wider mb-1 mt-3">Overdue</p>
-                    {overdue.map(m => <MeetingRow key={m.id} m={m} showOverdue />)}
-                  </div>
-                )}
-                {upcoming.length > 0 && (
-                  <div>
-                    {overdue.length > 0 && <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 mt-4">Upcoming</p>}
-                    {upcoming.map(m => <MeetingRow key={m.id} m={m} />)}
-                  </div>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       ) : (
-        <Card className="border-0 shadow-card">
-          <CardContent className="px-5 pb-5 pt-2">
-            {completed.length === 0 ? (
-              <div className="text-center py-12">
+        <div className="space-y-3">
+          {past.length === 0 ? (
+            <Card className="border-0 shadow-card">
+              <CardContent className="py-12 text-center">
                 <Check className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <p className="text-[14px] text-muted-foreground">No completed meetings yet</p>
-              </div>
-            ) : (
-              completed.map(m => <MeetingRow key={m.id} m={m} />)
-            )}
-          </CardContent>
-        </Card>
+                <p className="text-[14px] text-muted-foreground">No past meetings yet</p>
+              </CardContent>
+            </Card>
+          ) : (
+            past.map(m => <MeetingCard key={m.id} m={m} onStatusChange={updateMeetingStatus} onDelete={id => setDeleteId(id)} />)
+          )}
+        </div>
       )}
+
+      {/* Book Meeting Dialog */}
+      <Dialog open={showBooking} onOpenChange={open => { if (!open) { setShowBooking(false); resetForm(); } }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Book a Meeting</DialogTitle>
+          </DialogHeader>
+          {calendarLink ? (
+            <div className="text-center py-6">
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                <Check className="h-6 w-6 text-green-600" />
+              </div>
+              <p className="text-[16px] font-medium text-foreground mb-1">Meeting booked!</p>
+              <p className="text-[14px] text-muted-foreground mb-4">Meeting with {formName} has been created.</p>
+              <Button onClick={() => window.open(calendarLink, "_blank")}>
+                <ExternalLink className="h-4 w-4 mr-1.5" />
+                {formType === "google_meet" ? "Open in Google Calendar" : formType === "teams" ? "Open in Outlook" : "View"}
+              </Button>
+              <div className="mt-3">
+                <Button variant="ghost" size="sm" onClick={() => { setShowBooking(false); resetForm(); }}>Close</Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-[12px]">Lead Name *</Label>
+                  <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="e.g. John Smith" />
+                </div>
+                <div>
+                  <Label className="text-[12px]">Lead Email</Label>
+                  <Input value={formEmail} onChange={e => setFormEmail(e.target.value)} placeholder="john@example.com" type="email" />
+                </div>
+                <div>
+                  <Label className="text-[12px]">Date *</Label>
+                  <Input type="date" value={formDate} onChange={e => setFormDate(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-[12px]">Time</Label>
+                  <select
+                    value={formTime}
+                    onChange={e => setFormTime(e.target.value)}
+                    className="w-full h-10 px-3 rounded-lg border border-input bg-popover text-[14px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary"
+                  >
+                    {Array.from({ length: 4 * 24 }, (_, i) => {
+                      const h = Math.floor(i / 4);
+                      const m = (i % 4) * 15;
+                      const val = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+                      return <option key={val} value={val}>{val}</option>;
+                    })}
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-[12px]">Duration</Label>
+                  <select
+                    value={formDuration}
+                    onChange={e => setFormDuration(Number(e.target.value))}
+                    className="w-full h-10 px-3 rounded-lg border border-input bg-popover text-[14px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary"
+                  >
+                    {DURATIONS.map(d => <option key={d} value={d}>{d} min</option>)}
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-[12px]">Meeting Type</Label>
+                  <select
+                    value={formType}
+                    onChange={e => setFormType(e.target.value)}
+                    className="w-full h-10 px-3 rounded-lg border border-input bg-popover text-[14px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary"
+                  >
+                    <option value="google_meet">Google Meet</option>
+                    <option value="teams">Microsoft Teams</option>
+                    <option value="phone">Phone Call</option>
+                    <option value="in_person">In Person</option>
+                  </select>
+                </div>
+              </div>
+              {(formType === "phone") && (
+                <p className="text-[13px] text-muted-foreground mt-2">📞 Phone call — no meeting link generated.</p>
+              )}
+              {(formType === "in_person") && (
+                <p className="text-[13px] text-muted-foreground mt-2">📍 In person meeting — no meeting link generated.</p>
+              )}
+              <div className="mt-2">
+                <Label className="text-[12px]">Notes</Label>
+                <textarea
+                  value={formNotes}
+                  onChange={e => setFormNotes(e.target.value)}
+                  rows={2}
+                  placeholder="Any notes..."
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-popover text-[13px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary resize-none"
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => { setShowBooking(false); resetForm(); }}>Cancel</Button>
+                <Button onClick={handleBookMeeting} disabled={saving}>
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Calendar className="h-4 w-4 mr-1.5" />}
+                  Create Meeting
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={!!deleteId}
@@ -263,6 +411,77 @@ const AdminMeetings = () => {
         destructive
       />
     </DashboardLayout>
+  );
+};
+
+const MeetingCard = ({
+  m, onStatusChange, onDelete, overdue,
+}: {
+  m: Meeting;
+  onStatusChange: (id: string, status: string) => void;
+  onDelete: (id: string) => void;
+  overdue?: boolean;
+}) => {
+  const info = typeInfo(m.meeting_type);
+  const Icon = info.icon;
+  const status = m.status || (m.completed ? "completed" : "scheduled");
+  const si = statusInfo(status);
+
+  return (
+    <Card className={`border shadow-sm ${overdue ? "border-amber-300 bg-amber-50/50" : "border-border"}`}>
+      <CardContent className="p-4 flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${overdue ? "bg-amber-100" : "bg-muted"}`}>
+            <Icon className={`h-4 w-4 ${overdue ? "text-amber-600" : "text-muted-foreground"}`} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[14px] font-medium text-foreground">{m.title}</p>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <span className={`text-[12px] ${overdue ? "text-amber-600 font-medium" : "text-muted-foreground"}`}>
+                {format(new Date(m.date), "d MMM yyyy 'at' HH:mm")}
+              </span>
+              {m.duration_minutes && (
+                <span className="text-[11px] text-muted-foreground flex items-center gap-0.5">
+                  <Clock className="h-3 w-3" />{m.duration_minutes}min
+                </span>
+              )}
+              <span className="text-[11px] rounded-md px-1.5 py-0.5 bg-muted text-muted-foreground">{info.label}</span>
+              <span className={`text-[11px] rounded-md px-1.5 py-0.5 font-medium ${si.color}`}>{si.label}</span>
+            </div>
+            {m.notes && <p className="text-[13px] text-muted-foreground mt-1 truncate">{m.notes}</p>}
+            {m.meeting_link && status === "scheduled" && (
+              <Button variant="link" size="sm" className="px-0 h-auto mt-1 text-[13px]" onClick={() => window.open(m.meeting_link!, "_blank")}>
+                <ExternalLink className="h-3.5 w-3.5 mr-1" />Open Calendar Link
+              </Button>
+            )}
+          </div>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted cursor-pointer shrink-0">
+              <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {status === "scheduled" && (
+              <>
+                <DropdownMenuItem onClick={() => onStatusChange(m.id, "completed")}>
+                  <Check className="h-4 w-4 mr-2" />Mark Completed
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onStatusChange(m.id, "no_show")}>Mark No Show</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onStatusChange(m.id, "cancelled")}>Cancel Meeting</DropdownMenuItem>
+              </>
+            )}
+            {status !== "scheduled" && (
+              <DropdownMenuItem onClick={() => onStatusChange(m.id, "scheduled")}>Re-open</DropdownMenuItem>
+            )}
+            <DropdownMenuItem className="text-destructive" onClick={() => onDelete(m.id)}>
+              <Trash2 className="h-4 w-4 mr-2" />Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </CardContent>
+    </Card>
   );
 };
 

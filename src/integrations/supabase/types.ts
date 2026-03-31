@@ -20,10 +20,14 @@ export type Database = {
           completed: boolean
           created_at: string
           date: string
+          duration_minutes: number | null
           id: string
+          lead_id: string | null
+          meeting_link: string | null
           meeting_type: string
           notes: string | null
           producer_id: string | null
+          status: string | null
           title: string
         }
         Insert: {
@@ -31,10 +35,14 @@ export type Database = {
           completed?: boolean
           created_at?: string
           date: string
+          duration_minutes?: number | null
           id?: string
+          lead_id?: string | null
+          meeting_link?: string | null
           meeting_type?: string
           notes?: string | null
           producer_id?: string | null
+          status?: string | null
           title: string
         }
         Update: {
@@ -42,10 +50,14 @@ export type Database = {
           completed?: boolean
           created_at?: string
           date?: string
+          duration_minutes?: number | null
           id?: string
+          lead_id?: string | null
+          meeting_link?: string | null
           meeting_type?: string
           notes?: string | null
           producer_id?: string | null
+          status?: string | null
           title?: string
         }
         Relationships: [
@@ -632,6 +644,7 @@ export type Database = {
           id: string
           interested_plan: string | null
           interests: string[] | null
+          last_contacted_at: string | null
           message: string | null
           name: string | null
           newsletter: boolean | null
@@ -653,6 +666,7 @@ export type Database = {
           id?: string
           interested_plan?: string | null
           interests?: string[] | null
+          last_contacted_at?: string | null
           message?: string | null
           name?: string | null
           newsletter?: boolean | null
@@ -674,6 +688,7 @@ export type Database = {
           id?: string
           interested_plan?: string | null
           interests?: string[] | null
+          last_contacted_at?: string | null
           message?: string | null
           name?: string | null
           newsletter?: boolean | null
