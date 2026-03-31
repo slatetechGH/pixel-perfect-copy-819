@@ -107,7 +107,11 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
                 {storefrontSlug && (
                   <>
                     <button
-                      onClick={() => window.open(`/store/${storefrontSlug}`, "_blank")}
+                      onClick={() => {
+                        const raw = localStorage.getItem("slate_demo_preview");
+                        if (raw) localStorage.setItem("slate_demo_storefront", raw);
+                        window.open(`/demo-storefront/${storefrontSlug}`, "_blank");
+                      }}
                       className="hover:text-foreground transition-colors cursor-pointer px-1.5 py-0.5"
                     >
                       Preview Storefront
