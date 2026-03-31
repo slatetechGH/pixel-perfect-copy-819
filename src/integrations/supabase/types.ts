@@ -1136,48 +1136,36 @@ export type Database = {
       public_profiles: {
         Row: {
           accent_color: string | null
+          address: string | null
           business_name: string | null
-          cover_url: string | null
-          description: string | null
-          facebook: string | null
+          business_type: string | null
+          display_name: string | null
           id: string | null
-          instagram: string | null
           logo_url: string | null
-          public_visible: boolean | null
           tagline: string | null
-          twitter: string | null
           url_slug: string | null
-          website: string | null
         }
         Insert: {
           accent_color?: string | null
+          address?: string | null
           business_name?: string | null
-          cover_url?: string | null
-          description?: string | null
-          facebook?: string | null
+          business_type?: string | null
+          display_name?: string | null
           id?: string | null
-          instagram?: string | null
           logo_url?: string | null
-          public_visible?: boolean | null
           tagline?: string | null
-          twitter?: string | null
           url_slug?: string | null
-          website?: string | null
         }
         Update: {
           accent_color?: string | null
+          address?: string | null
           business_name?: string | null
-          cover_url?: string | null
-          description?: string | null
-          facebook?: string | null
+          business_type?: string | null
+          display_name?: string | null
           id?: string | null
-          instagram?: string | null
           logo_url?: string | null
-          public_visible?: boolean | null
           tagline?: string | null
-          twitter?: string | null
           url_slug?: string | null
-          website?: string | null
         }
         Relationships: []
       }
