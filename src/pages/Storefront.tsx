@@ -91,8 +91,14 @@ const Storefront = () => {
           .from("public_profiles")
           .select("*")
           .eq("url_slug", businessSlug)
-          .eq("public_visible", true)
-          .single();
+          .single() as { data: any; error: any };
+
+        // Filter by public_visible (column now in view)
+        if (pubProfile && pubProfile.public_visible === false) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
 
         if (profileErr || !pubProfile?.id) {
           setNotFound(true);
