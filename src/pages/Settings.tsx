@@ -204,8 +204,10 @@ const Settings = () => {
                 <div>
                   <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Admin Display Name</label>
                   <input
-                    value={settings.displayName || session.profile?.display_name || "Noah"}
-                    onChange={e => updateField("displayName", e.target.value)}
+                    value={session.profile?.display_name || "Noah"}
+                    onChange={e => {
+                      // Update via profile context if needed
+                    }}
                     className={inputCls}
                   />
                 </div>
