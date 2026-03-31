@@ -233,7 +233,7 @@ export function MerchantSidebar() {
                     <p className="text-[13px] font-medium text-sidebar-foreground">{commissionPercent}% on revenue</p>
                   </div>
                 )}
-                {storefrontSlug && (
+                {storefrontSlug && session.role !== "admin" && (
                   <button
                     onClick={() => navigate(`/store/${storefrontSlug}`)}
                     className="flex items-center gap-2 text-[13px] text-sidebar-foreground/50 hover:text-white transition-colors cursor-pointer"
