@@ -4,50 +4,39 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   UserPlus, Building2, Wand2, PoundSterling, Calendar, Shield, ExternalLink,
-  Download, Plus, Loader2, Users, TrendingUp, Bell, Zap,
+  Download, Plus, Loader2, Users, TrendingUp, Bell, Zap, Mail, AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/contexts/AppContext";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
 
 interface QuickStats {
   totalProducers: number;
   totalSubscribers: number;
   platformMRR: number;
   platformCommission: number;
-  newLeadsThisWeek: number;
+  newLeadsCount: number;
+  followUpCount: number;
 }
 
-interface RecentLead {
+interface FollowUpLead {
   id: string;
   name: string | null;
   email: string;
-  created_at: string;
-}
-
-interface RecentProducer {
-  id: string;
   business_name: string | null;
-  email: string;
-  created_at: string;
+  last_contacted_at: string | null;
+  status: string;
 }
 
-interface UpcomingMeeting {
+interface OverdueMeeting {
   id: string;
   title: string;
   date: string;
-  producer_name: string | null;
+  status: string | null;
 }
-
-const formatDate = (iso: string) => {
-  try {
-    return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-  } catch {
-    return "—";
-  }
-};
 
 const getGreeting = () => {
   const h = new Date().getHours();
@@ -70,7 +59,7 @@ const statConfig = [
   { label: "Total Subscribers", icon: Users, bg: "hsl(160, 84%, 93%)", iconColor: "hsl(160, 84%, 39%)" },
   { label: "Platform MRR", icon: PoundSterling, bg: "hsl(38, 92%, 93%)", iconColor: "hsl(38, 92%, 50%)" },
   { label: "Commission (8%)", icon: TrendingUp, bg: "hsl(270, 60%, 93%)", iconColor: "hsl(270, 60%, 60%)" },
-  { label: "New Leads (7d)", icon: Bell, bg: "hsl(25, 95%, 93%)", iconColor: "hsl(25, 95%, 53%)" },
+  { label: "New Leads", icon: Bell, bg: "hsl(25, 95%, 93%)", iconColor: "hsl(25, 95%, 53%)" },
 ];
 
 const AdminCommandCentre = () => {
@@ -78,73 +67,63 @@ const AdminCommandCentre = () => {
   const { session } = useApp();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<QuickStats>({
-    totalProducers: 0, totalSubscribers: 0, platformMRR: 0, platformCommission: 0, newLeadsThisWeek: 0,
+    totalProducers: 0, totalSubscribers: 0, platformMRR: 0,
+    platformCommission: 0, newLeadsCount: 0, followUpCount: 0,
   });
-  const [recentLeads, setRecentLeads] = useState<RecentLead[]>([]);
-  const [recentProducers, setRecentProducers] = useState<RecentProducer[]>([]);
-  const [upcomingMeetings, setUpcomingMeetings] = useState<UpcomingMeeting[]>([]);
+  const [followUpLeads, setFollowUpLeads] = useState<FollowUpLead[]>([]);
+  const [overdueMeetings, setOverdueMeetings] = useState<OverdueMeeting[]>([]);
+  const [upcomingMeetings, setUpcomingMeetings] = useState<{ title: string; date: string }[]>([]);
+  const [recentLeads, setRecentLeads] = useState<{ name: string; date: string }[]>([]);
 
   useEffect(() => {
-    const fetch = async () => {
-      const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const load = async () => {
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+      const nowIso = new Date().toISOString();
 
-      const [rolesRes, subsRes, leadsRes, leadsRecentRes, producersRes, subscriptionsRes, meetingsRes] = await Promise.all([
+      const [rolesRes, subsRes, newLeadsRes, followUpRes, subscriptionsRes, meetingsUpRes, meetingsOverdueRes, recentLeadsRes] = await Promise.all([
         supabase.from("user_roles").select("user_id").eq("role", "producer"),
         supabase.from("subscribers").select("id, status"),
-        supabase.from("leads").select("id", { count: "exact", head: true }).gte("created_at", oneWeekAgo),
-        supabase.from("leads").select("id, name, email, created_at").order("created_at", { ascending: false }).limit(3),
-        supabase.from("profiles").select("id, business_name, email, created_at").order("created_at", { ascending: false }).limit(3),
+        supabase.from("leads").select("id", { count: "exact", head: true }).eq("status", "new"),
+        supabase.from("leads").select("id, name, email, business_name, last_contacted_at, status").eq("status", "follow_up"),
         supabase.from("subscriptions").select("amount_paid, status").eq("status", "active"),
-        supabase.from("admin_meetings").select("id, title, date, producer_id").eq("completed", false).gte("date", new Date().toISOString()).order("date", { ascending: true }).limit(2),
+        supabase.from("admin_meetings").select("title, date").eq("completed", false).gte("date", nowIso).order("date", { ascending: true }).limit(3),
+        supabase.from("admin_meetings").select("id, title, date, status").eq("completed", false).lt("date", nowIso).order("date", { ascending: false }).limit(5),
+        supabase.from("leads").select("name, email, created_at").eq("status", "new").order("created_at", { ascending: false }).limit(3),
       ]);
 
-      const producerIds = (rolesRes.data || []).map((r: any) => r.user_id);
+      const producerCount = (rolesRes.data || []).length;
       const activeSubs = (subsRes.data || []).filter((s: any) => s.status === "active").length;
       const mrr = (subscriptionsRes.data || []).reduce((sum: number, s: any) => sum + (s.amount_paid || 0), 0) / 100;
 
+      // Filter follow-up leads that haven't been contacted in 3+ days
+      const allFollowUps = (followUpRes.data || []) as FollowUpLead[];
+      const staleFollowUps = allFollowUps.filter(l => {
+        if (!l.last_contacted_at) return true;
+        return new Date(l.last_contacted_at) < new Date(threeDaysAgo);
+      });
+
       setStats({
-        totalProducers: producerIds.length,
+        totalProducers: producerCount,
         totalSubscribers: activeSubs,
         platformMRR: mrr,
         platformCommission: mrr * 0.08,
-        newLeadsThisWeek: leadsRes.count || 0,
+        newLeadsCount: newLeadsRes.count || 0,
+        followUpCount: staleFollowUps.length,
       });
 
-      setRecentLeads((leadsRecentRes.data || []) as RecentLead[]);
-
-      const allProfiles = (producersRes.data || []) as RecentProducer[];
-      setRecentProducers(allProfiles.filter(p => producerIds.includes(p.id)).slice(0, 3));
-
-      const meetings = (meetingsRes.data || []) as any[];
-      const enriched: UpcomingMeeting[] = meetings.map(m => ({
-        id: m.id,
-        title: m.title,
-        date: m.date,
-        producer_name: null,
-      }));
-      setUpcomingMeetings(enriched);
+      setFollowUpLeads(staleFollowUps);
+      setOverdueMeetings((meetingsOverdueRes.data || []) as OverdueMeeting[]);
+      setUpcomingMeetings((meetingsUpRes.data || []).map((m: any) => ({ title: m.title, date: m.date })));
+      setRecentLeads((recentLeadsRes.data || []).map((l: any) => ({
+        name: l.name || l.email,
+        date: new Date(l.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+      })));
 
       setLoading(false);
     };
-
-    fetch();
+    load();
   }, []);
 
-  const exportLeadsCSV = async () => {
-    const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
-    if (!data || data.length === 0) { toast.info("No leads to export"); return; }
-    const headers = ["Name", "Email", "Type", "Status", "Business", "Date"];
-    const rows = data.map((l: any) => [l.name || "", l.email, l.type, l.status, l.business_name || "", l.created_at]);
-    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "leads-export.csv"; a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Leads exported!");
-  };
-
-  // Use display_name from profile, fallback to no name
   const adminName = session.profile?.display_name || session.profile?.business_name || "";
   const displayGreeting = adminName ? `${getGreeting()}, ${adminName.split(" ")[0]}` : getGreeting();
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -164,19 +143,22 @@ const AdminCommandCentre = () => {
     stats.totalSubscribers,
     `£${stats.platformMRR.toFixed(0)}`,
     `£${stats.platformCommission.toFixed(2)}`,
-    stats.newLeadsThisWeek,
+    stats.newLeadsCount,
   ];
+
+  const nextMeeting = upcomingMeetings[0];
 
   const tiles = [
     {
       title: "Leads & Enquiries",
       icon: UserPlus,
-      badge: stats.newLeadsThisWeek > 0 ? String(stats.newLeadsThisWeek) : undefined,
-      badgeLabel: "new this week",
+      badge: stats.newLeadsCount > 0 ? String(stats.newLeadsCount) : undefined,
+      badgeLabel: "new",
       route: "/dashboard/leads",
       preview: recentLeads.length > 0
-        ? recentLeads.map(l => ({ label: l.name || l.email, sub: formatDate(l.created_at) }))
-        : [{ label: "No leads yet", sub: "Leads from your site appear here" }],
+        ? recentLeads.map(l => ({ label: l.name, sub: l.date }))
+        : [{ label: "No new leads", sub: "Leads appear here" }],
+      subtitle: `${stats.newLeadsCount} new, ${stats.followUpCount} follow up`,
     },
     {
       title: "Producers",
@@ -184,9 +166,7 @@ const AdminCommandCentre = () => {
       badge: String(stats.totalProducers),
       badgeLabel: "total",
       route: "/admin/producers",
-      preview: recentProducers.length > 0
-        ? recentProducers.map(p => ({ label: p.business_name || p.email, sub: formatDate(p.created_at) }))
-        : [{ label: "No producers yet", sub: "Producers appear here once registered" }],
+      preview: [{ label: `${stats.totalProducers} registered`, sub: "View all →" }],
     },
     {
       title: "Demo Launcher",
@@ -198,7 +178,7 @@ const AdminCommandCentre = () => {
       title: "Revenue & Commission",
       icon: PoundSterling,
       badge: `£${stats.platformCommission.toFixed(0)}`,
-      badgeLabel: "this month",
+      badgeLabel: "commission",
       route: "/admin/revenue",
       preview: stats.platformMRR > 0
         ? [{ label: `Platform MRR: £${stats.platformMRR.toFixed(0)}`, sub: `Commission: £${stats.platformCommission.toFixed(2)}` }]
@@ -210,9 +190,9 @@ const AdminCommandCentre = () => {
       badge: upcomingMeetings.length > 0 ? String(upcomingMeetings.length) : undefined,
       badgeLabel: "upcoming",
       route: "/admin/meetings",
-      preview: upcomingMeetings.length > 0
-        ? upcomingMeetings.map(m => ({ label: m.title, sub: formatDate(m.date) }))
-        : [{ label: "No meetings scheduled", sub: "Add your first meeting" }],
+      preview: nextMeeting
+        ? [{ label: nextMeeting.title, sub: new Date(nextMeeting.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) }]
+        : [{ label: "No meetings scheduled", sub: "Book your first meeting" }],
     },
     {
       title: "Platform Health",
@@ -223,6 +203,19 @@ const AdminCommandCentre = () => {
     },
   ];
 
+  const exportLeadsCSV = async () => {
+    const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
+    if (!data || data.length === 0) { toast.info("No leads to export"); return; }
+    const headers = ["Name", "Email", "Type", "Status", "Business", "Date"];
+    const rows = data.map((l: any) => [l.name || "", l.email, l.type, l.status, l.business_name || "", l.created_at]);
+    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "leads-export.csv"; a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Leads exported!");
+  };
+
   return (
     <DashboardLayout title="Command Centre" subtitle="">
       {/* Greeting */}
@@ -231,7 +224,7 @@ const AdminCommandCentre = () => {
         <p className="text-[14px] text-muted-foreground mt-1">{today}</p>
       </div>
 
-      {/* Quick stats bar */}
+      {/* Quick stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {statConfig.map((s, i) => {
           const Icon = s.icon;
@@ -288,6 +281,9 @@ const AdminCommandCentre = () => {
                       </span>
                     )}
                   </div>
+                  {"subtitle" in tile && tile.subtitle && (
+                    <p className="text-[12px] text-muted-foreground mb-2">{tile.subtitle}</p>
+                  )}
                   <div className="space-y-2">
                     {tile.preview.map((p, j) => (
                       <div key={j} className="flex items-center justify-between gap-2">
@@ -302,6 +298,62 @@ const AdminCommandCentre = () => {
           );
         })}
       </div>
+
+      {/* Follow-Up Reminders */}
+      {(followUpLeads.length > 0 || overdueMeetings.length > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+          className="mb-8"
+        >
+          <h3 className="text-[16px] font-semibold text-foreground mb-4 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            Follow-Up Reminders
+          </h3>
+
+          <div className="space-y-3">
+            {followUpLeads.map(lead => (
+              <Card key={lead.id} className="border border-amber-200 bg-amber-50/50">
+                <CardContent className="p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-medium text-foreground">{lead.business_name || lead.name || lead.email}</p>
+                    <p className="text-[12px] text-muted-foreground">
+                      {lead.last_contacted_at
+                        ? `Last contacted ${formatDistanceToNow(new Date(lead.last_contacted_at), { addSuffix: true })}`
+                        : "Never contacted"
+                      }
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={`mailto:${lead.email}`}>
+                      <Mail className="h-4 w-4 mr-1" />Contact Now
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+
+            {overdueMeetings.map(m => (
+              <Card key={m.id} className="border border-amber-200 bg-amber-50/50">
+                <CardContent className="p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-medium text-foreground">{m.title}</p>
+                    <p className="text-[12px] text-muted-foreground">
+                      Meeting was {formatDistanceToNow(new Date(m.date), { addSuffix: true })} — update status?
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button variant="outline" size="sm" onClick={() => navigate("/admin/meetings")}>
+                      Update
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Quick actions */}
       <div className="flex flex-wrap gap-3">
