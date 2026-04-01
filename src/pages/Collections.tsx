@@ -348,7 +348,7 @@ const Collections = () => {
                         <Button
                           onClick={() => markCollected(sub)}
                           disabled={allDone}
-                          className="h-12 px-5 text-[14px] font-medium shrink-0"
+                          className="h-12 px-5 text-[14px] font-medium shrink-0 w-full sm:w-auto"
                           variant={allDone ? "outline" : "slate"}
                         >
                           {allDone ? "All collected ✓" : "Mark Collected"}
