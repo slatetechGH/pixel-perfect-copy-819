@@ -24,8 +24,8 @@ const steps = [
 ];
 
 const HowItWorks = () => (
-  <section id="how-it-works" className="py-24 md:py-32 bg-white">
-    <div className="max-w-[1200px] mx-auto px-6 md:px-8">
+  <section id="how-it-works" className="py-16 md:py-32 bg-white">
+    <div className="max-w-[1200px] mx-auto px-4 md:px-8">
       <AnimatedSection>
         <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-amber mb-3">
           How It Works
