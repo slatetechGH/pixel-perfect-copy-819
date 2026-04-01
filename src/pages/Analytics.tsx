@@ -162,7 +162,7 @@ const Analytics = () => {
         </CardHeader>
         <CardContent className="px-7 pb-7">
           {hasSubscriberGrowth ? (
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={subscriberGrowthData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />

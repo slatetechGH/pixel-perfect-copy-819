@@ -252,7 +252,7 @@ const Leads = () => {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name, email, phone, or notes..."
-            className="w-full h-10 pl-9 pr-3 rounded-lg border border-input bg-popover text-[14px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary"
+            className="w-full h-11 pl-9 pr-3 rounded-lg border border-input bg-popover text-[16px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary"
           />
         </div>
         <DropdownMenu>
