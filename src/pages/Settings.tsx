@@ -248,7 +248,7 @@ const Settings = () => {
         {!isAdmin && activeTab === "Business Profile" && (
           <Card className="border-0 shadow-card">
             <CardContent className="p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div><label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Business Name</label><input value={settings.businessName} onChange={e => updateField("businessName", e.target.value)} className={inputCls} /></div>
                 <div>
                   <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Business Type</label>
