@@ -49,9 +49,9 @@ const Analytics = () => {
   return (
     <DashboardLayout title="Analytics" subtitle="Performance insights">
       {/* Date range */}
-      <div className="flex gap-2 mb-5 flex-wrap">
+      <div className="flex gap-2 mb-5 flex-wrap overflow-x-auto">
         {ranges.map(r => (
-          <button key={r.key} onClick={() => setRange(r.key)} className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors cursor-pointer ${range === r.key ? "bg-foreground text-white" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
+          <button key={r.key} onClick={() => setRange(r.key)} className={`px-3 py-2 rounded-lg text-[13px] font-medium transition-colors cursor-pointer whitespace-nowrap min-h-[44px] ${range === r.key ? "bg-foreground text-white" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
             {r.label}
           </button>
         ))}
