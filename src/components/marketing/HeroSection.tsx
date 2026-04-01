@@ -85,9 +85,9 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative pt-36 pb-24 md:pt-44 md:pb-32 bg-white overflow-hidden">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-8 relative">
-        <div className="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
+    <section className="relative pt-28 pb-16 md:pt-44 md:pb-32 bg-white overflow-hidden">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-20 items-center">
           {/* Text */}
           <div>
             <motion.p
