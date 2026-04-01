@@ -223,7 +223,7 @@ const Leads = () => {
       }
     >
       {/* Status tabs */}
-      <div className="flex gap-1 mb-5 border-b border-border overflow-x-auto">
+      <div className="flex gap-1 mb-5 border-b border-border overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
         {STATUS_TABS.map(tab => (
           <button
             key={tab.key}
