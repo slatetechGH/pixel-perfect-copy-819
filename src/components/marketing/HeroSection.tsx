@@ -110,7 +110,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-[17px] md:text-[19px] text-slate-mid leading-relaxed mb-8 max-w-lg"
+              className="text-[16px] md:text-[19px] text-slate-mid leading-relaxed mb-6 max-w-lg"
             >
               Slate gives independent producers a simple way to sell subscriptions, launch exclusive products, and reward loyal customers.
               <br /><br />
