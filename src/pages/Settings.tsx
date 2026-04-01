@@ -225,7 +225,7 @@ const Settings = () => {
         {isAdmin && activeTab === "Billing Overview" && (
           <Card className="border-0 shadow-card">
             <CardContent className="p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="p-4 rounded-lg bg-muted">
                   <p className="text-[13px] text-muted-foreground mb-1">Total Commission Earned</p>
                   <p className="text-2xl font-bold text-foreground">£{(adminStats.totalCommission / 100).toFixed(2)}</p>
