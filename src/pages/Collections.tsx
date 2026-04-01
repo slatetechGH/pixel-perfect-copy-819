@@ -336,7 +336,7 @@ const Collections = () => {
                     <Card key={sub.id} className="border-0 shadow-card">
                       <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                         <div className="flex-1 min-w-0">
-                          <p className="text-[18px] font-medium text-foreground truncate">{sub.name}</p>
+                          <p className="text-[16px] font-medium text-foreground truncate">{sub.name}</p>
                           <p className="text-[13px] text-muted-foreground">{sub.plan}</p>
                           <div className="flex items-center gap-3 mt-2">
                             <Progress value={progress} className="h-2 flex-1 max-w-[160px]" />
