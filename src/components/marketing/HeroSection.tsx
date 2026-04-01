@@ -102,7 +102,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-[36px] md:text-[56px] font-bold text-foreground leading-[1.08] tracking-[-0.02em] mb-6"
+              className="text-[28px] md:text-[56px] font-bold text-foreground leading-[1.08] tracking-[-0.02em] mb-5"
             >
               Turn your regulars into subscribers.
             </motion.h1>
