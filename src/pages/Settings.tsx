@@ -196,7 +196,7 @@ const Settings = () => {
                 <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Platform Name</label>
                 <input value="Slate" readOnly className={inputCls + " bg-muted cursor-not-allowed"} />
               </div>
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Admin Email</label>
                   <input value={session.profile?.email || "sales@slatetech.co.uk"} readOnly className={inputCls + " bg-muted cursor-not-allowed"} />
