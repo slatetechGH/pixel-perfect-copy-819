@@ -44,8 +44,8 @@ const EmailCapture = () => {
   };
 
   return (
-    <section className="py-20 bg-sidebar">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-8">
+    <section className="py-12 md:py-20 bg-sidebar">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8">
         {submitted ? (
           <div className="flex items-center justify-center gap-3">
             <Check size={20} className="text-amber" />
