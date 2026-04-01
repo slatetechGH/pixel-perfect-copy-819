@@ -72,7 +72,7 @@ const Analytics = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="px-7 pb-7">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-secondary rounded-xl p-4">
               <p className="text-[12px] font-medium text-muted-foreground mb-1">
                 <LabelWithTooltip term="Gross Revenue" />
