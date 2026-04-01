@@ -6,8 +6,8 @@ const CTASection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-24 md:py-32 bg-sidebar">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-8 text-center">
+    <section className="py-16 md:py-32 bg-sidebar">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8 text-center">
         <AnimatedSection>
           <h2 className="text-[36px] md:text-[44px] font-bold text-white leading-tight tracking-[-0.02em] mb-4">
             Ready to build something worth subscribing to?
