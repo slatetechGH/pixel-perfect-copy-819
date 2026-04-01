@@ -177,9 +177,9 @@ const Settings = () => {
   return (
     <DashboardLayout title="Settings" subtitle={isAdmin ? "Platform configuration" : "Business profile & configuration"}>
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-border">
+      <div className="flex gap-1 mb-6 border-b border-border overflow-x-auto">
         {tabs.map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2.5 text-[14px] font-medium transition-colors cursor-pointer border-b-2 ${activeTab === tab ? "text-foreground border-foreground" : "text-muted-foreground border-transparent hover:text-foreground"}`}>
+          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 md:px-4 py-2.5 text-[14px] font-medium transition-colors cursor-pointer border-b-2 whitespace-nowrap ${activeTab === tab ? "text-foreground border-foreground" : "text-muted-foreground border-transparent hover:text-foreground"}`}>
             {tab}
           </button>
         ))}
