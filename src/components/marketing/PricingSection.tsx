@@ -39,7 +39,7 @@ const PricingSection = () => {
           <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-amber mb-3 text-center">
             Pricing
           </p>
-          <h2 className="text-[36px] md:text-[48px] font-bold text-foreground leading-tight tracking-[-0.02em] mb-4 text-center">
+          <h2 className="text-[28px] md:text-[48px] font-bold text-foreground leading-tight tracking-[-0.02em] mb-4 text-center">
             Simple, transparent pricing.
           </h2>
           <p className="text-[18px] md:text-[20px] text-slate-mid text-center max-w-2xl mx-auto mb-16 leading-relaxed">
