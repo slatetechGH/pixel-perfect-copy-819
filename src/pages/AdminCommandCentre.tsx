@@ -248,7 +248,7 @@ const AdminCommandCentre = () => {
       </div>
 
       {/* Tiles grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-8">
         {tiles.map((tile, i) => {
           const accent = tileAccents[tile.title] || "hsl(215, 16%, 65%)";
           return (

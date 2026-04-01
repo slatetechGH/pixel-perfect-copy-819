@@ -123,7 +123,7 @@ const Content = () => {
 
             {editing.type === "Recipe" && (
               <>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Prep Time</label>
                     <input value={editing.prepTime || ""} onChange={e => updateField("prepTime", e.target.value)} className="w-full h-10 px-3 rounded-lg border border-border bg-white text-[14px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all" />

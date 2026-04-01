@@ -303,8 +303,8 @@ const Leads = () => {
             </div>
           ) : (
             <div>
-              {/* Header */}
-              <div className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-border text-[11px] font-medium text-muted-foreground uppercase tracking-wider items-center">
+              {/* Desktop header - hidden on mobile */}
+              <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 border-b border-border text-[11px] font-medium text-muted-foreground uppercase tracking-wider items-center">
                 <div className="col-span-1 flex items-center">
                   <Checkbox
                     checked={allVisibleSelected}
@@ -320,9 +320,46 @@ const Leads = () => {
 
               {filtered.map(lead => (
                 <div key={lead.id}>
-                  <div
-                    className="grid grid-cols-12 gap-3 px-5 py-3.5 border-b border-border/50 hover:bg-muted/50 transition-colors items-center"
-                  >
+                  {/* Mobile card layout */}
+                  <div className="md:hidden p-4 border-b border-border/50">
+                    <div className="flex items-start gap-3">
+                      <div className="pt-1" onClick={e => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selected.has(lead.id)}
+                          onCheckedChange={() => toggleSelect(lead.id)}
+                          className="h-5 w-5"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0" onClick={() => toggleExpand(lead.id)}>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="text-[15px] font-medium text-foreground truncate">
+                            {lead.business_name || lead.name || lead.email}
+                          </p>
+                          <span onClick={e => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className={`inline-flex items-center rounded-md px-2 py-1 text-[12px] font-medium cursor-pointer ${statusColors[lead.status] || statusColors.new}`}>
+                                  {statusLabel(lead.status)}
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                {STATUS_OPTIONS.map(s => (
+                                  <DropdownMenuItem key={s.key} onClick={() => updateStatus(lead.id, s.key)}>{s.label}</DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </span>
+                        </div>
+                        <p className="text-[14px] text-muted-foreground truncate">{lead.email}</p>
+                        <p className="text-[13px] text-muted-foreground mt-1">
+                          {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop row */}
+                  <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3.5 border-b border-border/50 hover:bg-muted/50 transition-colors items-center">
                     <div className="col-span-1 flex items-center" onClick={e => e.stopPropagation()}>
                       <Checkbox
                         checked={selected.has(lead.id)}
