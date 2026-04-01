@@ -177,9 +177,9 @@ const Settings = () => {
   return (
     <DashboardLayout title="Settings" subtitle={isAdmin ? "Platform configuration" : "Business profile & configuration"}>
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-border">
+      <div className="flex gap-1 mb-6 border-b border-border overflow-x-auto">
         {tabs.map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2.5 text-[14px] font-medium transition-colors cursor-pointer border-b-2 ${activeTab === tab ? "text-foreground border-foreground" : "text-muted-foreground border-transparent hover:text-foreground"}`}>
+          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 md:px-4 py-2.5 text-[14px] font-medium transition-colors cursor-pointer border-b-2 whitespace-nowrap ${activeTab === tab ? "text-foreground border-foreground" : "text-muted-foreground border-transparent hover:text-foreground"}`}>
             {tab}
           </button>
         ))}
@@ -196,7 +196,7 @@ const Settings = () => {
                 <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Platform Name</label>
                 <input value="Slate" readOnly className={inputCls + " bg-muted cursor-not-allowed"} />
               </div>
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Admin Email</label>
                   <input value={session.profile?.email || "sales@slatetech.co.uk"} readOnly className={inputCls + " bg-muted cursor-not-allowed"} />
@@ -225,7 +225,7 @@ const Settings = () => {
         {isAdmin && activeTab === "Billing Overview" && (
           <Card className="border-0 shadow-card">
             <CardContent className="p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="p-4 rounded-lg bg-muted">
                   <p className="text-[13px] text-muted-foreground mb-1">Total Commission Earned</p>
                   <p className="text-2xl font-bold text-foreground">£{(adminStats.totalCommission / 100).toFixed(2)}</p>
@@ -248,7 +248,7 @@ const Settings = () => {
         {!isAdmin && activeTab === "Business Profile" && (
           <Card className="border-0 shadow-card">
             <CardContent className="p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div><label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Business Name</label><input value={settings.businessName} onChange={e => updateField("businessName", e.target.value)} className={inputCls} /></div>
                 <div>
                   <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Business Type</label>
@@ -258,12 +258,12 @@ const Settings = () => {
                 </div>
               </div>
               <div><label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Description</label><textarea value={settings.description} onChange={e => updateField("description", e.target.value)} rows={3} className={inputCls + " h-auto py-3 resize-none"} /></div>
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div><label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Email</label><input value={settings.email} onChange={e => updateField("email", e.target.value)} className={inputCls} /></div>
                 <div><label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Phone</label><input value={settings.phone} onChange={e => updateField("phone", e.target.value)} className={inputCls} /></div>
               </div>
               <div><label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Website</label><div className="flex items-center gap-2"><Globe size={16} className="text-muted-foreground shrink-0" /><input value={settings.website} onChange={e => updateField("website", e.target.value)} className={inputCls} /></div></div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div><label className="text-[13px] font-medium text-muted-foreground block mb-1.5 flex items-center gap-1"><Instagram size={14} /> Instagram</label><input value={settings.instagram} onChange={e => updateField("instagram", e.target.value)} className={inputCls} /></div>
                 <div><label className="text-[13px] font-medium text-muted-foreground block mb-1.5 flex items-center gap-1"><Facebook size={14} /> Facebook</label><input value={settings.facebook} onChange={e => updateField("facebook", e.target.value)} className={inputCls} /></div>
                 <div><label className="text-[13px] font-medium text-muted-foreground block mb-1.5 flex items-center gap-1"><Twitter size={14} /> X / Twitter</label><input value={settings.twitter} onChange={e => updateField("twitter", e.target.value)} className={inputCls} /></div>

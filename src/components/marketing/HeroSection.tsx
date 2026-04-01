@@ -85,9 +85,9 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative pt-36 pb-24 md:pt-44 md:pb-32 bg-white overflow-hidden">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-8 relative">
-        <div className="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
+    <section className="relative pt-28 pb-16 md:pt-44 md:pb-32 bg-white overflow-hidden">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-20 items-center">
           {/* Text */}
           <div>
             <motion.p
@@ -102,7 +102,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-[36px] md:text-[56px] font-bold text-foreground leading-[1.08] tracking-[-0.02em] mb-6"
+              className="text-[28px] md:text-[56px] font-bold text-foreground leading-[1.08] tracking-[-0.02em] mb-5"
             >
               Turn your regulars into subscribers.
             </motion.h1>
@@ -110,7 +110,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-[17px] md:text-[19px] text-slate-mid leading-relaxed mb-8 max-w-lg"
+              className="text-[16px] md:text-[19px] text-slate-mid leading-relaxed mb-6 max-w-lg"
             >
               Slate gives independent producers a simple way to sell subscriptions, launch exclusive products, and reward loyal customers.
               <br /><br />
@@ -122,10 +122,10 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-3 mb-4"
             >
-              <Button variant="slate" size="lg" className="text-[15px] px-7 w-full sm:w-auto" onClick={() => navigate("/get-started")}>
+              <Button variant="slate" size="lg" className="text-[15px] px-7 w-full sm:w-auto h-12 min-h-[48px]" onClick={() => navigate("/get-started")}>
                 Get started
               </Button>
-              <Button variant="slate-outline" size="lg" className="text-[15px] px-7 w-full sm:w-auto" onClick={scrollToHowItWorks}>
+              <Button variant="slate-outline" size="lg" className="text-[15px] px-7 w-full sm:w-auto h-12 min-h-[48px]" onClick={scrollToHowItWorks}>
                 See how it works
               </Button>
             </motion.div>

@@ -260,11 +260,11 @@ const Collections = () => {
       title="Collections"
       subtitle={todayLabel}
       actions={
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={printSheet}>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" size="sm" onClick={printSheet} className="min-h-[44px]">
             <Printer className="h-4 w-4 mr-1.5" /> Print Sheet
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setSendConfirm(true)}>
+          <Button variant="outline" size="sm" onClick={() => setSendConfirm(true)} className="min-h-[44px]">
             <Send className="h-4 w-4 mr-1.5" /> Send Reminders
           </Button>
         </div>
@@ -334,9 +334,9 @@ const Collections = () => {
 
                   return (
                     <Card key={sub.id} className="border-0 shadow-card">
-                      <CardContent className="p-4 flex items-center gap-4">
+                      <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                         <div className="flex-1 min-w-0">
-                          <p className="text-[18px] font-medium text-foreground truncate">{sub.name}</p>
+                          <p className="text-[16px] font-medium text-foreground truncate">{sub.name}</p>
                           <p className="text-[13px] text-muted-foreground">{sub.plan}</p>
                           <div className="flex items-center gap-3 mt-2">
                             <Progress value={progress} className="h-2 flex-1 max-w-[160px]" />
@@ -348,7 +348,7 @@ const Collections = () => {
                         <Button
                           onClick={() => markCollected(sub)}
                           disabled={allDone}
-                          className="h-12 px-5 text-[14px] font-medium shrink-0"
+                          className="h-12 px-5 text-[14px] font-medium shrink-0 w-full sm:w-auto"
                           variant={allDone ? "outline" : "slate"}
                         >
                           {allDone ? "All collected ✓" : "Mark Collected"}

@@ -223,7 +223,7 @@ const Leads = () => {
       }
     >
       {/* Status tabs */}
-      <div className="flex gap-1 mb-5 border-b border-border overflow-x-auto">
+      <div className="flex gap-1 mb-5 border-b border-border overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
         {STATUS_TABS.map(tab => (
           <button
             key={tab.key}
@@ -245,14 +245,14 @@ const Leads = () => {
       </div>
 
       {/* Search + Sort */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+        <div className="relative flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name, email, phone, or notes..."
-            className="w-full h-10 pl-9 pr-3 rounded-lg border border-input bg-popover text-[14px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary"
+            className="w-full h-11 pl-9 pr-3 rounded-lg border border-input bg-popover text-[16px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary"
           />
         </div>
         <DropdownMenu>
@@ -303,8 +303,8 @@ const Leads = () => {
             </div>
           ) : (
             <div>
-              {/* Header */}
-              <div className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-border text-[11px] font-medium text-muted-foreground uppercase tracking-wider items-center">
+              {/* Desktop header - hidden on mobile */}
+              <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 border-b border-border text-[11px] font-medium text-muted-foreground uppercase tracking-wider items-center">
                 <div className="col-span-1 flex items-center">
                   <Checkbox
                     checked={allVisibleSelected}
@@ -320,9 +320,46 @@ const Leads = () => {
 
               {filtered.map(lead => (
                 <div key={lead.id}>
-                  <div
-                    className="grid grid-cols-12 gap-3 px-5 py-3.5 border-b border-border/50 hover:bg-muted/50 transition-colors items-center"
-                  >
+                  {/* Mobile card layout */}
+                  <div className="md:hidden p-4 border-b border-border/50">
+                    <div className="flex items-start gap-3">
+                      <div className="pt-1" onClick={e => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selected.has(lead.id)}
+                          onCheckedChange={() => toggleSelect(lead.id)}
+                          className="h-5 w-5"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0" onClick={() => toggleExpand(lead.id)}>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="text-[15px] font-medium text-foreground truncate">
+                            {lead.business_name || lead.name || lead.email}
+                          </p>
+                          <span onClick={e => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className={`inline-flex items-center rounded-md px-2 py-1 text-[12px] font-medium cursor-pointer ${statusColors[lead.status] || statusColors.new}`}>
+                                  {statusLabel(lead.status)}
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                {STATUS_OPTIONS.map(s => (
+                                  <DropdownMenuItem key={s.key} onClick={() => updateStatus(lead.id, s.key)}>{s.label}</DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </span>
+                        </div>
+                        <p className="text-[14px] text-muted-foreground truncate">{lead.email}</p>
+                        <p className="text-[13px] text-muted-foreground mt-1">
+                          {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop row */}
+                  <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3.5 border-b border-border/50 hover:bg-muted/50 transition-colors items-center">
                     <div className="col-span-1 flex items-center" onClick={e => e.stopPropagation()}>
                       <Checkbox
                         checked={selected.has(lead.id)}

@@ -44,8 +44,8 @@ const EmailCapture = () => {
   };
 
   return (
-    <section className="py-20 bg-sidebar">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-8">
+    <section className="py-12 md:py-20 bg-sidebar">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8">
         {submitted ? (
           <div className="flex items-center justify-center gap-3">
             <Check size={20} className="text-amber" />
@@ -54,7 +54,7 @@ const EmailCapture = () => {
         ) : (
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-[28px] font-bold text-white mb-1">Stay in the loop.</h3>
+              <h3 className="text-[22px] md:text-[28px] font-bold text-white mb-1">Stay in the loop.</h3>
               <p className="text-[15px] text-slate-light">
                 Producer tips, platform updates, and early access to new features.
               </p>

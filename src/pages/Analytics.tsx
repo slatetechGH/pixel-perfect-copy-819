@@ -49,9 +49,9 @@ const Analytics = () => {
   return (
     <DashboardLayout title="Analytics" subtitle="Performance insights">
       {/* Date range */}
-      <div className="flex gap-2 mb-5 flex-wrap">
+      <div className="flex gap-2 mb-5 flex-wrap overflow-x-auto">
         {ranges.map(r => (
-          <button key={r.key} onClick={() => setRange(r.key)} className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors cursor-pointer ${range === r.key ? "bg-foreground text-white" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
+          <button key={r.key} onClick={() => setRange(r.key)} className={`px-3 py-2 rounded-lg text-[13px] font-medium transition-colors cursor-pointer whitespace-nowrap min-h-[44px] ${range === r.key ? "bg-foreground text-white" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
             {r.label}
           </button>
         ))}
@@ -72,7 +72,7 @@ const Analytics = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="px-7 pb-7">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-secondary rounded-xl p-4">
               <p className="text-[12px] font-medium text-muted-foreground mb-1">
                 <LabelWithTooltip term="Gross Revenue" />
@@ -106,7 +106,7 @@ const Analytics = () => {
           </CardHeader>
           <CardContent className="px-7 pb-7">
             {hasRevenueData ? (
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={200}>
                 <AreaChart data={data}>
                   <defs>
                     <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
@@ -133,7 +133,7 @@ const Analytics = () => {
           </CardHeader>
           <CardContent className="px-7 pb-7">
             {hasTierData ? (
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie data={tierBreakdown} cx="50%" cy="45%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={3}>
                     {tierBreakdown.map(e => <Cell key={e.name} fill={e.color} />)}
@@ -162,7 +162,7 @@ const Analytics = () => {
         </CardHeader>
         <CardContent className="px-7 pb-7">
           {hasSubscriberGrowth ? (
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={subscriberGrowthData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(213, 27%, 62%)" strokeOpacity={0.2} />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(213, 27%, 62%)" />

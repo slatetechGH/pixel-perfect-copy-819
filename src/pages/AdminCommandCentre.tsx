@@ -248,7 +248,7 @@ const AdminCommandCentre = () => {
       </div>
 
       {/* Tiles grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-8">
         {tiles.map((tile, i) => {
           const accent = tileAccents[tile.title] || "hsl(215, 16%, 65%)";
           return (
@@ -356,14 +356,14 @@ const AdminCommandCentre = () => {
       )}
 
       {/* Quick actions */}
-      <div className="flex flex-wrap gap-3">
-        <Button size="sm" onClick={() => navigate("/admin/meetings")} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+        <Button size="sm" onClick={() => navigate("/admin/meetings")} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10 min-h-[44px] w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-1.5" />New Meeting
         </Button>
-        <Button size="sm" onClick={exportLeadsCSV} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10">
+        <Button size="sm" onClick={exportLeadsCSV} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10 min-h-[44px] w-full sm:w-auto">
           <Download className="h-4 w-4 mr-1.5" />Export Leads CSV
         </Button>
-        <Button size="sm" onClick={() => window.open("https://slatetech.co.uk", "_blank")} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10">
+        <Button size="sm" onClick={() => window.open("https://slatetech.co.uk", "_blank")} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10 min-h-[44px] w-full sm:w-auto">
           <ExternalLink className="h-4 w-4 mr-1.5" />View Live Site
         </Button>
       </div>

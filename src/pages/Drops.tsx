@@ -110,9 +110,9 @@ const Drops = () => {
       actions={<Button size="sm" onClick={() => openEditor()}><Plus className="h-4 w-4 mr-1.5" /> New Drop</Button>}
     >
       {/* Filters */}
-      <div className="flex gap-2 mb-5">
+      <div className="flex gap-2 mb-5 overflow-x-auto">
         {statusFilters.map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors cursor-pointer ${filter === f ? "bg-foreground text-white" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
+          <button key={f} onClick={() => setFilter(f)} className={`px-3 py-2 rounded-lg text-[13px] font-medium transition-colors cursor-pointer whitespace-nowrap min-h-[44px] ${filter === f ? "bg-foreground text-white" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
             {f}
           </button>
         ))}
