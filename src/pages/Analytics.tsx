@@ -133,7 +133,7 @@ const Analytics = () => {
           </CardHeader>
           <CardContent className="px-7 pb-7">
             {hasTierData ? (
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie data={tierBreakdown} cx="50%" cy="45%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={3}>
                     {tierBreakdown.map(e => <Cell key={e.name} fill={e.color} />)}
