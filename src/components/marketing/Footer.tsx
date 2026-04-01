@@ -37,7 +37,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-[hsl(222,47%,8%)] pt-16 pb-10">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-8">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-10 mb-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">

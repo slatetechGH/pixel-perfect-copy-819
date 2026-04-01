@@ -122,10 +122,10 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-3 mb-4"
             >
-              <Button variant="slate" size="lg" className="text-[15px] px-7 w-full sm:w-auto" onClick={() => navigate("/get-started")}>
+              <Button variant="slate" size="lg" className="text-[15px] px-7 w-full sm:w-auto h-12 min-h-[48px]" onClick={() => navigate("/get-started")}>
                 Get started
               </Button>
-              <Button variant="slate-outline" size="lg" className="text-[15px] px-7 w-full sm:w-auto" onClick={scrollToHowItWorks}>
+              <Button variant="slate-outline" size="lg" className="text-[15px] px-7 w-full sm:w-auto h-12 min-h-[48px]" onClick={scrollToHowItWorks}>
                 See how it works
               </Button>
             </motion.div>

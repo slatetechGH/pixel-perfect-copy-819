@@ -33,8 +33,8 @@ const PricingSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section id="pricing" className="py-24 md:py-32 bg-secondary">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-8">
+    <section id="pricing" className="py-16 md:py-32 bg-secondary">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8">
         <AnimatedSection>
           <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-amber mb-3 text-center">
             Pricing

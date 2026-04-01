@@ -35,7 +35,7 @@ const HowItWorks = () => (
         </h2>
       </AnimatedSection>
 
-      <div className="grid md:grid-cols-4 gap-10">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
         {steps.map((s, i) => (
           <AnimatedSection key={s.num} delay={i * 0.1}>
             <div className="relative">

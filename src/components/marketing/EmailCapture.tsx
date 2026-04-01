@@ -54,7 +54,7 @@ const EmailCapture = () => {
         ) : (
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-[28px] font-bold text-white mb-1">Stay in the loop.</h3>
+              <h3 className="text-[22px] md:text-[28px] font-bold text-white mb-1">Stay in the loop.</h3>
               <p className="text-[15px] text-slate-light">
                 Producer tips, platform updates, and early access to new features.
               </p>
