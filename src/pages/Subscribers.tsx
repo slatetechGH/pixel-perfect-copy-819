@@ -71,26 +71,28 @@ const Subscribers = () => {
       )}
       <Card className="border-0 shadow-card">
         <CardContent className="p-0">
-          <div className="p-5 border-b border-border flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="p-4 md:p-5 border-b border-border flex flex-col md:flex-row md:flex-wrap md:items-center gap-3">
+            <div className="relative flex-1 min-w-0 md:min-w-[200px] md:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email..." className="w-full h-10 pl-9 pr-3 rounded-lg border border-border bg-white text-[14px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email..." className="w-full h-11 pl-9 pr-3 rounded-lg border border-border bg-white text-[16px] placeholder:text-muted-foreground focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all" />
             </div>
-            <select value={planFilter} onChange={e => setPlanFilter(e.target.value)} className="h-10 px-3 rounded-lg border border-border bg-white text-[14px] appearance-none pr-8 focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all">
-              <option value="All">All Plans</option>
-              {plans.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
-            </select>
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="h-10 px-3 rounded-lg border border-border bg-white text-[14px] appearance-none pr-8 focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all">
-              <option value="All">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="paused">Paused</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-            <select value={sort} onChange={e => setSort(e.target.value)} className="h-10 px-3 rounded-lg border border-border bg-white text-[14px] appearance-none pr-8 focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all">
-              <option>Newest</option>
-              <option>Oldest</option>
-              <option>Alphabetical</option>
-            </select>
+            <div className="flex gap-2 flex-wrap">
+              <select value={planFilter} onChange={e => setPlanFilter(e.target.value)} className="h-11 px-3 rounded-lg border border-border bg-white text-[14px] appearance-none pr-8 focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all flex-1 md:flex-none">
+                <option value="All">All Plans</option>
+                {plans.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+              </select>
+              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="h-11 px-3 rounded-lg border border-border bg-white text-[14px] appearance-none pr-8 focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all flex-1 md:flex-none">
+                <option value="All">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="paused">Paused</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <select value={sort} onChange={e => setSort(e.target.value)} className="h-11 px-3 rounded-lg border border-border bg-white text-[14px] appearance-none pr-8 focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all flex-1 md:flex-none">
+                <option>Newest</option>
+                <option>Oldest</option>
+                <option>Alphabetical</option>
+              </select>
+            </div>
           </div>
 
           {filtered.length === 0 ? (
@@ -100,30 +102,51 @@ const Subscribers = () => {
               <p className="text-[14px] text-muted-foreground">Try a different search term</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    {["Name", "Email", "Plan", "Joined", "Status", "Revenue"].map(h => (
-                      <th key={h} className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((sub) => (
-                    <tr key={sub.id} className="border-b last:border-0 hover:bg-background/60 transition-colors duration-150 cursor-pointer" onClick={() => setSelected(sub.id)}>
-                      <td className="p-4 text-[15px] font-medium text-foreground">{sub.name}</td>
-                      <td className="p-4 text-[13px] text-muted-foreground">{sub.email}</td>
-                      <td className="p-4"><span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-secondary text-foreground">{sub.plan}</span></td>
-                      <td className="p-4 text-[13px] text-muted-foreground">{sub.joined}</td>
-                      <td className="p-4"><span className="flex items-center gap-2 text-[13px] text-muted-foreground capitalize"><span className={`h-2 w-2 rounded-full ${statusDot[sub.status]}`} />{sub.status}</span></td>
-                      <td className="p-4 text-[15px] font-medium text-foreground">{sub.revenue}</td>
-                      <td className="p-4"><ChevronDown size={16} className="text-muted-foreground" /></td>
+            <>
+              {/* Mobile card layout */}
+              <div className="md:hidden divide-y divide-border">
+                {filtered.map((sub) => (
+                  <button key={sub.id} className="w-full text-left p-4 hover:bg-background/60 transition-colors" onClick={() => setSelected(sub.id)}>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[16px] font-medium text-foreground">{sub.name}</p>
+                      <span className="flex items-center gap-1.5 text-[13px] text-muted-foreground capitalize">
+                        <span className={`h-2 w-2 rounded-full ${statusDot[sub.status]}`} />{sub.status}
+                      </span>
+                    </div>
+                    <p className="text-[14px] text-muted-foreground">{sub.email}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[12px] font-medium bg-secondary text-foreground">{sub.plan}</span>
+                      <span className="text-[14px] font-medium text-foreground">{sub.revenue}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      {["Name", "Email", "Plan", "Joined", "Status", "Revenue"].map(h => (
+                        <th key={h} className="text-left text-caption font-medium text-muted-foreground uppercase tracking-[0.05em] p-4">{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filtered.map((sub) => (
+                      <tr key={sub.id} className="border-b last:border-0 hover:bg-background/60 transition-colors duration-150 cursor-pointer" onClick={() => setSelected(sub.id)}>
+                        <td className="p-4 text-[15px] font-medium text-foreground">{sub.name}</td>
+                        <td className="p-4 text-[13px] text-muted-foreground">{sub.email}</td>
+                        <td className="p-4"><span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium bg-secondary text-foreground">{sub.plan}</span></td>
+                        <td className="p-4 text-[13px] text-muted-foreground">{sub.joined}</td>
+                        <td className="p-4"><span className="flex items-center gap-2 text-[13px] text-muted-foreground capitalize"><span className={`h-2 w-2 rounded-full ${statusDot[sub.status]}`} />{sub.status}</span></td>
+                        <td className="p-4 text-[15px] font-medium text-foreground">{sub.revenue}</td>
+                        <td className="p-4"><ChevronDown size={16} className="text-muted-foreground" /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
