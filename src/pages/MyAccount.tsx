@@ -754,7 +754,7 @@ function SubscriptionsTab({
                           <Button
                             size="sm" variant="outline"
                             className="text-xs gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
-                            onClick={() => onConfirm({ type: "cancel", subId: s.id })}
+                            onClick={() => onCancelFlow(sub)}
                             disabled={!!actionLoading}
                           >
                             <X className="w-3.5 h-3.5" /> Cancel Subscription
