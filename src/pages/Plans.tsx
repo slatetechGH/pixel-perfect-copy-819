@@ -235,6 +235,140 @@ const Plans = () => {
         </button>
       </div>
 
+      {/* Discount Codes Section */}
+      {!demoActive && (
+        <div className="mt-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Tag className="w-5 h-5 text-muted-foreground" />
+              <h2 className="text-lg font-bold text-foreground">Discount Codes</h2>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => { setShowDiscountForm(true); generateCode(); }}>
+              <Plus className="h-4 w-4 mr-1.5" /> Create Code
+            </Button>
+          </div>
+
+          {showDiscountForm && (
+            <Card className="mb-4 border-0 shadow-card">
+              <CardContent className="p-5 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Code</label>
+                    <div className="flex gap-2">
+                      <input
+                        value={dcCode}
+                        onChange={e => setDcCode(e.target.value.toUpperCase())}
+                        placeholder="e.g. FRESH20"
+                        className="flex-1 h-11 px-4 rounded-lg border border-border bg-white text-[16px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
+                      />
+                      <Button size="sm" variant="outline" onClick={generateCode} className="min-h-[44px]">Generate</Button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Discount Type</label>
+                    <select
+                      value={dcType}
+                      onChange={e => setDcType(e.target.value as "percentage" | "fixed")}
+                      className="w-full h-11 px-3 rounded-lg border border-border bg-white text-[14px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
+                    >
+                      <option value="percentage">Percentage off</option>
+                      <option value="fixed">Fixed amount off (£)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">
+                      Value ({dcType === "percentage" ? "%" : "£"})
+                    </label>
+                    <input
+                      type="number"
+                      value={dcValue}
+                      onChange={e => setDcValue(e.target.value)}
+                      placeholder={dcType === "percentage" ? "e.g. 20" : "e.g. 5"}
+                      className="w-full h-11 px-4 rounded-lg border border-border bg-white text-[16px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Max Uses (optional)</label>
+                    <input
+                      type="number"
+                      value={dcMaxUses}
+                      onChange={e => setDcMaxUses(e.target.value)}
+                      placeholder="Leave blank for unlimited"
+                      className="w-full h-11 px-4 rounded-lg border border-border bg-white text-[16px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[13px] font-medium text-muted-foreground block mb-1.5">Expires (optional)</label>
+                    <input
+                      type="date"
+                      value={dcExpires}
+                      onChange={e => setDcExpires(e.target.value)}
+                      className="w-full h-11 px-4 rounded-lg border border-border bg-white text-[16px] focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  💡 Also create this code in your <strong>Stripe Dashboard → Coupons</strong> to enable it at checkout.
+                </p>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setShowDiscountForm(false)}>Cancel</Button>
+                  <Button variant="slate" onClick={saveDiscount} disabled={dcSaving}>
+                    {dcSaving ? "Creating..." : "Create Code"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {discountCodes.length > 0 ? (
+            <div className="space-y-2">
+              {discountCodes.map(dc => (
+                <Card key={dc.id} className="border-0 shadow-card">
+                  <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <code className="text-sm font-bold text-foreground bg-muted px-2 py-1 rounded">{dc.code}</code>
+                      <span className="text-sm text-muted-foreground">
+                        {dc.discount_type === "percentage" ? `${dc.discount_value}% off` : `£${dc.discount_value} off`}
+                      </span>
+                      {dc.max_uses && (
+                        <span className="text-xs text-muted-foreground">{dc.current_uses}/{dc.max_uses} used</span>
+                      )}
+                      {dc.expires_at && new Date(dc.expires_at) < new Date() && (
+                        <span className="text-xs text-destructive font-medium">Expired</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(dc.code); toast.success("Code copied!"); }}
+                        className="p-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => toggleDiscount(dc)}
+                        className={`text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer transition-colors ${
+                          dc.active ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {dc.active ? "Active" : "Inactive"}
+                      </button>
+                      <button
+                        onClick={() => deleteDiscount(dc)}
+                        className="p-2 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : !showDiscountForm && (
+            <p className="text-sm text-muted-foreground">No discount codes yet. Create one to offer promotions to your customers.</p>
+          )}
+        </div>
+      )}
+
       {/* Editor Slide-Over */}
       <SlideOverPanel open={!!editing} onClose={() => setEditing(null)} title={isNew ? "Create Plan" : "Edit Plan"}>
         {editing && (
