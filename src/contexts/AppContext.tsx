@@ -387,7 +387,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const dbUpdates: Record<string, any> = {};
       if (updates.status !== undefined) dbUpdates.status = updates.status;
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
-      await supabase.from("leads").update(dbUpdates).eq("id", id);
+      await supabase.from("leads").update(dbUpdates as any).eq("id", id);
     }
   };
 
