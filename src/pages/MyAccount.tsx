@@ -81,6 +81,8 @@ const MyAccount = () => {
   const [expandedSub, setExpandedSub] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ type: "pause" | "cancel" | "delete_account"; subId?: string } | null>(null);
+  const [cancelFlowSub, setCancelFlowSub] = useState<SubscriptionCard | null>(null);
+  const [cancelFlowLoading, setCancelFlowLoading] = useState<"pause" | "cancel" | null>(null);
   const [portalLoading, setPortalLoading] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
