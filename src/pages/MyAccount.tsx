@@ -7,10 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   CreditCard, Loader2, ShoppingBag, Clock, Pause, Play, X, ExternalLink,
   Receipt, Settings, LogOut, ChevronRight, ChevronDown, ArrowUpRight,
-  User, KeyRound, Trash2, Store,
+  User, KeyRound, Trash2, Store, AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { CancellationFlow } from "@/components/CancellationFlow";
 import SlateLogo from "@/components/SlateLogo";
 import { format } from "date-fns";
 
