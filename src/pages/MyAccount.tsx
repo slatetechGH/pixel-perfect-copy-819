@@ -500,6 +500,7 @@ const MyAccount = () => {
             onChangePlan={handleChangePlan}
             onPortal={handlePortal}
             onConfirm={setConfirmAction}
+            onCancelFlow={setCancelFlowSub}
           />
         )}
 
