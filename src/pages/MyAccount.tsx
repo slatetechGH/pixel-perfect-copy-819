@@ -542,15 +542,6 @@ const MyAccount = () => {
         onConfirm={() => confirmAction?.subId && handleAction("pause", confirmAction.subId)}
       />
       <ConfirmDialog
-        open={confirmAction?.type === "cancel"}
-        onClose={() => setConfirmAction(null)}
-        title="Cancel subscription?"
-        description="Your subscription will be cancelled at the end of the current billing period. You'll keep access until then."
-        confirmText={actionLoading ? "Cancelling..." : "Cancel Subscription"}
-        onConfirm={() => confirmAction?.subId && handleAction("cancel", confirmAction.subId)}
-        destructive
-      />
-      <ConfirmDialog
         open={confirmAction?.type === "delete_account"}
         onClose={() => setConfirmAction(null)}
         title="Delete your account?"
@@ -558,6 +549,37 @@ const MyAccount = () => {
         confirmText="Delete Account"
         onConfirm={handleDeleteAccount}
         destructive
+      />
+      {/* Cancellation Flow */}
+      <CancellationFlow
+        open={!!cancelFlowSub}
+        onClose={() => { setCancelFlowSub(null); setCancelFlowLoading(null); }}
+        planName={cancelFlowSub?.subscriber.plan || ""}
+        businessName={cancelFlowSub?.producer.business_name || ""}
+        joinedAt={cancelFlowSub?.subscriber.joined_at || null}
+        benefits={cancelFlowSub?.currentPlan ? [] : []}
+        periodEnd={cancelFlowSub?.subscriber.current_period_end || null}
+        pauseLoading={cancelFlowLoading === "pause"}
+        cancelLoading={cancelFlowLoading === "cancel"}
+        onPause={async () => {
+          if (!cancelFlowSub) return;
+          setCancelFlowLoading("pause");
+          await handleAction("pause", cancelFlowSub.subscriber.id);
+          setCancelFlowSub(null);
+          setCancelFlowLoading(null);
+        }}
+        onCancel={async (reason, details) => {
+          if (!cancelFlowSub) return;
+          setCancelFlowLoading("cancel");
+          await handleAction("cancel", cancelFlowSub.subscriber.id);
+          // Log reason (best-effort)
+          try {
+            await supabase.from("subscribers").update({ cancellation_reason: `${reason}${details ? `: ${details}` : ""}` } as any).eq("id", cancelFlowSub.subscriber.id);
+          } catch { /* ignore */ }
+          setCancelFlowSub(null);
+          setCancelFlowLoading(null);
+        }}
+      />
       />
     </div>
   );
