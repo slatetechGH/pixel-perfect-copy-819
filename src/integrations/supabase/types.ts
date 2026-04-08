@@ -557,6 +557,60 @@ export type Database = {
           },
         ]
       }
+      discount_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          current_uses: number
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          producer_id: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          current_uses?: number
+          discount_type?: string
+          discount_value: number
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          producer_id: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          current_uses?: number
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          producer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_codes_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_codes_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drops: {
         Row: {
           created_at: string
@@ -915,6 +969,7 @@ export type Database = {
       }
       subscribers: {
         Row: {
+          cancellation_reason: string | null
           created_at: string
           current_period_end: string | null
           current_period_start: string | null
@@ -933,6 +988,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          cancellation_reason?: string | null
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
@@ -951,6 +1007,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          cancellation_reason?: string | null
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
@@ -988,6 +1045,7 @@ export type Database = {
       subscriptions: {
         Row: {
           amount_paid: number
+          cancellation_reason: string | null
           created_at: string
           current_period_end: string | null
           current_period_start: string | null
@@ -1004,6 +1062,7 @@ export type Database = {
         }
         Insert: {
           amount_paid?: number
+          cancellation_reason?: string | null
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
@@ -1020,6 +1079,7 @@ export type Database = {
         }
         Update: {
           amount_paid?: number
+          cancellation_reason?: string | null
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
