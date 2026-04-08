@@ -628,7 +628,10 @@ function SubscriptionsTab({
         const statusColor =
           s.status === "active" ? "bg-emerald-100 text-emerald-700" :
           s.status === "paused" ? "bg-amber-100 text-amber-700" :
+          s.status === "past_due" ? "bg-red-100 text-red-700" :
           "bg-red-100 text-red-700";
+
+        const statusLabel = s.status === "past_due" ? "Payment Failed" : s.status;
 
         return (
           <motion.div
