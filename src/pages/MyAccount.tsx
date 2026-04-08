@@ -580,7 +580,6 @@ const MyAccount = () => {
           setCancelFlowLoading(null);
         }}
       />
-      />
     </div>
   );
 };
