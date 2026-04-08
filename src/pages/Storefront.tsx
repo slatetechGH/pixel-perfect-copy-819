@@ -80,6 +80,10 @@ const Storefront = () => {
   const [drops, setDrops] = useState<StorefrontDrop[]>([]);
   const [content, setContent] = useState<StorefrontContent[]>([]);
   const [subscribingPlan, setSubscribingPlan] = useState<string | null>(null);
+  const [discountCode, setDiscountCode] = useState("");
+  const [discountApplied, setDiscountApplied] = useState<{ code: string; type: string; value: number } | null>(null);
+  const [discountError, setDiscountError] = useState("");
+  const [showDiscountInput, setShowDiscountInput] = useState(false);
 
   // Fetch all storefront data by slug — no auth required
   useEffect(() => {
@@ -476,6 +480,71 @@ const Storefront = () => {
             </div>
           </div>
         </section>
+      )}
+
+      {/* Discount code input */}
+      {plans.length > 0 && (
+        <div className="px-6 pb-4" style={{ backgroundColor: "#FAFAFA" }}>
+          <div className="max-w-5xl mx-auto text-center">
+            {!showDiscountInput ? (
+              <button
+                onClick={() => setShowDiscountInput(true)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer underline underline-offset-2"
+              >
+                Have a discount code?
+              </button>
+            ) : (
+              <div className="inline-flex flex-col sm:flex-row items-center gap-2 bg-white rounded-xl border border-border p-3">
+                <input
+                  value={discountCode}
+                  onChange={e => { setDiscountCode(e.target.value.toUpperCase()); setDiscountError(""); }}
+                  placeholder="Enter your code"
+                  className="h-11 px-4 rounded-lg border border-border bg-white text-[16px] text-center focus:outline-none focus:border-foreground focus:ring-[3px] focus:ring-foreground/10 transition-all w-48"
+                />
+                <Button
+                  size="sm"
+                  className="min-h-[44px]"
+                  style={{ backgroundColor: accentColor, color: "#fff" }}
+                  onClick={async () => {
+                    if (!discountCode || !profile) return;
+                    const { data, error } = await supabase
+                      .from("discount_codes")
+                      .select("*")
+                      .eq("code", discountCode.toUpperCase())
+                      .eq("producer_id", profile.id)
+                      .eq("active", true)
+                      .single();
+                    if (error || !data) {
+                      setDiscountError("Invalid or expired code");
+                      setDiscountApplied(null);
+                    } else {
+                      const dc = data as any;
+                      if (dc.max_uses && dc.current_uses >= dc.max_uses) {
+                        setDiscountError("This code has reached its usage limit");
+                        setDiscountApplied(null);
+                      } else if (dc.expires_at && new Date(dc.expires_at) < new Date()) {
+                        setDiscountError("This code has expired");
+                        setDiscountApplied(null);
+                      } else {
+                        setDiscountApplied({ code: dc.code, type: dc.discount_type, value: dc.discount_value });
+                        setDiscountError("");
+                        toast.success(`Code ${dc.code} applied! Enter it at checkout to receive your discount.`);
+                      }
+                    }
+                  }}
+                >
+                  Apply
+                </Button>
+              </div>
+            )}
+            {discountError && <p className="text-xs text-destructive mt-2">{discountError}</p>}
+            {discountApplied && (
+              <p className="text-sm font-medium mt-2" style={{ color: accentColor }}>
+                ✓ {discountApplied.type === "percentage" ? `${discountApplied.value}% off` : `£${discountApplied.value} off`} with code {discountApplied.code} — enter this code at checkout
+              </p>
+            )}
+          </div>
+        </div>
       )}
 
       {/* ===== SECTION D: Upcoming Drops ===== */}
