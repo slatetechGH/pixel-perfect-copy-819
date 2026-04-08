@@ -440,6 +440,34 @@ const MyAccount = () => {
           )}
         </AnimatePresence>
 
+        {/* Past due payment banner */}
+        {subscriptions.some(s => s.subscriber.status === "past_due") && (
+          <div className="mb-6 rounded-xl bg-destructive/10 border border-destructive/20 p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-destructive">Payment failed</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  One or more of your subscriptions has a failed payment. Please update your payment method to keep your subscriptions active.
+                </p>
+                {subscriptions.filter(s => s.subscriber.status === "past_due").map(sub => (
+                  <div key={sub.subscriber.id} className="mt-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="text-xs gap-1.5"
+                      onClick={() => handlePortal(sub.subscriber.id)}
+                    >
+                      <CreditCard className="w-3.5 h-3.5" />
+                      Update payment for {sub.producer.business_name}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">My Account</h1>
         <p className="text-sm text-muted-foreground mb-6">Manage all your subscriptions in one place</p>
 
