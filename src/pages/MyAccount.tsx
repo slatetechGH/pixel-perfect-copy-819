@@ -7,10 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   CreditCard, Loader2, ShoppingBag, Clock, Pause, Play, X, ExternalLink,
   Receipt, Settings, LogOut, ChevronRight, ChevronDown, ArrowUpRight,
-  User, KeyRound, Trash2, Store,
+  User, KeyRound, Trash2, Store, AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { CancellationFlow } from "@/components/CancellationFlow";
 import SlateLogo from "@/components/SlateLogo";
 import { format } from "date-fns";
 
@@ -80,6 +81,8 @@ const MyAccount = () => {
   const [expandedSub, setExpandedSub] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ type: "pause" | "cancel" | "delete_account"; subId?: string } | null>(null);
+  const [cancelFlowSub, setCancelFlowSub] = useState<SubscriptionCard | null>(null);
+  const [cancelFlowLoading, setCancelFlowLoading] = useState<"pause" | "cancel" | null>(null);
   const [portalLoading, setPortalLoading] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -437,6 +440,34 @@ const MyAccount = () => {
           )}
         </AnimatePresence>
 
+        {/* Past due payment banner */}
+        {subscriptions.some(s => s.subscriber.status === "past_due") && (
+          <div className="mb-6 rounded-xl bg-destructive/10 border border-destructive/20 p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-destructive">Payment failed</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  One or more of your subscriptions has a failed payment. Please update your payment method to keep your subscriptions active.
+                </p>
+                {subscriptions.filter(s => s.subscriber.status === "past_due").map(sub => (
+                  <div key={sub.subscriber.id} className="mt-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="text-xs gap-1.5"
+                      onClick={() => handlePortal(sub.subscriber.id)}
+                    >
+                      <CreditCard className="w-3.5 h-3.5" />
+                      Update payment for {sub.producer.business_name}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">My Account</h1>
         <p className="text-sm text-muted-foreground mb-6">Manage all your subscriptions in one place</p>
 
@@ -469,6 +500,7 @@ const MyAccount = () => {
             onChangePlan={handleChangePlan}
             onPortal={handlePortal}
             onConfirm={setConfirmAction}
+            onCancelFlow={setCancelFlowSub}
           />
         )}
 
@@ -511,15 +543,6 @@ const MyAccount = () => {
         onConfirm={() => confirmAction?.subId && handleAction("pause", confirmAction.subId)}
       />
       <ConfirmDialog
-        open={confirmAction?.type === "cancel"}
-        onClose={() => setConfirmAction(null)}
-        title="Cancel subscription?"
-        description="Your subscription will be cancelled at the end of the current billing period. You'll keep access until then."
-        confirmText={actionLoading ? "Cancelling..." : "Cancel Subscription"}
-        onConfirm={() => confirmAction?.subId && handleAction("cancel", confirmAction.subId)}
-        destructive
-      />
-      <ConfirmDialog
         open={confirmAction?.type === "delete_account"}
         onClose={() => setConfirmAction(null)}
         title="Delete your account?"
@@ -527,6 +550,36 @@ const MyAccount = () => {
         confirmText="Delete Account"
         onConfirm={handleDeleteAccount}
         destructive
+      />
+      {/* Cancellation Flow */}
+      <CancellationFlow
+        open={!!cancelFlowSub}
+        onClose={() => { setCancelFlowSub(null); setCancelFlowLoading(null); }}
+        planName={cancelFlowSub?.subscriber.plan || ""}
+        businessName={cancelFlowSub?.producer.business_name || ""}
+        joinedAt={cancelFlowSub?.subscriber.joined_at || null}
+        benefits={cancelFlowSub?.currentPlan ? [] : []}
+        periodEnd={cancelFlowSub?.subscriber.current_period_end || null}
+        pauseLoading={cancelFlowLoading === "pause"}
+        cancelLoading={cancelFlowLoading === "cancel"}
+        onPause={async () => {
+          if (!cancelFlowSub) return;
+          setCancelFlowLoading("pause");
+          await handleAction("pause", cancelFlowSub.subscriber.id);
+          setCancelFlowSub(null);
+          setCancelFlowLoading(null);
+        }}
+        onCancel={async (reason, details) => {
+          if (!cancelFlowSub) return;
+          setCancelFlowLoading("cancel");
+          await handleAction("cancel", cancelFlowSub.subscriber.id);
+          // Log reason (best-effort)
+          try {
+            await supabase.from("subscribers").update({ cancellation_reason: `${reason}${details ? `: ${details}` : ""}` } as any).eq("id", cancelFlowSub.subscriber.id);
+          } catch { /* ignore */ }
+          setCancelFlowSub(null);
+          setCancelFlowLoading(null);
+        }}
       />
     </div>
   );
@@ -536,7 +589,7 @@ const MyAccount = () => {
 
 function SubscriptionsTab({
   subscriptions, expandedSub, setExpandedSub, actionLoading, portalLoading,
-  onAction, onChangePlan, onPortal, onConfirm,
+  onAction, onChangePlan, onPortal, onConfirm, onCancelFlow,
 }: {
   subscriptions: SubscriptionCard[];
   expandedSub: string | null;
@@ -547,6 +600,7 @@ function SubscriptionsTab({
   onChangePlan: (subId: string, planId: string) => void;
   onPortal: (subId: string) => void;
   onConfirm: (action: { type: "pause" | "cancel"; subId: string } | null) => void;
+  onCancelFlow: (sub: SubscriptionCard) => void;
 }) {
   const navigate = useNavigate();
 
@@ -574,7 +628,10 @@ function SubscriptionsTab({
         const statusColor =
           s.status === "active" ? "bg-emerald-100 text-emerald-700" :
           s.status === "paused" ? "bg-amber-100 text-amber-700" :
+          s.status === "past_due" ? "bg-red-100 text-red-700" :
           "bg-red-100 text-red-700";
+
+        const statusLabel = s.status === "past_due" ? "Payment Failed" : s.status;
 
         return (
           <motion.div
@@ -605,7 +662,7 @@ function SubscriptionsTab({
                   </p>
                 </div>
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full capitalize shrink-0 ${statusColor}`}>
-                  {s.status}
+                  {statusLabel}
                 </span>
               </div>
 
@@ -697,7 +754,7 @@ function SubscriptionsTab({
                           <Button
                             size="sm" variant="outline"
                             className="text-xs gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
-                            onClick={() => onConfirm({ type: "cancel", subId: s.id })}
+                            onClick={() => onCancelFlow(sub)}
                             disabled={!!actionLoading}
                           >
                             <X className="w-3.5 h-3.5" /> Cancel Subscription

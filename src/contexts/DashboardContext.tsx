@@ -72,7 +72,7 @@ export interface Subscriber {
   email: string;
   phone: string;
   plan: string;
-  status: "active" | "paused" | "cancelled";
+  status: "active" | "paused" | "cancelled" | "past_due";
   joined: string;
   revenue: string;
 }

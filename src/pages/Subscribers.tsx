@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 const statusDot: Record<string, string> = {
-  active: "bg-success", paused: "bg-amber", cancelled: "bg-destructive/80",
+  active: "bg-success", paused: "bg-amber", cancelled: "bg-destructive/80", past_due: "bg-destructive",
 };
 
 const Subscribers = () => {
@@ -69,6 +69,24 @@ const Subscribers = () => {
       {isFree && isNearSubscriberLimit && (
         <UpgradeBanner message={`You're at ${subscriberCount} of ${maxSubscribers} subscribers. Upgrade to Standard before you hit the limit.`} />
       )}
+      {/* Failed payment warning */}
+      {(() => {
+        const pastDueCount = subscribers.filter(s => s.status === "past_due").length;
+        if (pastDueCount === 0) return null;
+        return (
+          <div className="mb-4 rounded-xl bg-destructive/10 border border-destructive/20 p-4 flex items-start gap-3">
+            <span className="text-destructive text-lg mt-0.5">⚠️</span>
+            <div>
+              <p className="text-sm font-semibold text-destructive">
+                {pastDueCount} subscriber{pastDueCount > 1 ? "s" : ""} ha{pastDueCount > 1 ? "ve" : "s"} failed payments
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                They've been notified to update their payment method.
+              </p>
+            </div>
+          </div>
+        );
+      })()}
       <Card className="border-0 shadow-card">
         <CardContent className="p-0">
           <div className="p-4 md:p-5 border-b border-border flex flex-col md:flex-row md:flex-wrap md:items-center gap-3">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Users, CreditCard, FileText, Zap, Megaphone, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield, HelpCircle, ClipboardCheck, Sparkles,
+  LayoutDashboard, Users, CreditCard, FileText, Zap, Megaphone, BarChart3, Settings, LogOut, UserPlus, ExternalLink, Wand2, ShieldCheck, Building2, PoundSterling, Calendar, Shield, HelpCircle, ClipboardCheck, Sparkles, QrCode,
 } from "lucide-react";
 import { useTierLimits } from "@/hooks/useTierLimits";
 import { NavLink } from "@/components/NavLink";
@@ -28,6 +28,7 @@ const producerNavItems = [
   { title: "Product Drops", url: "/dashboard/drops", icon: Zap },
   { title: "Broadcasts", url: "/dashboard/broadcasts", icon: Megaphone },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
+  { title: "Share My Slate", url: "/dashboard/share", icon: QrCode },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
 ];
 

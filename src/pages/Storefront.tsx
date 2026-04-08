@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import SlateLogo from "@/components/SlateLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/contexts/AppContext";
+import { QRCodeSVG } from "qrcode.react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -613,29 +614,36 @@ const Storefront = () => {
 
       {/* ===== SECTION F: Footer ===== */}
       <footer className="border-t border-border py-10 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-center md:text-left">
-            <p className="text-sm font-semibold text-foreground">{profile.business_name}</p>
-            {socialLinks.length > 0 && (
-              <div className="flex items-center gap-3 mt-2 justify-center md:justify-start">
-                {socialLinks.map(link => (
-                  <a
-                    key={link.label}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                  </a>
-                ))}
-              </div>
-            )}
+        <div className="max-w-5xl mx-auto flex flex-col items-center gap-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
+            <div className="text-center md:text-left">
+              <p className="text-sm font-semibold text-foreground">{profile.business_name}</p>
+              {socialLinks.length > 0 && (
+                <div className="flex items-center gap-3 mt-2 justify-center md:justify-start">
+                  {socialLinks.map(link => (
+                    <a
+                      key={link.label}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+            <a href="/" className="flex items-center gap-1.5 opacity-40 hover:opacity-60 transition-opacity">
+              <span className="text-xs text-muted-foreground">Powered by</span>
+              <SlateLogo size={12} asLink={false} />
+            </a>
           </div>
-          <a href="/" className="flex items-center gap-1.5 opacity-40 hover:opacity-60 transition-opacity">
-            <span className="text-xs text-muted-foreground">Powered by</span>
-            <SlateLogo size={12} asLink={false} />
-          </a>
+          {/* QR Code */}
+          <div className="flex flex-col items-center gap-2 pt-4 border-t border-border w-full">
+            <QRCodeSVG value={`https://slatetech.co.uk/store/${profile.url_slug || businessSlug}`} size={80} level="M" />
+            <p className="text-xs text-muted-foreground">Scan to subscribe</p>
+          </div>
         </div>
       </footer>
     </div>
