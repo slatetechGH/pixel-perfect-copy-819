@@ -1,0 +1,1 @@
+WARNING: The edge functions in /supabase/functions/ have been manually deployed to Supabase and modified directly. The code in this repository may NOT match what is deployed. DO NOT redeploy edge functions through Lovable or GitHub — this will overwrite working code with broken versions. Edge functions must only be edited directly in the Supabase dashboard.
