@@ -33,12 +33,80 @@ const emptyPlan: Omit<Plan, "id"> = {
 const Plans = () => {
   const { plans, setPlans } = useDashboard();
   const { isFree, isAtPlanLimit } = useTierLimits();
+  const { session, demoActive } = useApp();
   const [editing, setEditing] = useState<Plan | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<Plan | null>(null);
   const [toggleConfirm, setToggleConfirm] = useState<Plan | null>(null);
   const [saving, setSaving] = useState(false);
   const [priceInput, setPriceInput] = useState("");
+
+  // Discount codes state
+  const [discountCodes, setDiscountCodes] = useState<DiscountCode[]>([]);
+  const [showDiscountForm, setShowDiscountForm] = useState(false);
+  const [dcCode, setDcCode] = useState("");
+  const [dcType, setDcType] = useState<"percentage" | "fixed">("percentage");
+  const [dcValue, setDcValue] = useState("");
+  const [dcMaxUses, setDcMaxUses] = useState("");
+  const [dcExpires, setDcExpires] = useState("");
+  const [dcSaving, setDcSaving] = useState(false);
+
+  // Fetch discount codes
+  useEffect(() => {
+    if (!session.supabaseUser?.id || demoActive) return;
+    supabase
+      .from("discount_codes")
+      .select("*")
+      .eq("producer_id", session.supabaseUser.id)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (data) setDiscountCodes(data as DiscountCode[]);
+      });
+  }, [session.supabaseUser?.id, demoActive]);
+
+  const generateCode = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let code = "";
+    for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    setDcCode(code);
+  };
+
+  const saveDiscount = async () => {
+    if (!dcCode || !dcValue || !session.supabaseUser?.id) {
+      toast.error("Code and value are required");
+      return;
+    }
+    setDcSaving(true);
+    const { data, error } = await supabase.from("discount_codes").insert({
+      producer_id: session.supabaseUser.id,
+      code: dcCode.toUpperCase(),
+      discount_type: dcType,
+      discount_value: parseInt(dcValue),
+      max_uses: dcMaxUses ? parseInt(dcMaxUses) : null,
+      expires_at: dcExpires || null,
+    } as any).select().single();
+    if (error) {
+      toast.error("Failed to create discount code");
+    } else if (data) {
+      setDiscountCodes(prev => [data as DiscountCode, ...prev]);
+      toast.success("Discount code created! Remember to also create this code in your Stripe Dashboard → Coupons to enable it at checkout.");
+      setShowDiscountForm(false);
+      setDcCode(""); setDcValue(""); setDcMaxUses(""); setDcExpires("");
+    }
+    setDcSaving(false);
+  };
+
+  const toggleDiscount = async (dc: DiscountCode) => {
+    await supabase.from("discount_codes").update({ active: !dc.active } as any).eq("id", dc.id);
+    setDiscountCodes(prev => prev.map(d => d.id === dc.id ? { ...d, active: !d.active } : d));
+    toast.success(dc.active ? "Code deactivated" : "Code activated");
+  };
+
+  const deleteDiscount = async (dc: DiscountCode) => {
+    await supabase.from("discount_codes").delete().eq("id", dc.id);
+    setDiscountCodes(prev => prev.filter(d => d.id !== dc.id));
+    toast.success("Code deleted");
+  };
 
   const openEditor = (plan?: Plan) => {
     if (!plan && isFree && isAtPlanLimit) {
