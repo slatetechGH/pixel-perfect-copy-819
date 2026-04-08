@@ -589,7 +589,7 @@ const MyAccount = () => {
 
 function SubscriptionsTab({
   subscriptions, expandedSub, setExpandedSub, actionLoading, portalLoading,
-  onAction, onChangePlan, onPortal, onConfirm,
+  onAction, onChangePlan, onPortal, onConfirm, onCancelFlow,
 }: {
   subscriptions: SubscriptionCard[];
   expandedSub: string | null;
@@ -600,6 +600,7 @@ function SubscriptionsTab({
   onChangePlan: (subId: string, planId: string) => void;
   onPortal: (subId: string) => void;
   onConfirm: (action: { type: "pause" | "cancel"; subId: string } | null) => void;
+  onCancelFlow: (sub: SubscriptionCard) => void;
 }) {
   const navigate = useNavigate();
 
