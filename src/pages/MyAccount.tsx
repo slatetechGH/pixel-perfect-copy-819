@@ -662,7 +662,7 @@ function SubscriptionsTab({
                   </p>
                 </div>
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full capitalize shrink-0 ${statusColor}`}>
-                  {s.status}
+                  {statusLabel}
                 </span>
               </div>
 
