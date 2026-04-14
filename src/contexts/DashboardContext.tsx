@@ -657,120 +657,163 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       const exists = prev.some(p => p.id === plan.id);
       return exists ? prev.map(p => p.id === plan.id ? plan : p) : [...prev, plan];
     });
-    if (!demoActive && producerId) {
-      const { error } = await supabase.from("plans").upsert(planToRow(plan, producerId) as any);
-      if (error) {
-        console.error("Failed to save plan:", error.message);
-        toast.error("Failed to save plan: " + error.message);
-      }
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) {
+      console.error("Cannot save plan — no producerId available");
+      toast.error("Failed to save plan — please refresh and try again");
+      return;
     }
-  }, [demoActive, producerId]);
+    const { error } = await supabase.from("plans").upsert(planToRow(plan, pid) as any);
+    if (error) {
+      console.error("Failed to save plan:", error.message, error.details, error.hint);
+      toast.error("Failed to save plan: " + error.message);
+    } else {
+      toast.success("Plan saved!");
+    }
+  }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const removePlan = useCallback(async (id: string) => {
     setPlans(prev => prev.filter(p => p.id !== id));
-    if (!demoActive && producerId) {
-      await supabase.from("plans").delete().eq("id", id);
-    }
-  }, [demoActive, producerId]);
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) return;
+    await supabase.from("plans").delete().eq("id", id);
+  }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const saveDrop = useCallback(async (drop: Drop) => {
     setDrops(prev => {
       const exists = prev.some(d => d.id === drop.id);
       return exists ? prev.map(d => d.id === drop.id ? drop : d) : [...prev, drop];
     });
-    if (!demoActive && producerId) {
-      const { error } = await supabase.from("drops").upsert(dropToRow(drop, producerId) as any);
-      if (error) {
-        console.error("Failed to save drop:", error.message);
-        toast.error("Failed to save drop: " + error.message);
-      }
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) {
+      console.error("Cannot save drop — no producerId available");
+      toast.error("Failed to save drop — please refresh and try again");
+      return;
     }
-  }, [demoActive, producerId]);
+    const { error } = await supabase.from("drops").upsert(dropToRow(drop, pid) as any);
+    if (error) {
+      console.error("Failed to save drop:", error.message);
+      toast.error("Failed to save drop: " + error.message);
+    } else {
+      toast.success("Drop saved!");
+    }
+  }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const removeDrop = useCallback(async (id: string) => {
     setDrops(prev => prev.filter(d => d.id !== id));
-    if (!demoActive && producerId) {
-      await supabase.from("drops").delete().eq("id", id);
-    }
-  }, [demoActive, producerId]);
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) return;
+    await supabase.from("drops").delete().eq("id", id);
+  }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const saveContent = useCallback(async (item: ContentItem) => {
     setContent(prev => {
       const exists = prev.some(c => c.id === item.id);
       return exists ? prev.map(c => c.id === item.id ? item : c) : [...prev, item];
     });
-    if (!demoActive && producerId) {
-      const { error } = await supabase.from("content").upsert(contentToRow(item, producerId) as any);
-      if (error) {
-        console.error("Failed to save content:", error.message);
-        toast.error("Failed to save content: " + error.message);
-      }
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) {
+      console.error("Cannot save content — no producerId available");
+      toast.error("Failed to save content — please refresh and try again");
+      return;
     }
-  }, [demoActive, producerId]);
+    const { error } = await supabase.from("content").upsert(contentToRow(item, pid) as any);
+    if (error) {
+      console.error("Failed to save content:", error.message);
+      toast.error("Failed to save content: " + error.message);
+    } else {
+      toast.success("Content saved!");
+    }
+  }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const removeContent = useCallback(async (id: string) => {
     setContent(prev => prev.filter(c => c.id !== id));
-    if (!demoActive && producerId) {
-      await supabase.from("content").delete().eq("id", id);
-    }
-  }, [demoActive, producerId]);
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) return;
+    await supabase.from("content").delete().eq("id", id);
+  }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const saveSubscriber = useCallback(async (sub: Subscriber) => {
     setSubscribers(prev => {
       const exists = prev.some(s => s.id === sub.id);
       return exists ? prev.map(s => s.id === sub.id ? sub : s) : [...prev, sub];
     });
-    if (!demoActive && producerId) {
-      const { error } = await supabase.from("subscribers").upsert(subscriberToRow(sub, producerId) as any);
-      if (error) {
-        console.error("Failed to save subscriber:", error.message);
-        toast.error("Failed to save subscriber: " + error.message);
-      }
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) {
+      console.error("Cannot save subscriber — no producerId available");
+      toast.error("Failed to save subscriber — please refresh and try again");
+      return;
     }
-  }, [demoActive, producerId]);
+    const { error } = await supabase.from("subscribers").upsert(subscriberToRow(sub, pid) as any);
+    if (error) {
+      console.error("Failed to save subscriber:", error.message);
+      toast.error("Failed to save subscriber: " + error.message);
+    }
+  }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const updateSubscriber = useCallback(async (id: string, updates: Partial<Subscriber>) => {
     setSubscribers(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
-    if (!demoActive && producerId) {
-      const sub = subscribers.find(s => s.id === id);
-      if (sub) {
-        const updated = { ...sub, ...updates };
-        await supabase.from("subscribers").upsert(subscriberToRow(updated, producerId) as any);
-      }
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) return;
+    const sub = subscribers.find(s => s.id === id);
+    if (sub) {
+      const updated = { ...sub, ...updates };
+      await supabase.from("subscribers").upsert(subscriberToRow(updated, pid) as any);
     }
-  }, [demoActive, producerId, subscribers]);
+  }, [demoActive, producerId, session.supabaseUser?.id, subscribers]);
 
   const removeSubscriber = useCallback(async (id: string) => {
     setSubscribers(prev => prev.filter(s => s.id !== id));
-    if (!demoActive && producerId) {
-      await supabase.from("subscribers").delete().eq("id", id);
-    }
-  }, [demoActive, producerId]);
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) return;
+    await supabase.from("subscribers").delete().eq("id", id);
+  }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const sendMessage = useCallback(async (conversationId: string, text: string) => {
     const msg: Message = { id: crypto.randomUUID(), text: text.trim(), sender: "producer", time: "Just now" };
     setConversations(prev => prev.map(c =>
       c.id === conversationId ? { ...c, messages: [...c.messages, msg] } : c
     ));
-    if (!demoActive && producerId) {
-      await supabase.from("messages").insert(messageToRow(msg, conversationId) as any);
-    }
-  }, [demoActive, producerId]);
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) return;
+    await supabase.from("messages").insert(messageToRow(msg, conversationId) as any);
+  }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const markRead = useCallback(async (conversationId: string) => {
     setConversations(prev => prev.map(c =>
       c.id === conversationId ? { ...c, unread: false } : c
     ));
-    if (!demoActive && producerId) {
-      await supabase.from("conversations").update({ unread: false } as any).eq("id", conversationId);
-    }
-  }, [demoActive, producerId]);
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) return;
+    await supabase.from("conversations").update({ unread: false } as any).eq("id", conversationId);
+  }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const saveSettingsFn = useCallback(async () => {
-    if (!demoActive && producerId) {
-      await supabase.from("profiles").update(settingsToProfile(settings) as any).eq("id", producerId);
+    if (demoActive) return;
+    const pid = producerId || session.supabaseUser?.id;
+    if (!pid) {
+      toast.error("Failed to save settings — please refresh and try again");
+      return;
     }
-  }, [demoActive, producerId, settings]);
+    const { error } = await supabase.from("profiles").update(settingsToProfile(settings) as any).eq("id", pid);
+    if (error) {
+      console.error("Failed to save settings:", error.message);
+      toast.error("Failed to save settings: " + error.message);
+    } else {
+      toast.success("Settings saved!");
+    }
+  }, [demoActive, producerId, session.supabaseUser?.id, settings]);
 
   // ===== RESET TO DEFAULTS (demo mode) =====
   const resetToDefaults = useCallback(() => {
