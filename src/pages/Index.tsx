@@ -56,11 +56,11 @@ const DashboardHome = () => {
       title="Dashboard"
       subtitle={`${settings.businessName} — Overview`}
       actions={
-        <div className="flex gap-3">
-          <Button variant="outline" size="sm" className="text-[14px] font-medium" onClick={() => navigate("/dashboard/drops")}>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button variant="outline" size="sm" className="text-[14px] font-medium min-h-[44px] w-full sm:w-auto" onClick={() => navigate("/dashboard/drops")}>
             <Zap className="h-4 w-4 mr-1.5" />New Drop
           </Button>
-          <Button size="sm" className="text-[14px] font-medium" onClick={() => navigate("/dashboard/content")}>
+          <Button size="sm" className="text-[14px] font-medium min-h-[44px] w-full sm:w-auto" onClick={() => navigate("/dashboard/content")}>
             <FileText className="h-4 w-4 mr-1.5" />Post Recipe
           </Button>
         </div>
@@ -68,16 +68,16 @@ const DashboardHome = () => {
     >
       {/* Storefront URL banner */}
       {storefrontSlug && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-7 px-5 py-4 rounded-xl border border-border bg-card">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-7 px-4 sm:px-5 py-4 rounded-xl border border-border bg-card">
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-medium text-muted-foreground">Share your storefront</p>
             <p className="text-[14px] font-medium text-foreground truncate">{storefrontUrl}</p>
           </div>
-          <div className="flex gap-2 shrink-0">
-            <Button variant="outline" size="sm" onClick={copyStorefrontUrl}>
+          <div className="flex gap-2 shrink-0 w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-initial min-h-[44px]" onClick={copyStorefrontUrl}>
               <Copy className="h-3.5 w-3.5 mr-1.5" />Copy
             </Button>
-            <Button variant="outline" size="sm" onClick={() => window.open(`/store/${storefrontSlug}`, "_blank")}>
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-initial min-h-[44px]" onClick={() => window.open(`/store/${storefrontSlug}`, "_blank")}>
               <ExternalLink className="h-3.5 w-3.5 mr-1.5" />View
             </Button>
           </div>

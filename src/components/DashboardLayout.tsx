@@ -168,7 +168,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
                   <div className="flex items-center gap-2">
                     <SidebarTrigger className="text-muted-foreground -ml-2 mr-1" />
                     <h1
-                      className="font-bold text-foreground leading-tight truncate"
+                      className="font-bold text-foreground leading-tight break-words"
                       style={{ fontSize: demoActive && isDashboardHome ? 28 : 24 }}
                     >
                       {displayTitle}
