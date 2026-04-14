@@ -290,18 +290,27 @@ const Storefront = () => {
   return (
     <div className="min-h-screen bg-white" style={{ "--store-accent": accentColor } as React.CSSProperties}>
       {/* Top nav bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-end px-6 py-4">
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-end px-4 sm:px-6 py-4">
         {session.isLoggedIn && session.role === "customer" ? (
           <Link
             to={`/store/${businessSlug}/account`}
-            className="flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white transition-colors"
+            className="flex items-center gap-2 min-h-[44px] px-5 py-2.5 rounded-lg text-[15px] font-semibold transition-colors shadow-sm"
+            style={{
+              backgroundColor: accentColor,
+              color: "#fff",
+            }}
           >
             <User className="w-4 h-4" /> My Account
           </Link>
         ) : (
           <Link
             to={`/store/${businessSlug}/join`}
-            className="flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white transition-colors"
+            className="flex items-center gap-2 min-h-[44px] px-5 py-2.5 rounded-lg text-[15px] font-semibold transition-colors shadow-sm"
+            style={{
+              backgroundColor: "#fff",
+              color: "#1E293B",
+              border: "1.5px solid #CBD5E1",
+            }}
           >
             <User className="w-4 h-4" /> Log In
           </Link>
