@@ -686,16 +686,16 @@ function SubscriptionsTab({
               )}
 
               {/* Quick actions */}
-              <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-2 pt-3 border-t border-border">
                 {p.url_slug && (
-                  <Button size="sm" variant="outline" className="text-xs gap-1.5" asChild>
+                  <Button size="sm" variant="outline" className="text-xs gap-1.5 min-h-[44px] w-full sm:w-auto" asChild>
                     <a href={`/store/${p.url_slug}`} target="_blank" rel="noopener noreferrer">
                       <ArrowUpRight className="w-3.5 h-3.5" /> View Storefront
                     </a>
                   </Button>
                 )}
                 <Button
-                  size="sm" variant="outline" className="text-xs gap-1.5"
+                  size="sm" variant="outline" className="text-xs gap-1.5 min-h-[44px] w-full sm:w-auto"
                   onClick={() => setExpandedSub(isExpanded ? null : s.id)}
                 >
                   <Settings className="w-3.5 h-3.5" />
@@ -741,11 +741,11 @@ function SubscriptionsTab({
                     )}
 
                     {/* Subscription actions */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-2">
                       {s.status === "active" && (
                         <>
                           <Button
-                            size="sm" variant="outline" className="text-xs gap-1.5"
+                            size="sm" variant="outline" className="text-xs gap-1.5 min-h-[44px] w-full sm:w-auto"
                             onClick={() => onConfirm({ type: "pause", subId: s.id })}
                             disabled={!!actionLoading}
                           >
@@ -753,7 +753,7 @@ function SubscriptionsTab({
                           </Button>
                           <Button
                             size="sm" variant="outline"
-                            className="text-xs gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
+                            className="text-xs gap-1.5 min-h-[44px] w-full sm:w-auto text-destructive border-destructive/30 hover:bg-destructive/10"
                             onClick={() => onCancelFlow(sub)}
                             disabled={!!actionLoading}
                           >
@@ -763,7 +763,7 @@ function SubscriptionsTab({
                       )}
                       {s.status === "paused" && (
                         <Button
-                          size="sm" variant="outline" className="text-xs gap-1.5"
+                          size="sm" variant="outline" className="text-xs gap-1.5 min-h-[44px] w-full sm:w-auto"
                           onClick={() => onAction("resume", s.id)}
                           disabled={!!actionLoading}
                         >

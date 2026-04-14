@@ -290,18 +290,27 @@ const Storefront = () => {
   return (
     <div className="min-h-screen bg-white" style={{ "--store-accent": accentColor } as React.CSSProperties}>
       {/* Top nav bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-end px-6 py-4">
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-end px-4 sm:px-6 py-4">
         {session.isLoggedIn && session.role === "customer" ? (
           <Link
             to={`/store/${businessSlug}/account`}
-            className="flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white transition-colors"
+            className="flex items-center gap-2 min-h-[44px] px-5 py-2.5 rounded-lg text-[15px] font-semibold transition-colors shadow-sm"
+            style={{
+              backgroundColor: accentColor,
+              color: "#fff",
+            }}
           >
             <User className="w-4 h-4" /> My Account
           </Link>
         ) : (
           <Link
             to={`/store/${businessSlug}/join`}
-            className="flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white transition-colors"
+            className="flex items-center gap-2 min-h-[44px] px-5 py-2.5 rounded-lg text-[15px] font-semibold transition-colors shadow-sm"
+            style={{
+              backgroundColor: "#fff",
+              color: "#1E293B",
+              border: "1.5px solid #CBD5E1",
+            }}
           >
             <User className="w-4 h-4" /> Log In
           </Link>
@@ -414,13 +423,13 @@ const Storefront = () => {
               Choose Your Plan
             </motion.h2>
 
-            <div className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-3 md:overflow-visible md:pb-0">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {plans.map((plan, i) => {
                 const isPopular = plan.name === mostPopularName;
                 return (
                   <motion.div
                     key={plan.id}
-                    className="snap-center shrink-0 w-[280px] md:w-auto bg-white rounded-2xl border p-6 flex flex-col relative"
+                    className="bg-white rounded-2xl border p-5 sm:p-6 flex flex-col relative"
                     style={{
                       borderColor: isPopular ? accentColor : "hsl(214, 20%, 88%)",
                       boxShadow: isPopular ? `0 4px 20px ${accentColor}20` : "0 1px 3px rgba(0,0,0,0.04)",
@@ -439,7 +448,7 @@ const Storefront = () => {
                         Most Popular
                       </span>
                     )}
-                    <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
+                    <h3 className="text-lg font-bold text-foreground break-words">{plan.name}</h3>
                     <p className="text-2xl font-bold text-foreground mt-2">
                       {plan.is_free ? "Free" : formatPrice(plan.price_num)}
                     </p>
@@ -461,7 +470,7 @@ const Storefront = () => {
                       ))}
                     </ul>
                     <Button
-                      className="w-full mt-6 h-11 rounded-lg font-semibold"
+                      className="w-full mt-6 h-12 rounded-lg font-semibold text-[15px] whitespace-normal"
                       style={
                         isPopular
                           ? { backgroundColor: accentColor, color: "#fff" }

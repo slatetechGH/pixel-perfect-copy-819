@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useApp } from "@/contexts/AppContext";
 import {
   planToRow, rowToPlan, dropToRow, rowToDrop, contentToRow, rowToContent,
@@ -657,7 +658,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       return exists ? prev.map(p => p.id === plan.id ? plan : p) : [...prev, plan];
     });
     if (!demoActive && producerId) {
-      await supabase.from("plans").upsert(planToRow(plan, producerId) as any);
+      const { error } = await supabase.from("plans").upsert(planToRow(plan, producerId) as any);
+      if (error) {
+        console.error("Failed to save plan:", error.message);
+        toast.error("Failed to save plan: " + error.message);
+      }
     }
   }, [demoActive, producerId]);
 
@@ -674,7 +679,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       return exists ? prev.map(d => d.id === drop.id ? drop : d) : [...prev, drop];
     });
     if (!demoActive && producerId) {
-      await supabase.from("drops").upsert(dropToRow(drop, producerId) as any);
+      const { error } = await supabase.from("drops").upsert(dropToRow(drop, producerId) as any);
+      if (error) {
+        console.error("Failed to save drop:", error.message);
+        toast.error("Failed to save drop: " + error.message);
+      }
     }
   }, [demoActive, producerId]);
 
@@ -691,7 +700,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       return exists ? prev.map(c => c.id === item.id ? item : c) : [...prev, item];
     });
     if (!demoActive && producerId) {
-      await supabase.from("content").upsert(contentToRow(item, producerId) as any);
+      const { error } = await supabase.from("content").upsert(contentToRow(item, producerId) as any);
+      if (error) {
+        console.error("Failed to save content:", error.message);
+        toast.error("Failed to save content: " + error.message);
+      }
     }
   }, [demoActive, producerId]);
 
@@ -708,7 +721,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       return exists ? prev.map(s => s.id === sub.id ? sub : s) : [...prev, sub];
     });
     if (!demoActive && producerId) {
-      await supabase.from("subscribers").upsert(subscriberToRow(sub, producerId) as any);
+      const { error } = await supabase.from("subscribers").upsert(subscriberToRow(sub, producerId) as any);
+      if (error) {
+        console.error("Failed to save subscriber:", error.message);
+        toast.error("Failed to save subscriber: " + error.message);
+      }
     }
   }, [demoActive, producerId]);
 
