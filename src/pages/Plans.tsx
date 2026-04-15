@@ -31,7 +31,7 @@ const emptyPlan: Omit<Plan, "id"> = {
 };
 
 const Plans = () => {
-  const { plans, setPlans } = useDashboard();
+  const { plans, setPlans, savePlan, removePlan } = useDashboard();
   const { isFree, isAtPlanLimit } = useTierLimits();
   const { session, demoActive } = useApp();
   const [editing, setEditing] = useState<Plan | null>(null);
@@ -141,28 +141,23 @@ const Plans = () => {
     setEditing({ ...editing, benefits: editing.benefits.filter((_, i) => i !== index) });
   };
 
-  const save = () => {
+const save = async () => {
     if (!editing || !editing.name) { toast.error("Plan name is required"); return; }
     setSaving(true);
-    setTimeout(() => {
-      const updated = { ...editing, price: editing.priceNum === 0 ? "Free" : `£${editing.priceNum}/mo`, isFree: editing.priceNum === 0 };
-      if (isNew) setPlans(prev => [...prev, updated]);
-      else setPlans(prev => prev.map(p => p.id === updated.id ? updated : p));
-      setSaving(false);
-      setEditing(null);
-      toast.success(isNew ? "Plan created" : "Plan updated");
-    }, 400);
-  };
-
-  const deletePlan = (plan: Plan) => {
-    setPlans(prev => prev.filter(p => p.id !== plan.id));
+    const updated = { ...editing, price: editing.priceNum === 0 ? "Free" : `£${editing.priceNum}/mo`, isFree: editing.priceNum === 0 };
+    await savePlan(updated);
+    setSaving(false);
     setEditing(null);
-    toast.success(`"${plan.name}" deleted`);
   };
 
-  const toggleActive = (plan: Plan) => {
-    setPlans(prev => prev.map(p => p.id === plan.id ? { ...p, active: !p.active } : p));
-    toast.success(`"${plan.name}" ${plan.active ? "deactivated" : "activated"}`);
+  const deletePlan = async (plan: Plan) => {
+    await removePlan(plan.id);
+    setEditing(null);
+  };
+
+ const toggleActive = async (plan: Plan) => {
+    const updated = { ...plan, active: !plan.active };
+    await savePlan(updated);
   };
 
   return (
