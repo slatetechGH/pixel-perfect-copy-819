@@ -660,16 +660,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (demoActive) return;
     const pid = producerId || session.supabaseUser?.id;
     if (!pid) {
-      console.error("Cannot save plan — no producerId available");
-      toast.error("Failed to save plan — please refresh and try again");
+      console.error("savePlan: no producerId available — user:", session.supabaseUser?.id);
+      toast.error("Unable to save plan — please refresh the page and try again.");
       return;
     }
-    const { error } = await supabase.from("plans").upsert(planToRow(plan, pid) as any);
-    if (error) {
-      console.error("Failed to save plan:", error.message, error.details, error.hint);
-      toast.error("Failed to save plan: " + error.message);
-    } else {
-      toast.success("Plan saved!");
+    try {
+      const row = planToRow(plan, pid);
+      const { error } = await supabase.from("plans").upsert(row as any);
+      if (error) {
+        console.error("savePlan failed:", error.message, error.details, error.hint, error.code);
+        toast.error("Failed to save plan: " + error.message);
+      } else {
+        toast.success("Plan saved!");
+      }
+    } catch (err: any) {
+      console.error("savePlan exception:", err);
+      toast.error("Failed to save plan. Please try again.");
     }
   }, [demoActive, producerId, session.supabaseUser?.id]);
 
@@ -678,7 +684,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (demoActive) return;
     const pid = producerId || session.supabaseUser?.id;
     if (!pid) return;
-    await supabase.from("plans").delete().eq("id", id);
+    try {
+      const { error } = await supabase.from("plans").delete().eq("id", id);
+      if (error) { console.error("removePlan failed:", error.message); toast.error("Failed to delete: " + error.message); }
+    } catch (err: any) { console.error("removePlan exception:", err); }
   }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const saveDrop = useCallback(async (drop: Drop) => {
@@ -688,18 +697,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     });
     if (demoActive) return;
     const pid = producerId || session.supabaseUser?.id;
-    if (!pid) {
-      console.error("Cannot save drop — no producerId available");
-      toast.error("Failed to save drop — please refresh and try again");
-      return;
-    }
-    const { error } = await supabase.from("drops").upsert(dropToRow(drop, pid) as any);
-    if (error) {
-      console.error("Failed to save drop:", error.message);
-      toast.error("Failed to save drop: " + error.message);
-    } else {
-      toast.success("Drop saved!");
-    }
+    if (!pid) { toast.error("Unable to save — please refresh the page."); return; }
+    try {
+      const { error } = await supabase.from("drops").upsert(dropToRow(drop, pid) as any);
+      if (error) { console.error("saveDrop failed:", error.message); toast.error("Failed to save: " + error.message); }
+    } catch (err: any) { console.error("saveDrop exception:", err); toast.error("Failed to save. Please try again."); }
   }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const removeDrop = useCallback(async (id: string) => {
@@ -707,7 +709,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (demoActive) return;
     const pid = producerId || session.supabaseUser?.id;
     if (!pid) return;
-    await supabase.from("drops").delete().eq("id", id);
+    try {
+      const { error } = await supabase.from("drops").delete().eq("id", id);
+      if (error) { console.error("removeDrop failed:", error.message); toast.error("Failed to delete: " + error.message); }
+    } catch (err: any) { console.error("removeDrop exception:", err); }
   }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const saveContent = useCallback(async (item: ContentItem) => {
@@ -717,18 +722,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     });
     if (demoActive) return;
     const pid = producerId || session.supabaseUser?.id;
-    if (!pid) {
-      console.error("Cannot save content — no producerId available");
-      toast.error("Failed to save content — please refresh and try again");
-      return;
-    }
-    const { error } = await supabase.from("content").upsert(contentToRow(item, pid) as any);
-    if (error) {
-      console.error("Failed to save content:", error.message);
-      toast.error("Failed to save content: " + error.message);
-    } else {
-      toast.success("Content saved!");
-    }
+    if (!pid) { toast.error("Unable to save — please refresh the page."); return; }
+    try {
+      const { error } = await supabase.from("content").upsert(contentToRow(item, pid) as any);
+      if (error) { console.error("saveContent failed:", error.message); toast.error("Failed to save: " + error.message); }
+    } catch (err: any) { console.error("saveContent exception:", err); toast.error("Failed to save. Please try again."); }
   }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const removeContent = useCallback(async (id: string) => {
@@ -736,7 +734,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (demoActive) return;
     const pid = producerId || session.supabaseUser?.id;
     if (!pid) return;
-    await supabase.from("content").delete().eq("id", id);
+    try {
+      const { error } = await supabase.from("content").delete().eq("id", id);
+      if (error) { console.error("removeContent failed:", error.message); toast.error("Failed to delete: " + error.message); }
+    } catch (err: any) { console.error("removeContent exception:", err); }
   }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const saveSubscriber = useCallback(async (sub: Subscriber) => {
@@ -746,16 +747,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     });
     if (demoActive) return;
     const pid = producerId || session.supabaseUser?.id;
-    if (!pid) {
-      console.error("Cannot save subscriber — no producerId available");
-      toast.error("Failed to save subscriber — please refresh and try again");
-      return;
-    }
-    const { error } = await supabase.from("subscribers").upsert(subscriberToRow(sub, pid) as any);
-    if (error) {
-      console.error("Failed to save subscriber:", error.message);
-      toast.error("Failed to save subscriber: " + error.message);
-    }
+    if (!pid) { toast.error("Unable to save — please refresh the page."); return; }
+    try {
+      const { error } = await supabase.from("subscribers").upsert(subscriberToRow(sub, pid) as any);
+      if (error) { console.error("saveSubscriber failed:", error.message); toast.error("Failed to save: " + error.message); }
+    } catch (err: any) { console.error("saveSubscriber exception:", err); toast.error("Failed to save. Please try again."); }
   }, [demoActive, producerId, session.supabaseUser?.id]);
 
   const updateSubscriber = useCallback(async (id: string, updates: Partial<Subscriber>) => {
