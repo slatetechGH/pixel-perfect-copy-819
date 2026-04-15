@@ -653,42 +653,71 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // ===== CRUD MUTATIONS =====
   const savePlan = useCallback(async (plan: Plan) => {
+    const isNew = !plans.some(p => p.id === plan.id);
+    
     setPlans(prev => {
       const exists = prev.some(p => p.id === plan.id);
       return exists ? prev.map(p => p.id === plan.id ? plan : p) : [...prev, plan];
     });
+
     if (demoActive) return;
-    const pid = producerId || session.supabaseUser?.id;
-    if (!pid) {
-      console.error("savePlan: no producerId available — user:", session.supabaseUser?.id);
-      toast.error("Unable to save plan — please refresh the page and try again.");
-      return;
-    }
+
     try {
-      const row = planToRow(plan, pid);
-      const { error } = await supabase.from("plans").upsert(row as any);
-      if (error) {
-        console.error("savePlan failed:", error.message, error.details, error.hint, error.code);
-        toast.error("Failed to save plan: " + error.message);
+      if (isNew) {
+        const { error } = await supabase.rpc('create_plan', {
+          p_name: plan.name,
+          p_price_num: plan.priceNum,
+          p_is_free: plan.isFree,
+          p_benefits: plan.benefits.filter(b => b.trim() !== ''),
+          p_description: plan.description || '',
+          p_show_on_public_page: plan.showOnPublicPage,
+          p_collections_per_month: plan.collectionsPerMonth || 0,
+        });
+        if (error) {
+          console.error("create_plan RPC error:", error.message);
+          toast.error("Failed to save plan: " + error.message);
+        } else {
+          toast.success("Plan saved!");
+        }
       } else {
-        toast.success("Plan saved!");
+        const { error } = await supabase.rpc('update_plan', {
+          p_id: plan.id,
+          p_name: plan.name,
+          p_price_num: plan.priceNum,
+          p_is_free: plan.isFree,
+          p_benefits: plan.benefits.filter(b => b.trim() !== ''),
+          p_description: plan.description || '',
+          p_show_on_public_page: plan.showOnPublicPage,
+          p_collections_per_month: plan.collectionsPerMonth || 0,
+        });
+        if (error) {
+          console.error("update_plan RPC error:", error.message);
+          toast.error("Failed to update plan: " + error.message);
+        } else {
+          toast.success("Plan updated!");
+        }
       }
     } catch (err: any) {
       console.error("savePlan exception:", err);
-      toast.error("Failed to save plan. Please try again.");
+      toast.error("Failed to save plan.");
     }
-  }, [demoActive, producerId, session.supabaseUser?.id]);
+  }, [demoActive, plans]);
 
   const removePlan = useCallback(async (id: string) => {
     setPlans(prev => prev.filter(p => p.id !== id));
     if (demoActive) return;
-    const pid = producerId || session.supabaseUser?.id;
-    if (!pid) return;
     try {
-      const { error } = await supabase.from("plans").delete().eq("id", id);
-      if (error) { console.error("removePlan failed:", error.message); toast.error("Failed to delete: " + error.message); }
-    } catch (err: any) { console.error("removePlan exception:", err); }
-  }, [demoActive, producerId, session.supabaseUser?.id]);
+      const { error } = await supabase.rpc('delete_plan', { p_id: id });
+      if (error) {
+        console.error("delete_plan RPC error:", error.message);
+        toast.error("Failed to delete plan: " + error.message);
+      } else {
+        toast.success("Plan deleted!");
+      }
+    } catch (err: any) {
+      console.error("removePlan exception:", err);
+    }
+  }, [demoActive]);
 
   const saveDrop = useCallback(async (drop: Drop) => {
     setDrops(prev => {
