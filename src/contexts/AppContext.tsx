@@ -238,6 +238,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
           fetchWithTimeout(fetchRole(user.id), 4000),
         ]);
         if (isMounted) {
+          // Clear demo state for producers — demoActive should only be true for admin-launched demos
+          if (role === 'producer') {
+            localStorage.removeItem('slate_demo_preview');
+            localStorage.removeItem('slate_demo_storefront');
+            setDemoActive(false);
+          }
           setSession({
             isLoggedIn: true,
             currentUser: profile?.business_name || user.email || "",
