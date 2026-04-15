@@ -1253,6 +1253,19 @@ export type Database = {
     }
     Functions: {
       assign_customer_role: { Args: never; Returns: undefined }
+      create_plan: {
+        Args: {
+          p_benefits: string[]
+          p_collections_per_month?: number
+          p_description?: string
+          p_is_free: boolean
+          p_name: string
+          p_price_num: number
+          p_show_on_public_page?: boolean
+        }
+        Returns: string
+      }
+      delete_plan: { Args: { p_id: string }; Returns: undefined }
       get_all_producers: {
         Args: never
         Returns: {
@@ -1271,6 +1284,19 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      update_plan: {
+        Args: {
+          p_benefits: string[]
+          p_collections_per_month?: number
+          p_description?: string
+          p_id: string
+          p_is_free: boolean
+          p_name: string
+          p_price_num: number
+          p_show_on_public_page?: boolean
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "producer" | "customer"
