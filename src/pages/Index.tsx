@@ -94,17 +94,14 @@ const DashboardHome = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
         <div className="cursor-pointer" onClick={() => navigate("/dashboard/analytics")}>
-          <MetricCard title="Monthly Recurring Revenue" value={kpiData.mrr} change={kpiData.mrrChange} trend="up" delay={0} />
-        </div>
+          <MetricCard title="Monthly Income" value={kpiData.mrr} change={kpiData.mrrChange} trend="up" delay={0} />
         <div className="cursor-pointer" onClick={() => navigate("/dashboard/subscribers")}>
           <MetricCard title="Total Subscribers" value={kpiData.totalSubs} change={kpiData.subsChange} trend="up" delay={80} />
         </div>
         <div className="cursor-pointer" onClick={() => navigate("/dashboard/analytics")}>
-          <MetricCard title="Churn Rate" value={kpiData.churn} change={kpiData.churnChange} trend="up" delay={160} />
-        </div>
+          <MetricCard title="Customers Lost" value={kpiData.churn} change={kpiData.churnChange} trend="up" delay={160} />
         <div className="cursor-pointer" onClick={() => navigate("/dashboard/analytics")}>
-          <MetricCard title="Avg. Revenue Per User" value={kpiData.arpu} change={kpiData.arpuChange} trend="up" delay={240} />
-        </div>
+          <MetricCard title="Average Per Customer" value={kpiData.arpu} change={kpiData.arpuChange} trend="up" delay={240} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-7">
