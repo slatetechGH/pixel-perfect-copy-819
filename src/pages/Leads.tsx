@@ -40,13 +40,13 @@ interface Lead {
 }
 
 const STATUS_TABS = [
-  { key: "all", label: "All" },
   { key: "new", label: "New" },
   { key: "reviewed", label: "Reviewed" },
   { key: "meeting_booked", label: "Meeting Booked" },
   { key: "follow_up", label: "Follow Up" },
   { key: "converted", label: "Converted" },
   { key: "ignored", label: "Ignored" },
+  { key: "all", label: "All" },
 ] as const;
 
 const STATUS_OPTIONS = STATUS_TABS.filter(t => t.key !== "all");
@@ -69,7 +69,7 @@ const Leads = () => {
   const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("new");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("newest");
   const [expandedId, setExpandedId] = useState<string | null>(null);
