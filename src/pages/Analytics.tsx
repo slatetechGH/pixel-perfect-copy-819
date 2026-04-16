@@ -59,7 +59,7 @@ const Analytics = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
         <MetricCard title="MRR" value={kpiData.mrr} change={kpiData.mrrChange} trend="up" />
-        <MetricCard title="Lifetime Value" value={kpiData.ltv} change={kpiData.ltvChange} trend="up" delay={80} />
+        <MetricCard title="Total Customer Value" value={kpiData.ltv} change={kpiData.ltvChange} trend="up" delay={80} />
         <MetricCard title="Drop Conversion" value={kpiData.dropConversion} change={kpiData.dropConversionChange} trend="up" delay={160} />
         <MetricCard title="Content Engagement" value={kpiData.contentEngagement} change={kpiData.contentEngagementChange} trend="up" delay={240} />
       </div>
