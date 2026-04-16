@@ -75,11 +75,12 @@ const DemoPreview = () => {
     }
   }, []); // Run once on mount
 
-  // Step 2: Once data is populated and demo mode is active, navigate to /dashboard
+  // Step 2: Once data is populated, navigate to /dashboard
   useEffect(() => {
-    if (populated && demoActive) {
+    if (populated) {
       navigate("/dashboard", { replace: true });
     }
+  }, [populated, navigate]);
   }, [populated, demoActive, navigate]);
 
   if (error) {
