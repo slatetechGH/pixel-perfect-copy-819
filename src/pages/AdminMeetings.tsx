@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Calendar, Plus, Check, Loader2, Trash2, ExternalLink,
-  Video, Phone, MapPin, MoreHorizontal, Clock, TrendingUp,
+  Video, Phone, MapPin, MoreHorizontal, Clock, TrendingUp, Copy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/contexts/AppContext";
@@ -37,15 +37,9 @@ interface Meeting {
 }
 
 const MEETING_TYPES = [
-  { value: "google_meet", label: "Google Meet", icon: Video },
-  { value: "teams", label: "Microsoft Teams", icon: Video },
+  { value: "video_call", label: "Video Call", icon: Video },
   { value: "phone", label: "Phone Call", icon: Phone },
   { value: "in_person", label: "In Person", icon: MapPin },
-  { value: "demo_call", label: "Demo Call", icon: Video },
-  { value: "onboarding", label: "Onboarding", icon: Video },
-  { value: "check_in", label: "Check-in", icon: Video },
-  { value: "follow_up", label: "Follow-up", icon: Phone },
-  { value: "other", label: "Other", icon: Calendar },
 ];
 
 const DURATIONS = [15, 30, 45, 60];
@@ -57,39 +51,12 @@ const STATUSES = [
   { value: "no_show", label: "No Show", color: "bg-red-100 text-red-700" },
 ];
 
-const generateCalendarLink = (
-  type: string,
-  title: string,
-  startDate: Date,
-  duration: number,
-  email: string,
-  notes: string
-) => {
-  const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
-  const fmtGoogle = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-
-  if (type === "google_meet") {
-    const params = new URLSearchParams({
-      action: "TEMPLATE",
-      text: title,
-      dates: `${fmtGoogle(startDate)}/${fmtGoogle(endDate)}`,
-      details: notes || `Meeting with ${email}`,
-      add: email,
-    });
-    return `https://calendar.google.com/calendar/render?${params.toString()}`;
+const generateMeetingLink = (type: string, leadName: string) => {
+  if (type === "video_call") {
+    const sanitized = leadName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30) || "meeting";
+    const random = Math.random().toString(36).slice(2, 8);
+    return `https://meet.jit.si/slate-${sanitized}-${random}`;
   }
-
-  if (type === "teams") {
-    const params = new URLSearchParams({
-      subject: title,
-      startdt: startDate.toISOString(),
-      enddt: endDate.toISOString(),
-      to: email,
-      body: notes || `Meeting with ${email}`,
-    });
-    return `https://outlook.office.com/calendar/0/deeplink/compose?${params.toString()}`;
-  }
-
   return null;
 };
 
@@ -114,7 +81,7 @@ const AdminMeetings = () => {
   const [formDate, setFormDate] = useState("");
   const [formTime, setFormTime] = useState("10:00");
   const [formDuration, setFormDuration] = useState(30);
-  const [formType, setFormType] = useState("google_meet");
+  const [formType, setFormType] = useState("video_call");
   const [formNotes, setFormNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [calendarLink, setCalendarLink] = useState<string | null>(null);
@@ -157,17 +124,20 @@ const AdminMeetings = () => {
 
   const resetForm = () => {
     setFormName(""); setFormEmail(""); setFormLeadId(""); setFormDate("");
-    setFormTime("10:00"); setFormDuration(30); setFormType("google_meet");
+    setFormTime("10:00"); setFormDuration(30); setFormType("video_call");
     setFormNotes(""); setCalendarLink(null);
   };
 
   const handleBookMeeting = async () => {
-    if (!formName.trim() || !formDate) { toast.error("Name and date are required"); return; }
+    if (!formName.trim() || !formEmail.trim() || !formDate) {
+      toast.error("Name, email and date are required");
+      return;
+    }
     setSaving(true);
 
     const dateTime = new Date(`${formDate}T${formTime}`);
     const title = `Slate Demo – ${formName.trim()}`;
-    const link = generateCalendarLink(formType, title, dateTime, formDuration, formEmail, formNotes);
+    const meetingLink = generateMeetingLink(formType, formName);
 
     const insertData: any = {
       admin_id: session.supabaseUser!.id,
@@ -176,13 +146,17 @@ const AdminMeetings = () => {
       date: dateTime.toISOString(),
       notes: formNotes.trim() || null,
       duration_minutes: formDuration,
-      meeting_link: link,
+      meeting_link: meetingLink,
       status: "scheduled",
     };
     if (formLeadId) insertData.lead_id = formLeadId;
 
     const { error } = await supabase.from("admin_meetings").insert(insertData);
-    if (error) { toast.error("Failed to create meeting"); setSaving(false); return; }
+    if (error) {
+      toast.error("Failed to create meeting");
+      setSaving(false);
+      return;
+    }
 
     // Update lead status if linked
     if (formLeadId) {
@@ -192,8 +166,31 @@ const AdminMeetings = () => {
       } as any).eq("id", formLeadId);
     }
 
-    toast.success(`Meeting booked with ${formName}`);
-    setCalendarLink(link);
+    // Send confirmation email to the lead
+    try {
+      const { error: emailError } = await supabase.functions.invoke("send-meeting-confirmation", {
+        body: {
+          to_email: formEmail.trim(),
+          to_name: formName.trim(),
+          meeting_date: dateTime.toISOString(),
+          duration_minutes: formDuration,
+          meeting_type: formType,
+          meeting_link: meetingLink,
+          notes: formNotes.trim() || null,
+        },
+      });
+      if (emailError) {
+        console.error("Email send error:", emailError);
+        toast.success(`Meeting booked with ${formName} — but confirmation email failed to send`);
+      } else {
+        toast.success(`Meeting booked with ${formName} — confirmation email sent`);
+      }
+    } catch (e) {
+      console.error("Email send exception:", e);
+      toast.success(`Meeting booked with ${formName} — but confirmation email failed to send`);
+    }
+
+    setCalendarLink(meetingLink);
     setSaving(false);
     fetchMeetings();
   };
@@ -209,6 +206,11 @@ const AdminMeetings = () => {
     setMeetings(prev => prev.filter(m => m.id !== id));
     await supabase.from("admin_meetings").delete().eq("id", id);
     toast.success("Meeting deleted");
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Link copied to clipboard");
   };
 
   if (loading) {
@@ -304,18 +306,33 @@ const AdminMeetings = () => {
           <DialogHeader>
             <DialogTitle>Book a Meeting</DialogTitle>
           </DialogHeader>
-          {calendarLink ? (
+          {calendarLink !== null || (calendarLink === null && saving === false && formName && formEmail && formDate && meetings.length > 0 && false) ? (
+            /* Show nothing here — actual success state below */
+            null
+          ) : null}
+          {calendarLink !== null ? (
             <div className="text-center py-6">
               <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
                 <Check className="h-6 w-6 text-green-600" />
               </div>
               <p className="text-[16px] font-medium text-foreground mb-1">Meeting booked!</p>
               <p className="text-[14px] text-muted-foreground mb-4">Meeting with {formName} has been created.</p>
-              <Button onClick={() => window.open(calendarLink, "_blank")}>
-                <ExternalLink className="h-4 w-4 mr-1.5" />
-                {formType === "google_meet" ? "Open in Google Calendar" : formType === "teams" ? "Open in Outlook" : "View"}
-              </Button>
-              <div className="mt-3">
+              {calendarLink && (
+                <div className="space-y-2">
+                  <Button onClick={() => window.open(calendarLink, "_blank")}>
+                    <ExternalLink className="h-4 w-4 mr-1.5" />
+                    Join Video Call
+                  </Button>
+                  <div>
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(calendarLink)}>
+                      <Copy className="h-4 w-4 mr-1.5" />
+                      Copy Link
+                    </Button>
+                  </div>
+                  <p className="text-[12px] text-muted-foreground break-all mt-2">{calendarLink}</p>
+                </div>
+              )}
+              <div className="mt-4">
                 <Button variant="ghost" size="sm" onClick={() => { setShowBooking(false); resetForm(); }}>Close</Button>
               </div>
             </div>
@@ -323,15 +340,15 @@ const AdminMeetings = () => {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-[12px]">Lead Name *</Label>
+                  <Label className="text-[12px]">Lead name <span className="text-red-500">*</span></Label>
                   <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="e.g. John Smith" />
                 </div>
                 <div>
-                  <Label className="text-[12px]">Lead Email</Label>
+                  <Label className="text-[12px]">Lead email <span className="text-red-500">*</span></Label>
                   <Input value={formEmail} onChange={e => setFormEmail(e.target.value)} placeholder="john@example.com" type="email" />
                 </div>
                 <div>
-                  <Label className="text-[12px]">Date *</Label>
+                  <Label className="text-[12px]">Date <span className="text-red-500">*</span></Label>
                   <Input type="date" value={formDate} onChange={e => setFormDate(e.target.value)} />
                 </div>
                 <div>
@@ -360,24 +377,26 @@ const AdminMeetings = () => {
                   </select>
                 </div>
                 <div>
-                  <Label className="text-[12px]">Meeting Type</Label>
+                  <Label className="text-[12px]">Meeting type</Label>
                   <select
                     value={formType}
                     onChange={e => setFormType(e.target.value)}
                     className="w-full h-10 px-3 rounded-lg border border-input bg-popover text-[14px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/15 focus-visible:border-primary"
                   >
-                    <option value="google_meet">Google Meet</option>
-                    <option value="teams">Microsoft Teams</option>
+                    <option value="video_call">Video Call</option>
                     <option value="phone">Phone Call</option>
                     <option value="in_person">In Person</option>
                   </select>
                 </div>
               </div>
-              {(formType === "phone") && (
-                <p className="text-[13px] text-muted-foreground mt-2">📞 Phone call — no meeting link generated.</p>
+              {formType === "video_call" && (
+                <p className="text-[13px] text-muted-foreground mt-2">🎥 A Jitsi video link will be generated and sent to the lead</p>
               )}
-              {(formType === "in_person") && (
-                <p className="text-[13px] text-muted-foreground mt-2">📍 In person meeting — no meeting link generated.</p>
+              {formType === "phone" && (
+                <p className="text-[13px] text-muted-foreground mt-2">📞 Make sure the phone number is in your notes</p>
+              )}
+              {formType === "in_person" && (
+                <p className="text-[13px] text-muted-foreground mt-2">📍 Add the location in your notes</p>
               )}
               <div className="mt-2">
                 <Label className="text-[12px]">Notes</Label>
@@ -451,7 +470,7 @@ const MeetingCard = ({
             {m.notes && <p className="text-[13px] text-muted-foreground mt-1 truncate">{m.notes}</p>}
             {m.meeting_link && status === "scheduled" && (
               <Button variant="link" size="sm" className="px-0 h-auto mt-1 text-[13px]" onClick={() => window.open(m.meeting_link!, "_blank")}>
-                <ExternalLink className="h-3.5 w-3.5 mr-1" />Open Calendar Link
+                <ExternalLink className="h-3.5 w-3.5 mr-1" />Join Video Call
               </Button>
             )}
           </div>
