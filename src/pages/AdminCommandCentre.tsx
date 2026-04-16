@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   UserPlus, Building2, Wand2, PoundSterling, Calendar, Shield, ExternalLink,
-  Download, Plus, Loader2, Users, TrendingUp, Bell, Zap, Mail, AlertTriangle,
+  Download, Plus, Loader2, Users, TrendingUp, Bell, Mail, AlertTriangle,
+  CheckCircle2, Rocket,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -45,6 +46,13 @@ const getGreeting = () => {
   return "Good evening";
 };
 
+const getMotivation = () => {
+  const h = new Date().getHours();
+  if (h < 12) return "Let's make today count";
+  if (h < 18) return "Keep the momentum going";
+  return "Time to wrap up the day";
+};
+
 const tileAccents: Record<string, string> = {
   "Leads & Enquiries": "hsl(38, 92%, 50%)",
   "Producers": "hsl(217, 91%, 60%)",
@@ -54,12 +62,22 @@ const tileAccents: Record<string, string> = {
   "Platform Health": "hsl(215, 16%, 65%)",
 };
 
+const tileDescriptions: Record<string, string> = {
+  "Leads & Enquiries": "Manage incoming enquiries and signups",
+  "Producers": "View and manage all producers",
+  "Demo Launcher": "Configure and launch demo experiences",
+  "Revenue & Commission": "Track platform revenue and earnings",
+  "Meetings & Follow-ups": "Schedule and manage meetings",
+  "Platform Health": "Monitor system status and functions",
+};
+
 const statConfig = [
-  { label: "Total Producers", icon: Building2, bg: "hsl(217, 91%, 95%)", iconColor: "hsl(217, 91%, 60%)" },
-  { label: "Total Subscribers", icon: Users, bg: "hsl(160, 84%, 93%)", iconColor: "hsl(160, 84%, 39%)" },
+  { label: "Total producers", icon: Building2, bg: "hsl(217, 91%, 95%)", iconColor: "hsl(217, 91%, 60%)" },
+  { label: "Total subscribers", icon: Users, bg: "hsl(160, 84%, 93%)", iconColor: "hsl(160, 84%, 39%)" },
   { label: "Platform MRR", icon: PoundSterling, bg: "hsl(38, 92%, 93%)", iconColor: "hsl(38, 92%, 50%)" },
-  { label: "Commission (8%)", icon: TrendingUp, bg: "hsl(270, 60%, 93%)", iconColor: "hsl(270, 60%, 60%)" },
-  { label: "New Leads", icon: Bell, bg: "hsl(25, 95%, 93%)", iconColor: "hsl(25, 95%, 53%)" },
+  { label: "Commission (8%)", icon: TrendingUp, bg: "hsl(38, 92%, 93%)", iconColor: "hsl(38, 92%, 50%)" },
+  { label: "New leads", icon: Bell, bg: "hsl(38, 92%, 93%)", iconColor: "hsl(25, 95%, 53%)" },
+  { label: "Follow-ups due", icon: AlertTriangle, bg: "hsl(0, 84%, 95%)", iconColor: "hsl(0, 72%, 51%)" },
 ];
 
 const AdminCommandCentre = () => {
@@ -95,7 +113,6 @@ const AdminCommandCentre = () => {
       const activeSubs = (subsRes.data || []).filter((s: any) => s.status === "active").length;
       const mrr = (subscriptionsRes.data || []).reduce((sum: number, s: any) => sum + (s.amount_paid || 0), 0) / 100;
 
-      // Filter follow-up leads that haven't been contacted in 3+ days
       const allFollowUps = (followUpRes.data || []) as FollowUpLead[];
       const staleFollowUps = allFollowUps.filter(l => {
         if (!l.last_contacted_at) return true;
@@ -125,7 +142,8 @@ const AdminCommandCentre = () => {
   }, []);
 
   const adminName = session.profile?.display_name || session.profile?.business_name || "";
-  const displayGreeting = adminName ? `${getGreeting()}, ${adminName.split(" ")[0]}` : getGreeting();
+  const firstName = adminName ? adminName.split(" ")[0] : "";
+  const displayGreeting = firstName ? `${getGreeting()}, ${firstName} 👋` : `${getGreeting()} 👋`;
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   if (loading) {
@@ -144,6 +162,7 @@ const AdminCommandCentre = () => {
     `£${stats.platformMRR.toFixed(0)}`,
     `£${stats.platformCommission.toFixed(2)}`,
     stats.newLeadsCount,
+    stats.followUpCount,
   ];
 
   const nextMeeting = upcomingMeetings[0];
@@ -159,6 +178,7 @@ const AdminCommandCentre = () => {
         ? recentLeads.map(l => ({ label: l.name, sub: l.date }))
         : [{ label: "No new leads", sub: "Leads appear here" }],
       subtitle: `${stats.newLeadsCount} new, ${stats.followUpCount} follow up`,
+      urgent: stats.newLeadsCount > 0,
     },
     {
       title: "Producers",
@@ -172,7 +192,7 @@ const AdminCommandCentre = () => {
       title: "Demo Launcher",
       icon: Wand2,
       route: "/demo-setup",
-      preview: [{ label: "Quick Launch", sub: "Configure demo experiences" }],
+      preview: [{ label: "Quick launch", sub: "Configure demo experiences" }],
     },
     {
       title: "Revenue & Commission",
@@ -216,32 +236,72 @@ const AdminCommandCentre = () => {
     toast.success("Leads exported!");
   };
 
+  const hasReminders = followUpLeads.length > 0 || overdueMeetings.length > 0;
+
   return (
     <DashboardLayout title="Command Centre" subtitle="">
-      {/* Greeting */}
-      <div className="mb-8">
-        <h2 className="text-[28px] font-bold text-foreground">{displayGreeting}</h2>
-        <p className="text-[14px] text-muted-foreground mt-1">{today}</p>
-      </div>
+      {/* Hero greeting banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="rounded-2xl p-8 mb-6"
+        style={{
+          background: "linear-gradient(135deg, #1E293B 0%, #334155 60%, #D97706 180%)",
+        }}
+      >
+        <h2 className="text-[28px] font-bold text-white leading-tight">{displayGreeting}</h2>
+        <p className="text-white/60 text-[14px] mt-1.5">{today} · {getMotivation()}</p>
+      </motion.div>
+
+      {/* Quick action buttons */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.35 }}
+        className="flex flex-wrap gap-2.5 mb-7"
+      >
+        <Button size="sm" onClick={() => navigate("/dashboard/leads")} className="h-10 gap-1.5">
+          <UserPlus className="h-4 w-4" />New lead
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => navigate("/admin/meetings")} className="h-10 gap-1.5">
+          <Calendar className="h-4 w-4" />Book meeting
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => navigate("/demo-setup")} className="h-10 gap-1.5">
+          <Rocket className="h-4 w-4" />Launch demo
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => window.open("https://slatetech.co.uk", "_blank")} className="h-10 gap-1.5">
+          <ExternalLink className="h-4 w-4" />View live site
+        </Button>
+      </motion.div>
 
       {/* Quick stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
         {statConfig.map((s, i) => {
           const Icon = s.icon;
+          const isPulsing = (s.label === "New leads" && stats.newLeadsCount > 0) ||
+                           (s.label === "Follow-ups due" && stats.followUpCount > 0);
           return (
             <motion.div
               key={s.label}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06, duration: 0.35 }}
-              className="rounded-xl border border-border p-4"
-              style={{ backgroundColor: s.bg }}
+              transition={{ delay: 0.15 + i * 0.05, duration: 0.35 }}
+              className="bg-white rounded-xl border border-border/60 p-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-default"
             >
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-[12px] text-muted-foreground font-medium">{s.label}</p>
-                <Icon className="h-4 w-4" style={{ color: s.iconColor }} strokeWidth={1.5} />
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className="h-10 w-10 rounded-full flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: s.bg }}
+                >
+                  <Icon className="h-[18px] w-[18px]" style={{ color: s.iconColor }} strokeWidth={2} />
+                </div>
+                {isPulsing && (
+                  <span className="h-2.5 w-2.5 rounded-full animate-pulse" style={{ backgroundColor: s.iconColor }} />
+                )}
               </div>
-              <p className="text-[22px] font-semibold text-foreground">{statValues[i]}</p>
+              <p className="text-[28px] font-bold text-foreground leading-none">{statValues[i]}</p>
+              <p className="text-[12px] text-muted-foreground mt-1.5 font-medium">{s.label}</p>
             </motion.div>
           );
         })}
@@ -251,44 +311,66 @@ const AdminCommandCentre = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-8">
         {tiles.map((tile, i) => {
           const accent = tileAccents[tile.title] || "hsl(215, 16%, 65%)";
+          const TileIcon = tile.icon;
+          const desc = tileDescriptions[tile.title] || "";
           return (
             <motion.div
               key={tile.title}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 + i * 0.07, duration: 0.4 }}
+              transition={{ delay: 0.3 + i * 0.06, duration: 0.4 }}
             >
               <Card
-                className="border border-border bg-card hover:shadow-lg hover:border-foreground/15 transition-all duration-200 cursor-pointer group overflow-hidden"
-                style={{ borderLeftWidth: 3, borderLeftColor: accent, minHeight: 160 }}
+                className="border border-border/60 bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group overflow-hidden relative"
+                style={{ minHeight: 180 }}
                 onClick={() => navigate(tile.route)}
               >
+                {/* Accent hover border */}
+                <div
+                  className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-opacity-100 transition-all duration-200 pointer-events-none"
+                  style={{ borderColor: `${accent}00` }}
+                />
                 <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-2.5">
-                      <tile.icon className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
-                      <h3 className="text-[15px] font-semibold text-foreground">{tile.title}</h3>
+                  <div className="flex items-start justify-between mb-3">
+                    <div
+                      className="h-12 w-12 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${accent}18` }}
+                    >
+                      <TileIcon className="h-5 w-5" style={{ color: accent }} strokeWidth={2} />
                     </div>
-                    {tile.badge && (
-                      <span className="inline-flex items-center rounded-full bg-amber/15 text-amber px-2 py-0.5 text-[12px] font-semibold">
-                        {tile.badge}
-                      </span>
-                    )}
-                    {tile.healthDot && (
-                      <span className="flex items-center gap-1.5 text-[12px] text-success font-medium">
-                        <span className="h-2 w-2 rounded-full bg-success" />
-                        Healthy
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {tile.badge && (
+                        <span
+                          className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px] font-semibold text-white"
+                          style={{ backgroundColor: accent }}
+                        >
+                          {tile.badge}
+                        </span>
+                      )}
+                      {tile.healthDot && (
+                        <span className="flex items-center gap-1.5 text-[12px] font-medium" style={{ color: "#10B981" }}>
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "#10B981" }} />
+                          Healthy
+                        </span>
+                      )}
+                      {"urgent" in tile && tile.urgent && (
+                        <span className="h-2.5 w-2.5 rounded-full animate-pulse" style={{ backgroundColor: accent }} />
+                      )}
+                    </div>
                   </div>
+
+                  <h3 className="text-[18px] font-bold text-foreground mb-0.5">{tile.title}</h3>
+                  <p className="text-[12px] text-muted-foreground mb-3">{desc}</p>
+
                   {"subtitle" in tile && tile.subtitle && (
-                    <p className="text-[12px] text-muted-foreground mb-2">{tile.subtitle}</p>
+                    <p className="text-[13px] font-medium mb-2" style={{ color: accent }}>{tile.subtitle}</p>
                   )}
-                  <div className="space-y-2">
+
+                  <div className="space-y-1.5 border-t border-border/40 pt-2.5">
                     {tile.preview.map((p, j) => (
                       <div key={j} className="flex items-center justify-between gap-2">
-                        <span className="text-[13px] text-foreground truncate min-w-0">{p.label}</span>
-                        <span className="text-[12px] text-muted-foreground shrink-0 ml-2 line-clamp-1">{p.sub}</span>
+                        <span className="text-[13px] text-foreground/80 truncate min-w-0">{p.label}</span>
+                        <span className="text-[12px] text-muted-foreground shrink-0 ml-2">{p.sub}</span>
                       </div>
                     ))}
                   </div>
@@ -299,72 +381,85 @@ const AdminCommandCentre = () => {
         })}
       </div>
 
-      {/* Follow-Up Reminders */}
-      {(followUpLeads.length > 0 || overdueMeetings.length > 0) && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.4 }}
-          className="mb-8"
-        >
-          <h3 className="text-[16px] font-semibold text-foreground mb-4 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-            Follow-Up Reminders
-          </h3>
+      {/* Follow-up reminders */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.4 }}
+        className="mb-8"
+      >
+        <h3 className="text-[16px] font-bold text-foreground mb-4 flex items-center gap-2">
+          {hasReminders ? (
+            <>
+              <AlertTriangle className="h-4 w-4" style={{ color: "#D97706" }} />
+              Needs your attention
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="h-4 w-4" style={{ color: "#10B981" }} />
+              You're all caught up! 🎉
+            </>
+          )}
+        </h3>
 
-          <div className="space-y-3">
+        {hasReminders ? (
+          <div className="space-y-2.5">
             {followUpLeads.map(lead => (
-              <Card key={lead.id} className="border border-amber-200 bg-amber-50/50">
-                <CardContent className="p-4 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[14px] font-medium text-foreground">{lead.business_name || lead.name || lead.email}</p>
-                    <p className="text-[12px] text-muted-foreground">
-                      {lead.last_contacted_at
-                        ? `Last contacted ${formatDistanceToNow(new Date(lead.last_contacted_at), { addSuffix: true })}`
-                        : "Never contacted"
-                      }
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={`mailto:${lead.email}`}>
-                      <Mail className="h-4 w-4 mr-1" />Contact Now
-                    </a>
-                  </Button>
-                </CardContent>
-              </Card>
+              <div
+                key={lead.id}
+                className="flex items-center justify-between gap-3 rounded-lg bg-white border border-border/60 p-4"
+                style={{ borderLeftWidth: 4, borderLeftColor: "#D97706" }}
+              >
+                <div className="min-w-0">
+                  <p className="text-[14px] font-semibold text-foreground">{lead.business_name || lead.name || lead.email}</p>
+                  <p className="text-[12px] text-muted-foreground">
+                    {lead.last_contacted_at
+                      ? `${formatDistanceToNow(new Date(lead.last_contacted_at))} since last contact`
+                      : "Never contacted"
+                    }
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" asChild className="shrink-0">
+                  <a href={`mailto:${lead.email}`}>
+                    <Mail className="h-4 w-4 mr-1" />Contact
+                  </a>
+                </Button>
+              </div>
             ))}
 
             {overdueMeetings.map(m => (
-              <Card key={m.id} className="border border-amber-200 bg-amber-50/50">
-                <CardContent className="p-4 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[14px] font-medium text-foreground">{m.title}</p>
-                    <p className="text-[12px] text-muted-foreground">
-                      Meeting was {formatDistanceToNow(new Date(m.date), { addSuffix: true })} — update status?
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button variant="outline" size="sm" onClick={() => navigate("/admin/meetings")}>
-                      Update
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div
+                key={m.id}
+                className="flex items-center justify-between gap-3 rounded-lg bg-white border border-border/60 p-4"
+                style={{ borderLeftWidth: 4, borderLeftColor: "#D97706" }}
+              >
+                <div className="min-w-0">
+                  <p className="text-[14px] font-semibold text-foreground">{m.title}</p>
+                  <p className="text-[12px] text-muted-foreground">
+                    Meeting was {formatDistanceToNow(new Date(m.date), { addSuffix: true })} — update status?
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => navigate("/admin/meetings")} className="shrink-0">
+                  Update
+                </Button>
+              </div>
             ))}
           </div>
-        </motion.div>
-      )}
+        ) : (
+          <div className="text-center py-8 rounded-lg border border-border/40 bg-white">
+            <CheckCircle2 className="h-8 w-8 mx-auto mb-2" style={{ color: "#10B981" }} />
+            <p className="text-[14px] text-muted-foreground">No outstanding follow-ups or overdue meetings</p>
+          </div>
+        )}
+      </motion.div>
 
-      {/* Quick actions */}
-      <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-        <Button size="sm" onClick={() => navigate("/admin/meetings")} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10 min-h-[44px] w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-1.5" />New Meeting
+      {/* Secondary actions */}
+      <div className="flex flex-wrap gap-2.5">
+        <Button size="sm" variant="outline" onClick={() => navigate("/admin/meetings")} className="h-10 gap-1.5">
+          <Plus className="h-4 w-4" />New meeting
         </Button>
-        <Button size="sm" onClick={exportLeadsCSV} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10 min-h-[44px] w-full sm:w-auto">
-          <Download className="h-4 w-4 mr-1.5" />Export Leads CSV
-        </Button>
-        <Button size="sm" onClick={() => window.open("https://slatetech.co.uk", "_blank")} className="bg-foreground/5 text-foreground border border-border hover:bg-foreground/10 min-h-[44px] w-full sm:w-auto">
-          <ExternalLink className="h-4 w-4 mr-1.5" />View Live Site
+        <Button size="sm" variant="outline" onClick={exportLeadsCSV} className="h-10 gap-1.5">
+          <Download className="h-4 w-4" />Export leads CSV
         </Button>
       </div>
     </DashboardLayout>
